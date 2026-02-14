@@ -242,7 +242,7 @@
 
     const rows = Array.from(tbody.querySelectorAll('tr'));
     const dataRows = rows.filter((row) => !row.querySelector('td[colspan]'));
-    if (!dataRows.length) return;
+    const hasDataRows = dataRows.length > 0;
 
     const controls = document.createElement('div');
     controls.className = 'table-controls';
@@ -307,6 +307,19 @@
     const fromDateInput = fromDateWrap.querySelector('input');
     const toDateInput = toDateWrap.querySelector('input');
     const resetButton = resetWrap.querySelector('button');
+
+    if (!hasDataRows) {
+      controls.classList.add('is-disabled');
+      [searchInput, statusSelect, fromDateInput, toDateInput, resetButton].forEach((el) => {
+        el.disabled = true;
+      });
+
+      const note = document.createElement('p');
+      note.className = 'table-controls__note';
+      note.textContent = 'Filters will activate when orders are available.';
+      controls.appendChild(note);
+      return;
+    }
 
     function applyFilters() {
       const searchTerm = (searchInput.value || '').trim().toLowerCase();

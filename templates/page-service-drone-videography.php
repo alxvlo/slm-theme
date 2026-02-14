@@ -8,8 +8,13 @@ get_header();
 
 $theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
-$hero_media = $theme_uri . '/assets/media/horizontal-videos/03-thank-you-aubrey-wessolowski.mp4';
+$hero_media = $theme_uri . '/assets/media/horizontal-videos/04-drone-video.mp4';
 $description_media = $theme_uri . '/assets/media/drone-photos/05-3-aerial-overview.jpg';
+$gallery_media = [
+  $theme_uri . '/assets/media/drone-photos/08-52-aerial-front-exterior-1.jpg',
+  $theme_uri . '/assets/media/drone-photos/10-75-aerial-view-2.jpg',
+  $theme_uri . '/assets/media/horizontal-videos/02-inside-this-stunning-north-florida-home-real-tours-north-florida.mp4',
+];
 
 $description = [
   'Drone videography delivers cinematic context and movement that helps your listing marketing feel premium, modern, and memorable.',
@@ -38,6 +43,7 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'subtitle' => 'Cinematic aerial video that adds scale, movement, and authority to your listing marketing system.',
   'hero_image' => $hero_media,
   'description_image' => $description_media,
+  'gallery' => $gallery_media,
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,

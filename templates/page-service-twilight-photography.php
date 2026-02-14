@@ -9,7 +9,7 @@ get_header();
 $theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
 $hero_media = $theme_uri . '/assets/media/twilight/01-99-twilight-aerial-front-exterior-3.jpg';
-$description_media = $theme_uri . '/assets/media/twilight/01-99-twilight-aerial-front-exterior-3.jpg';
+$description_media = '';
 
 $description = [
   'Twilight photography creates visual impact that instantly separates a listing from standard daytime coverage. The result is a premium, attention-grabbing presentation.',

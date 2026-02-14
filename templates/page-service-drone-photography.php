@@ -10,6 +10,11 @@ $theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
 $hero_media = $theme_uri . '/assets/media/drone-photos/08-52-aerial-front-exterior-1.jpg';
 $description_media = $theme_uri . '/assets/media/drone-photos/10-75-aerial-view-2.jpg';
+$gallery_media = [
+  $theme_uri . '/assets/media/drone-photos/05-3-aerial-overview.jpg',
+  $theme_uri . '/assets/media/drone-photos/09-6-aerial-overview-3.jpg',
+  $theme_uri . '/assets/media/drone-photos/07-4-aerial-rear-view-1.jpg',
+];
 
 $description = [
   'Drone photography adds context that ground-level media cannot provide. It helps buyers understand lot layout, surroundings, and location value at a glance.',
@@ -38,6 +43,7 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'subtitle' => 'Aerial listing imagery that strengthens property context, improves differentiation, and supports stronger market positioning.',
   'hero_image' => $hero_media,
   'description_image' => $description_media,
+  'gallery' => $gallery_media,
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,

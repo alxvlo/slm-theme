@@ -6,6 +6,7 @@ $args = wp_parse_args($args ?? [], [
   'subtitle' => '',
   'hero_image' => '',
   'description_image' => '',
+  'gallery' => [],       // array of media URLs
   'description' => [],   // array of paragraphs
   'benefits' => [],      // array of ['title' => '', 'description' => '']
   'why_choose' => [],    // array of strings
@@ -20,6 +21,11 @@ $primary_url = $is_logged_in ? slm_dashboard_url() : (string) $args['book_url'];
 $primary_label = $is_logged_in ? 'Go to Dashboard' : (string) $args['book_label'];
 $secondary_url = $is_logged_in ? slm_dashboard_url() : add_query_arg('mode', 'login', slm_login_url());
 $secondary_label = $is_logged_in ? 'Open Dashboard' : 'Already Have an Account? Sign In';
+$has_hero_media = !empty($args['hero_image']);
+$has_description_media = !empty($args['description_image']);
+$gallery_items = array_values(array_filter((array) $args['gallery'], static function ($item): bool {
+  return is_string($item) && trim($item) !== '';
+}));
 
 $render_media = static function (string $src): void {
   if ($src === '') return;
@@ -42,9 +48,8 @@ $render_media = static function (string $src): void {
 <main class="service-page">
   <section class="service-hero">
     <div class="container">
-      <div class="service-hero__grid">
+      <div class="service-hero__grid<?php echo !$has_hero_media ? ' service-hero__grid--single' : ''; ?>">
         <div class="service-hero__copy">
-          <p class="service-kicker">Where Listings Become Showcase-Worthy</p>
           <h1><?php echo esc_html($args['title']); ?></h1>
           <p><?php echo esc_html($args['subtitle']); ?></p>
           <p class="service-hero__actions">
@@ -52,7 +57,7 @@ $render_media = static function (string $src): void {
           </p>
         </div>
 
-        <?php if (!empty($args['hero_image'])): ?>
+        <?php if ($has_hero_media): ?>
           <div class="service-mediaCard">
             <?php $render_media((string) $args['hero_image']); ?>
           </div>
@@ -63,7 +68,7 @@ $render_media = static function (string $src): void {
 
   <section class="service-section service-section--alt">
     <div class="container">
-      <div class="service-overview">
+      <div class="service-overview<?php echo !$has_description_media ? ' service-overview--single' : ''; ?>">
         <div>
           <h2>Overview</h2>
           <?php foreach ((array) $args['description'] as $p): ?>
@@ -71,7 +76,7 @@ $render_media = static function (string $src): void {
           <?php endforeach; ?>
         </div>
 
-        <?php if (!empty($args['description_image'])): ?>
+        <?php if ($has_description_media): ?>
           <div class="service-mediaCard">
             <?php $render_media((string) $args['description_image']); ?>
           </div>
@@ -79,6 +84,21 @@ $render_media = static function (string $src): void {
       </div>
     </div>
   </section>
+
+  <?php if (!empty($gallery_items)): ?>
+    <section class="service-section">
+      <div class="container">
+        <h2>Featured Work</h2>
+        <div class="service-gallery">
+          <?php foreach ($gallery_items as $media): ?>
+            <div class="service-mediaCard">
+              <?php $render_media((string) $media); ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </section>
+  <?php endif; ?>
 
   <?php if (!empty($args['benefits'])): ?>
     <section class="service-section">
