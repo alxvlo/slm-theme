@@ -6,8 +6,10 @@ if (!defined('ABSPATH')) exit;
 
 get_header();
 
-$placeholder = get_template_directory_uri() . '/assets/img/placeholder.jpg';
+$theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
+$hero_media = $theme_uri . '/assets/media/staged/09-7-living-room-1-of-6-virtually-staged.jpeg';
+$description_media = $theme_uri . '/assets/media/staged/05-32-primary-bedroom-1-of-4-virtually-staged.jpeg';
 
 $description = [
   'Virtual tours give buyers on-demand access to property flow and room-to-room context from any device. That accessibility increases listing quality and reduces friction in early decision-making.',
@@ -34,8 +36,8 @@ $why_choose = [
 get_template_part('template-parts/blocks/service-detail', null, [
   'title' => 'Virtual Tours',
   'subtitle' => 'Immersive property tours that increase buyer confidence, improve lead quality, and strengthen your listing strategy.',
-  'hero_image' => $placeholder,
-  'description_image' => $placeholder,
+  'hero_image' => $hero_media,
+  'description_image' => $description_media,
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,

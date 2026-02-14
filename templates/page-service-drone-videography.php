@@ -6,8 +6,10 @@ if (!defined('ABSPATH')) exit;
 
 get_header();
 
-$placeholder = get_template_directory_uri() . '/assets/img/placeholder.jpg';
+$theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
+$hero_media = $theme_uri . '/assets/media/horizontal-videos/03-thank-you-aubrey-wessolowski.mp4';
+$description_media = $theme_uri . '/assets/media/drone-photos/05-3-aerial-overview.jpg';
 
 $description = [
   'Drone videography delivers cinematic context and movement that helps your listing marketing feel premium, modern, and memorable.',
@@ -34,8 +36,8 @@ $why_choose = [
 get_template_part('template-parts/blocks/service-detail', null, [
   'title' => 'Drone Videography',
   'subtitle' => 'Cinematic aerial video that adds scale, movement, and authority to your listing marketing system.',
-  'hero_image' => $placeholder,
-  'description_image' => $placeholder,
+  'hero_image' => $hero_media,
+  'description_image' => $description_media,
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,

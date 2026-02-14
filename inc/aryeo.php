@@ -173,6 +173,22 @@ function slm_aryeo_get_orders_for_email(string $email) {
   return $orders;
 }
 
+function slm_aryeo_get_recent_orders(int $limit = 50) {
+  $limit = max(1, min($limit, 100));
+
+  $query = [
+    'include' => 'items,listing,customer,appointments',
+    'page[limit]' => $limit,
+  ];
+
+  $res = slm_aryeo_request('GET', '/orders', $query, null);
+  if (is_wp_error($res)) return $res;
+
+  $orders = $res['orders'] ?? [];
+  if (!is_array($orders)) $orders = [];
+  return $orders;
+}
+
 function slm_aryeo_clear_order_cache_for_email(string $email): void {
   $email = trim($email);
   if ($email === '') return;
@@ -296,4 +312,3 @@ function slm_aryeo_render_settings_page(): void {
 
   echo '</div>';
 }
-

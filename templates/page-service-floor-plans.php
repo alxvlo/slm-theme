@@ -6,8 +6,10 @@ if (!defined('ABSPATH')) exit;
 
 get_header();
 
-$placeholder = get_template_directory_uri() . '/assets/img/placeholder.jpg';
+$theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
+$hero_media = $theme_uri . '/assets/media/photos/10-28-dining-room-1-of-3.jpg';
+$description_media = $theme_uri . '/assets/media/photos/14-35-primary-bedroom-4-of-4.jpg';
 
 $description = [
   'Floor plans provide structural clarity that photos and video alone cannot. They help buyers understand layout, flow, and room relationships quickly.',
@@ -34,8 +36,8 @@ $why_choose = [
 get_template_part('template-parts/blocks/service-detail', null, [
   'title' => 'Floor Plans',
   'subtitle' => 'Professional floor plans that improve buyer understanding, strengthen presentations, and complete your listing strategy.',
-  'hero_image' => $placeholder,
-  'description_image' => $placeholder,
+  'hero_image' => $hero_media,
+  'description_image' => $description_media,
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,

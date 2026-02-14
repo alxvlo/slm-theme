@@ -6,8 +6,10 @@ if (!defined('ABSPATH')) exit;
 
 get_header();
 
-$placeholder = get_template_directory_uri() . '/assets/img/placeholder.jpg';
+$theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
+$hero_media = $theme_uri . '/assets/media/twilight/01-99-twilight-aerial-front-exterior-3.jpg';
+$description_media = $theme_uri . '/assets/media/twilight/01-99-twilight-aerial-front-exterior-3.jpg';
 
 $description = [
   'Twilight photography creates visual impact that instantly separates a listing from standard daytime coverage. The result is a premium, attention-grabbing presentation.',
@@ -34,8 +36,8 @@ $why_choose = [
 get_template_part('template-parts/blocks/service-detail', null, [
   'title' => 'Twilight Photography',
   'subtitle' => 'Premium twilight imagery that elevates listing perception and helps your marketing stand out with authority.',
-  'hero_image' => $placeholder,
-  'description_image' => $placeholder,
+  'hero_image' => $hero_media,
+  'description_image' => $description_media,
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,

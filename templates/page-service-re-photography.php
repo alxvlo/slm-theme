@@ -6,8 +6,10 @@ if (!defined('ABSPATH')) exit;
 
 get_header();
 
-$placeholder = get_template_directory_uri() . '/assets/img/placeholder.jpg';
+$theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
+$hero_media = $theme_uri . '/assets/media/photos/08-1-front-exterior.jpg';
+$description_media = $theme_uri . '/assets/media/photos/02-12-living-room-5-of-6.jpg';
 
 $description = [
   'Real estate photography is not just a deliverable. It is the first layer of your listing strategy and a major driver of perception. We capture each property with intention so buyers and sellers immediately see quality, professionalism, and value.',
@@ -34,15 +36,15 @@ $why_choose = [
 get_template_part('template-parts/blocks/service-detail', null, [
   'title' => 'Real Estate Photography',
   'subtitle' => 'Professional listing photography designed to elevate perception, strengthen presentations, and help you win more opportunities.',
-  'hero_image' => $placeholder,
-  'description_image' => $placeholder,
+  'hero_image' => $hero_media,
+  'description_image' => $description_media,
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,
   'book_url' => $create_account_url,
   'book_label' => 'Create Account to Order',
-  'cta_title' => 'Turn Every Listing Into a Stronger First Impression',
-  'cta_text' => 'Break the standard. Showcase the difference. Create your account to start ordering media that supports measurable business outcomes.',
+  'cta_title' => 'Where Listings Become Showcase-Worthy',
+  'cta_text' => 'Create your account to launch polished media that lifts first impressions and supports measurable listing performance.',
 ]);
 
 get_footer();

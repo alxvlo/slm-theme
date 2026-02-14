@@ -20,6 +20,23 @@ $primary_url = $is_logged_in ? slm_dashboard_url() : (string) $args['book_url'];
 $primary_label = $is_logged_in ? 'Go to Dashboard' : (string) $args['book_label'];
 $secondary_url = $is_logged_in ? slm_dashboard_url() : add_query_arg('mode', 'login', slm_login_url());
 $secondary_label = $is_logged_in ? 'Open Dashboard' : 'Already Have an Account? Sign In';
+
+$render_media = static function (string $src): void {
+  if ($src === '') return;
+
+  $path = (string) parse_url($src, PHP_URL_PATH);
+  $ext = strtolower((string) pathinfo($path, PATHINFO_EXTENSION));
+  if (in_array($ext, ['mp4', 'webm', 'mov'], true)) {
+    ?>
+    <video src="<?php echo esc_url($src); ?>" controls playsinline preload="metadata"></video>
+    <?php
+    return;
+  }
+
+  ?>
+  <img src="<?php echo esc_url($src); ?>" alt="" loading="lazy" decoding="async">
+  <?php
+};
 ?>
 
 <main class="service-page">
@@ -37,7 +54,7 @@ $secondary_label = $is_logged_in ? 'Open Dashboard' : 'Already Have an Account? 
 
         <?php if (!empty($args['hero_image'])): ?>
           <div class="service-mediaCard">
-            <img src="<?php echo esc_url($args['hero_image']); ?>" alt="" loading="lazy" decoding="async">
+            <?php $render_media((string) $args['hero_image']); ?>
           </div>
         <?php endif; ?>
       </div>
@@ -56,7 +73,7 @@ $secondary_label = $is_logged_in ? 'Open Dashboard' : 'Already Have an Account? 
 
         <?php if (!empty($args['description_image'])): ?>
           <div class="service-mediaCard">
-            <img src="<?php echo esc_url($args['description_image']); ?>" alt="" loading="lazy" decoding="async">
+            <?php $render_media((string) $args['description_image']); ?>
           </div>
         <?php endif; ?>
       </div>

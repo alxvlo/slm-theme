@@ -6,8 +6,10 @@ if (!defined('ABSPATH')) exit;
 
 get_header();
 
-$placeholder = get_template_directory_uri() . '/assets/img/placeholder.jpg';
+$theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
+$hero_media = $theme_uri . '/assets/media/drone-photos/08-52-aerial-front-exterior-1.jpg';
+$description_media = $theme_uri . '/assets/media/drone-photos/10-75-aerial-view-2.jpg';
 
 $description = [
   'Drone photography adds context that ground-level media cannot provide. It helps buyers understand lot layout, surroundings, and location value at a glance.',
@@ -34,8 +36,8 @@ $why_choose = [
 get_template_part('template-parts/blocks/service-detail', null, [
   'title' => 'Drone Photography',
   'subtitle' => 'Aerial listing imagery that strengthens property context, improves differentiation, and supports stronger market positioning.',
-  'hero_image' => $placeholder,
-  'description_image' => $placeholder,
+  'hero_image' => $hero_media,
+  'description_image' => $description_media,
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,

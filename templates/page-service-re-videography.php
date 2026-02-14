@@ -6,8 +6,10 @@ if (!defined('ABSPATH')) exit;
 
 get_header();
 
-$placeholder = get_template_directory_uri() . '/assets/img/placeholder.jpg';
+$theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
+$hero_media = $theme_uri . '/assets/media/horizontal-videos/02-inside-this-stunning-north-florida-home-real-tours-north-florida.mp4';
+$description_media = $theme_uri . '/assets/media/staged/03-15-living-room-5-of-6-virtually-staged.jpeg';
 
 $description = [
   'Video is one of the strongest tools for helping buyers feel a property before they ever step inside. Our real estate videography is built to create emotional connection while communicating the practical flow of the home.',
@@ -34,8 +36,8 @@ $why_choose = [
 get_template_part('template-parts/blocks/service-detail', null, [
   'title' => 'Real Estate Videography',
   'subtitle' => 'Cinematic listing videos that build trust, increase engagement, and position your marketing above the standard.',
-  'hero_image' => $placeholder,
-  'description_image' => $placeholder,
+  'hero_image' => $hero_media,
+  'description_image' => $description_media,
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,
