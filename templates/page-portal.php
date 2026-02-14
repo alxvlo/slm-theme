@@ -36,16 +36,6 @@ if (function_exists('slm_aryeo_is_configured') && slm_aryeo_is_configured() && $
   }
 }
 
-$services = [
-  ['name' => 'Real Estate Photography', 'desc' => 'Professional interior and exterior photography', 'price' => '$250'],
-  ['name' => 'Real Estate Videography', 'desc' => 'Cinematic property walkthrough videos', 'price' => '$450'],
-  ['name' => 'Drone Photography', 'desc' => 'Aerial photography for stunning perspectives', 'price' => '$300'],
-  ['name' => 'Drone Videography', 'desc' => 'Aerial video footage of property and surroundings', 'price' => '$400'],
-  ['name' => '3D Virtual Tour', 'desc' => 'Interactive 3D walkthrough experience', 'price' => '$500'],
-  ['name' => 'Floor Plans', 'desc' => '2D and 3D floor plan renderings', 'price' => '$150'],
-  ['name' => 'Twilight Photography', 'desc' => 'Stunning dusk photography for curb appeal', 'price' => '$350'],
-];
-
 $status_class = static function (string $status): string {
   if ($status === 'completed') return 'is-completed';
   if ($status === 'in-progress') return 'is-progress';
@@ -61,12 +51,38 @@ $display_status = static function ($status): string {
   $s = is_string($status) ? $status : '';
   if ($s === '') return 'pending';
   $s = strtolower(trim($s));
-  // Normalize common Aryeo statuses for existing CSS pills.
   if (in_array($s, ['completed', 'complete', 'delivered'], true)) return 'completed';
   if (in_array($s, ['in-progress', 'in_progress', 'processing'], true)) return 'in-progress';
   if (in_array($s, ['scheduled', 'scheduled_for'], true)) return 'scheduled';
   return $s;
 };
+
+$order_counts = [
+  'total' => is_array($aryeo_orders) ? count($aryeo_orders) : 0,
+  'in_progress' => 0,
+  'completed' => 0,
+  'scheduled' => 0,
+  'pending' => 0,
+];
+
+if (is_array($aryeo_orders)) {
+  foreach ($aryeo_orders as $order) {
+    $normalized = $display_status($order['status'] ?? '');
+    if ($normalized === 'in-progress') {
+      $order_counts['in_progress']++;
+      continue;
+    }
+    if ($normalized === 'completed') {
+      $order_counts['completed']++;
+      continue;
+    }
+    if ($normalized === 'scheduled') {
+      $order_counts['scheduled']++;
+      continue;
+    }
+    $order_counts['pending']++;
+  }
+}
 
 get_header();
 ?>
@@ -95,24 +111,35 @@ get_header();
 
   <main class="portal-main">
     <div class="portal-wrap">
+      <section class="portal-toolbar" aria-label="Quick Actions">
+        <a class="portal-toolbar__pill <?php echo $view === 'dashboard' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'dashboard', $portal_url)); ?>">Overview</a>
+        <a class="portal-toolbar__pill <?php echo $view === 'place-order' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'place-order', $portal_url)); ?>">Start Order</a>
+        <a class="portal-toolbar__pill <?php echo $view === 'my-orders' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'my-orders', $portal_url)); ?>">Track Orders</a>
+        <a class="portal-toolbar__pill <?php echo $view === 'account' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'account', $portal_url)); ?>">Profile</a>
+      </section>
+
       <?php if ($view === 'dashboard'): ?>
         <section class="portal-section">
           <h1>Welcome back, <?php echo esc_html($name); ?></h1>
-          <p class="sub">Here is an overview of your recent activity.</p>
+          <p class="sub">Here is a clear snapshot of current orders, delivery progress, and next actions.</p>
         </section>
 
-        <section class="portal-stats">
+        <section class="portal-stats portal-stats--four">
           <article class="portal-card">
             <p>Total Orders</p>
-            <strong>24</strong>
+            <strong><?php echo esc_html((string) $order_counts['total']); ?></strong>
           </article>
           <article class="portal-card">
             <p>In Progress</p>
-            <strong>2</strong>
+            <strong><?php echo esc_html((string) $order_counts['in_progress']); ?></strong>
           </article>
           <article class="portal-card">
             <p>Completed</p>
-            <strong>21</strong>
+            <strong><?php echo esc_html((string) $order_counts['completed']); ?></strong>
+          </article>
+          <article class="portal-card">
+            <p>Scheduled</p>
+            <strong><?php echo esc_html((string) $order_counts['scheduled']); ?></strong>
           </article>
         </section>
 
@@ -132,54 +159,56 @@ get_header();
             <h2>Recent Orders</h2>
             <a href="<?php echo esc_url(add_query_arg('view', 'my-orders', $portal_url)); ?>">View All</a>
           </div>
-          <table class="table" aria-label="Recent Orders">
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Service</th>
-                <th>Address</th>
-                <th>Status</th>
-                <th>Price</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php if (is_wp_error($aryeo_orders)): ?>
-                <tr><td colspan="6">Unable to load orders: <?php echo esc_html($aryeo_orders->get_error_message()); ?></td></tr>
-              <?php elseif (empty($recent_orders)): ?>
-                <tr><td colspan="6">No orders yet. When you place an order, it will show up here.</td></tr>
-              <?php else: ?>
-                <?php foreach ($recent_orders as $order): ?>
-                  <?php
-                    $order_id = (string) ($order['id'] ?? '');
-                    $order_number = (string) ($order['order_number'] ?? $order_id);
-                    $status_raw = $display_status($order['status'] ?? '');
-                    $service_name = '';
-                    $items = $order['items'] ?? [];
-                    if (is_array($items) && !empty($items)) {
-                      $first = $items[0] ?? [];
-                      if (is_array($first)) {
-                        $service_name = (string) ($first['name'] ?? $first['product']['name'] ?? '');
+          <div class="table-scroll">
+            <table class="table" aria-label="Recent Orders">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Service</th>
+                  <th>Address</th>
+                  <th>Status</th>
+                  <th>Price</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php if (is_wp_error($aryeo_orders)): ?>
+                  <tr><td colspan="6">Unable to load orders: <?php echo esc_html($aryeo_orders->get_error_message()); ?></td></tr>
+                <?php elseif (empty($recent_orders)): ?>
+                  <tr><td colspan="6">No orders yet. When you place an order, it will show up here.</td></tr>
+                <?php else: ?>
+                  <?php foreach ($recent_orders as $order): ?>
+                    <?php
+                      $order_id = (string) ($order['id'] ?? '');
+                      $order_number = (string) ($order['order_number'] ?? $order_id);
+                      $status_raw = $display_status($order['status'] ?? '');
+                      $service_name = '';
+                      $items = $order['items'] ?? [];
+                      if (is_array($items) && !empty($items)) {
+                        $first = $items[0] ?? [];
+                        if (is_array($first)) {
+                          $service_name = (string) ($first['name'] ?? $first['product']['name'] ?? '');
+                        }
                       }
-                    }
-                    if ($service_name === '') $service_name = 'Order';
-                    $address = (string) ($order['listing']['address'] ?? $order['address'] ?? '');
-                    $total = (string) ($order['total'] ?? $order['total_amount'] ?? '');
-                    $created = (string) ($order['created_at'] ?? '');
-                    $created_label = $created !== '' ? date_i18n('M j, Y', strtotime($created)) : '';
-                  ?>
-                  <tr>
-                    <td><?php echo esc_html($order_number); ?></td>
-                    <td><?php echo esc_html($service_name); ?></td>
-                    <td><?php echo esc_html($address); ?></td>
-                    <td><span class="status-pill <?php echo esc_attr($status_class($status_raw)); ?>"><?php echo esc_html($status_label($status_raw)); ?></span></td>
-                    <td><?php echo esc_html($total !== '' ? $total : ''); ?></td>
-                    <td><?php echo esc_html($created_label); ?></td>
-                  </tr>
-                <?php endforeach; ?>
-              <?php endif; ?>
-            </tbody>
-          </table>
+                      if ($service_name === '') $service_name = 'Order';
+                      $address = (string) ($order['listing']['address'] ?? $order['address'] ?? '');
+                      $total = (string) ($order['total'] ?? $order['total_amount'] ?? '');
+                      $created = (string) ($order['created_at'] ?? '');
+                      $created_label = $created !== '' ? date_i18n('M j, Y', strtotime($created)) : '';
+                    ?>
+                    <tr>
+                      <td><?php echo esc_html($order_number); ?></td>
+                      <td><?php echo esc_html($service_name); ?></td>
+                      <td><?php echo esc_html($address); ?></td>
+                      <td><span class="status-pill <?php echo esc_attr($status_class($status_raw)); ?>"><?php echo esc_html($status_label($status_raw)); ?></span></td>
+                      <td><?php echo esc_html($total !== '' ? $total : ''); ?></td>
+                      <td><?php echo esc_html($created_label); ?></td>
+                    </tr>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </tbody>
+            </table>
+          </div>
         </section>
       <?php endif; ?>
 
@@ -194,6 +223,10 @@ get_header();
             <a class="portal-action portal-action--primary" href="<?php echo esc_url(slm_aryeo_start_order_url()); ?>">
               <h2>Start New Order</h2>
               <p>Continue to our ordering flow powered by Aryeo.</p>
+            </a>
+            <a class="portal-action" href="<?php echo esc_url(home_url('/services/')); ?>">
+              <h2>Review Service Menu</h2>
+              <p>Compare available services before you start checkout.</p>
             </a>
           </section>
         <?php else: ?>
@@ -212,54 +245,56 @@ get_header();
           <p class="sub">Track active orders and delivered media in one place.</p>
         </section>
         <section class="portal-tableCard">
-          <table class="table" aria-label="My Orders">
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Service</th>
-                <th>Address</th>
-                <th>Status</th>
-                <th>Price</th>
-                <th>Delivery</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php if (is_wp_error($aryeo_orders)): ?>
-                <tr><td colspan="6">Unable to load orders: <?php echo esc_html($aryeo_orders->get_error_message()); ?></td></tr>
-              <?php elseif (empty($aryeo_orders) || !is_array($aryeo_orders)): ?>
-                <tr><td colspan="6">No orders yet. Use “Place Order” to get started.</td></tr>
-              <?php else: ?>
-                <?php foreach ($aryeo_orders as $order): ?>
-                  <?php
-                    $order_id = (string) ($order['id'] ?? '');
-                    $order_number = (string) ($order['order_number'] ?? $order_id);
-                    $status_raw = $display_status($order['status'] ?? '');
-                    $service_name = '';
-                    $items = $order['items'] ?? [];
-                    if (is_array($items) && !empty($items)) {
-                      $first = $items[0] ?? [];
-                      if (is_array($first)) {
-                        $service_name = (string) ($first['name'] ?? $first['product']['name'] ?? '');
+          <div class="table-scroll">
+            <table class="table" aria-label="My Orders">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Service</th>
+                  <th>Address</th>
+                  <th>Status</th>
+                  <th>Price</th>
+                  <th>Delivery</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php if (is_wp_error($aryeo_orders)): ?>
+                  <tr><td colspan="6">Unable to load orders: <?php echo esc_html($aryeo_orders->get_error_message()); ?></td></tr>
+                <?php elseif (empty($aryeo_orders) || !is_array($aryeo_orders)): ?>
+                  <tr><td colspan="6">No orders yet. Use "Place Order" to get started.</td></tr>
+                <?php else: ?>
+                  <?php foreach ($aryeo_orders as $order): ?>
+                    <?php
+                      $order_id = (string) ($order['id'] ?? '');
+                      $order_number = (string) ($order['order_number'] ?? $order_id);
+                      $status_raw = $display_status($order['status'] ?? '');
+                      $service_name = '';
+                      $items = $order['items'] ?? [];
+                      if (is_array($items) && !empty($items)) {
+                        $first = $items[0] ?? [];
+                        if (is_array($first)) {
+                          $service_name = (string) ($first['name'] ?? $first['product']['name'] ?? '');
+                        }
                       }
-                    }
-                    if ($service_name === '') $service_name = 'Order';
-                    $address = (string) ($order['listing']['address'] ?? $order['address'] ?? '');
-                    $total = (string) ($order['total'] ?? $order['total_amount'] ?? '');
-                    $delivery = (string) ($order['delivery_date'] ?? $order['delivered_at'] ?? $order['updated_at'] ?? '');
-                    $delivery_label = $delivery !== '' ? date_i18n('M j, Y', strtotime($delivery)) : '';
-                  ?>
-                  <tr>
-                    <td><?php echo esc_html($order_number); ?></td>
-                    <td><?php echo esc_html($service_name); ?></td>
-                    <td><?php echo esc_html($address); ?></td>
-                    <td><span class="status-pill <?php echo esc_attr($status_class($status_raw)); ?>"><?php echo esc_html($status_label($status_raw)); ?></span></td>
-                    <td><?php echo esc_html($total !== '' ? $total : ''); ?></td>
-                    <td><?php echo esc_html($delivery_label); ?></td>
-                  </tr>
-                <?php endforeach; ?>
-              <?php endif; ?>
-            </tbody>
-          </table>
+                      if ($service_name === '') $service_name = 'Order';
+                      $address = (string) ($order['listing']['address'] ?? $order['address'] ?? '');
+                      $total = (string) ($order['total'] ?? $order['total_amount'] ?? '');
+                      $delivery = (string) ($order['delivery_date'] ?? $order['delivered_at'] ?? $order['updated_at'] ?? '');
+                      $delivery_label = $delivery !== '' ? date_i18n('M j, Y', strtotime($delivery)) : '';
+                    ?>
+                    <tr>
+                      <td><?php echo esc_html($order_number); ?></td>
+                      <td><?php echo esc_html($service_name); ?></td>
+                      <td><?php echo esc_html($address); ?></td>
+                      <td><span class="status-pill <?php echo esc_attr($status_class($status_raw)); ?>"><?php echo esc_html($status_label($status_raw)); ?></span></td>
+                      <td><?php echo esc_html($total !== '' ? $total : ''); ?></td>
+                      <td><?php echo esc_html($delivery_label); ?></td>
+                    </tr>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </tbody>
+            </table>
+          </div>
         </section>
       <?php endif; ?>
 

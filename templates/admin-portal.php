@@ -74,6 +74,36 @@ $status_label = static function (string $status): string {
   return ucwords(str_replace('-', ' ', $status));
 };
 
+$stats = [
+  'total_orders' => count($orders),
+  'active_orders' => 0,
+  'completed' => 0,
+  'active_customers' => 0,
+  'revenue' => 0.0,
+];
+
+$customers = [];
+foreach ($orders as $order) {
+  $status = (string) ($order['status'] ?? '');
+  if ($status === 'completed') {
+    $stats['completed']++;
+  } else {
+    $stats['active_orders']++;
+  }
+
+  $customer = (string) ($order['customer'] ?? '');
+  if ($customer !== '') {
+    $customers[$customer] = true;
+  }
+
+  $price_raw = (string) ($order['price'] ?? '');
+  $price_val = (float) preg_replace('/[^0-9.]/', '', $price_raw);
+  $stats['revenue'] += $price_val;
+}
+
+$stats['active_customers'] = count($customers);
+$revenue_label = '$' . number_format($stats['revenue'], 0);
+
 get_header();
 ?>
 
@@ -100,28 +130,34 @@ get_header();
 
   <main class="portal-main">
     <div class="portal-wrap">
+      <section class="portal-toolbar" aria-label="Admin Quick Actions">
+        <a class="portal-toolbar__pill <?php echo $view === 'dashboard' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'dashboard', $admin_portal_url)); ?>">Overview</a>
+        <a class="portal-toolbar__pill <?php echo $view === 'all-jobs' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'all-jobs', $admin_portal_url)); ?>">Order Queue</a>
+        <a class="portal-toolbar__pill <?php echo $view === 'account' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'account', $admin_portal_url)); ?>">Admin Profile</a>
+      </section>
+
       <?php if ($view === 'dashboard'): ?>
         <section class="portal-section">
           <h1>Admin Dashboard</h1>
-          <p class="sub">Manage customer orders and monitor business performance.</p>
+          <p class="sub">Manage customer orders and monitor operations with a cleaner snapshot of active work.</p>
         </section>
 
         <section class="portal-stats portal-stats--four">
           <article class="portal-card">
             <p>Total Orders</p>
-            <strong>127</strong>
+            <strong><?php echo esc_html((string) $stats['total_orders']); ?></strong>
           </article>
           <article class="portal-card">
             <p>Active Customers</p>
-            <strong>45</strong>
+            <strong><?php echo esc_html((string) $stats['active_customers']); ?></strong>
           </article>
           <article class="portal-card">
-            <p>In Progress</p>
-            <strong>12</strong>
+            <p>Active Orders</p>
+            <strong><?php echo esc_html((string) $stats['active_orders']); ?></strong>
           </article>
           <article class="portal-card">
-            <p>Revenue (MTD)</p>
-            <strong>$18.5K</strong>
+            <p>Revenue</p>
+            <strong><?php echo esc_html($revenue_label); ?></strong>
           </article>
         </section>
 
@@ -141,32 +177,34 @@ get_header();
             <h2>Recent Customer Orders</h2>
             <a href="<?php echo esc_url(add_query_arg('view', 'all-jobs', $admin_portal_url)); ?>">View All</a>
           </div>
-          <table class="table" aria-label="Recent Customer Orders">
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Service</th>
-                <th>Address</th>
-                <th>Status</th>
-                <th>Price</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($orders as $order): ?>
+          <div class="table-scroll">
+            <table class="table" aria-label="Recent Customer Orders">
+              <thead>
                 <tr>
-                  <td><?php echo esc_html($order['id']); ?></td>
-                  <td><?php echo esc_html($order['customer']); ?></td>
-                  <td><?php echo esc_html($order['service']); ?></td>
-                  <td><?php echo esc_html($order['address']); ?></td>
-                  <td><span class="status-pill <?php echo esc_attr($status_class($order['status'])); ?>"><?php echo esc_html($status_label($order['status'])); ?></span></td>
-                  <td><?php echo esc_html($order['price']); ?></td>
-                  <td><?php echo esc_html($order['date']); ?></td>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Service</th>
+                  <th>Address</th>
+                  <th>Status</th>
+                  <th>Price</th>
+                  <th>Date</th>
                 </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                <?php foreach ($orders as $order): ?>
+                  <tr>
+                    <td><?php echo esc_html($order['id']); ?></td>
+                    <td><?php echo esc_html($order['customer']); ?></td>
+                    <td><?php echo esc_html($order['service']); ?></td>
+                    <td><?php echo esc_html($order['address']); ?></td>
+                    <td><span class="status-pill <?php echo esc_attr($status_class($order['status'])); ?>"><?php echo esc_html($status_label($order['status'])); ?></span></td>
+                    <td><?php echo esc_html($order['price']); ?></td>
+                    <td><?php echo esc_html($order['date']); ?></td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
         </section>
       <?php endif; ?>
 
@@ -176,32 +214,34 @@ get_header();
           <p class="sub">Centralized operations view for all active and completed jobs.</p>
         </section>
         <section class="portal-tableCard">
-          <table class="table" aria-label="All Customer Orders">
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Service</th>
-                <th>Address</th>
-                <th>Status</th>
-                <th>Price</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($orders as $order): ?>
+          <div class="table-scroll">
+            <table class="table" aria-label="All Customer Orders">
+              <thead>
                 <tr>
-                  <td><?php echo esc_html($order['id']); ?></td>
-                  <td><?php echo esc_html($order['customer']); ?></td>
-                  <td><?php echo esc_html($order['service']); ?></td>
-                  <td><?php echo esc_html($order['address']); ?></td>
-                  <td><span class="status-pill <?php echo esc_attr($status_class($order['status'])); ?>"><?php echo esc_html($status_label($order['status'])); ?></span></td>
-                  <td><?php echo esc_html($order['price']); ?></td>
-                  <td><?php echo esc_html($order['date']); ?></td>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Service</th>
+                  <th>Address</th>
+                  <th>Status</th>
+                  <th>Price</th>
+                  <th>Date</th>
                 </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                <?php foreach ($orders as $order): ?>
+                  <tr>
+                    <td><?php echo esc_html($order['id']); ?></td>
+                    <td><?php echo esc_html($order['customer']); ?></td>
+                    <td><?php echo esc_html($order['service']); ?></td>
+                    <td><?php echo esc_html($order['address']); ?></td>
+                    <td><span class="status-pill <?php echo esc_attr($status_class($order['status'])); ?>"><?php echo esc_html($status_label($order['status'])); ?></span></td>
+                    <td><?php echo esc_html($order['price']); ?></td>
+                    <td><?php echo esc_html($order['date']); ?></td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
         </section>
       <?php endif; ?>
 

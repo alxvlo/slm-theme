@@ -12,7 +12,7 @@ $logo_abs = get_template_directory() . '/assets/img/logo-icon.png';
 $has_logo = file_exists($logo_abs);
 ?>
 
-<nav class="nav" aria-label="Primary">
+<nav class="nav" aria-label="Primary" data-nav>
   <a class="nav__brand" href="<?php echo esc_url(home_url('/')); ?>">
     <span class="nav__brandLogo" aria-hidden="true">
       <?php if ($has_logo): ?>
@@ -24,11 +24,12 @@ $has_logo = file_exists($logo_abs);
     <span class="nav__brandText"><?php echo esc_html(get_bloginfo('name')); ?></span>
   </a>
 
-  <div class="nav__center">
+  <div class="nav__center" id="site-primary-nav" data-nav-panel>
     <?php
       wp_nav_menu([
         'theme_location' => 'primary',
         'container' => false,
+        'menu_id' => 'site-primary-menu',
         'menu_class' => 'nav__menu',
         'fallback_cb' => '__return_false',
       ]);
@@ -43,5 +44,17 @@ $has_logo = file_exists($logo_abs);
       <a class="nav__login" href="<?php echo esc_url($login_url); ?>">Login</a>
       <a class="btn" href="<?php echo esc_url($order_url); ?>">Order Now</a>
     <?php endif; ?>
+    <button
+      class="nav__toggle"
+      type="button"
+      aria-label="Toggle navigation menu"
+      aria-expanded="false"
+      aria-controls="site-primary-nav"
+      data-nav-toggle
+    >
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </button>
   </div>
 </nav>

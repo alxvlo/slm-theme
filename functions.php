@@ -109,13 +109,16 @@ add_action('after_setup_theme', function () {
 add_action('wp_enqueue_scripts', function () {
   $uri = get_template_directory_uri();
 
-  // Base layers (always) — load in a predictable order.
+  $fonts_url = 'https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap';
+  wp_enqueue_style('slm-fonts', $fonts_url, [], null);
+
+  // Base layers (always) - load in a predictable order.
   $base = '/assets/css/base.css';
   $components = '/assets/css/components.css';
   $nav = '/assets/css/nav.css';
   $pages = '/assets/css/pages.css';
 
-  wp_enqueue_style('slm-base',       $uri . $base, [], slm_asset_ver($base));
+  wp_enqueue_style('slm-base',       $uri . $base, ['slm-fonts'], slm_asset_ver($base));
   wp_enqueue_style('slm-components', $uri . $components, ['slm-base'], slm_asset_ver($components));
   wp_enqueue_style('slm-nav',        $uri . $nav, ['slm-components'], slm_asset_ver($nav));
   wp_enqueue_style('slm-pages',      $uri . $pages, ['slm-nav'], slm_asset_ver($pages));

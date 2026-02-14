@@ -12,6 +12,12 @@ $slides = [
 
 $is_logged_in = is_user_logged_in();
 $order_url = $is_logged_in ? slm_dashboard_url() : add_query_arg('mode', 'signup', slm_login_url());
+$contact_url = home_url('/contact/');
+$trust_points = [
+  '24-hour standard delivery',
+  'Dedicated client support',
+  'Media quality built for conversion',
+];
 ?>
 
 <section class="home-heroSlider" aria-label="Featured Property Media">
@@ -32,7 +38,14 @@ $order_url = $is_logged_in ? slm_dashboard_url() : add_query_arg('mode', 'signup
     <div class="home-heroSlider__actions">
       <a class="btn btn--accent" href="<?php echo esc_url($order_url); ?>">Order Now</a>
       <a class="btn btn--ghostLight" href="<?php echo esc_url(home_url('/services/')); ?>">View Services</a>
+      <a class="btn btn--outlineLight" href="<?php echo esc_url($contact_url); ?>">Talk to Us</a>
     </div>
+
+    <ul class="home-heroSlider__trust" aria-label="Why clients choose us">
+      <?php foreach ($trust_points as $point): ?>
+        <li><?php echo esc_html($point); ?></li>
+      <?php endforeach; ?>
+    </ul>
 
     <div class="home-heroSlider__dots" data-home-slider-dots>
       <?php foreach ($slides as $i => $img): ?>

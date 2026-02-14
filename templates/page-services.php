@@ -57,6 +57,11 @@ $services = [
 
 $login_url = add_query_arg('mode', 'login', slm_login_url());
 $signup_url = add_query_arg('mode', 'signup', slm_login_url());
+$proof_points = [
+  'Fast turnaround options for active listings',
+  'Consistent media quality across every property',
+  'Flexible service mix for teams and solo agents',
+];
 ?>
 
 <main>
@@ -68,6 +73,16 @@ $signup_url = add_query_arg('mode', 'signup', slm_login_url());
     <svg class="page-hero__curve" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
       <path fill="#ffffff" d="M0,96L120,80C240,64,480,32,720,32C960,32,1200,64,1320,80L1440,96L1440,120L0,120Z"></path>
     </svg>
+  </section>
+
+  <section class="page-section page-section--secondary page-section--compact">
+    <div class="container">
+      <ul class="services-proof" aria-label="Why agents choose this workflow">
+        <?php foreach ($proof_points as $point): ?>
+          <li><?php echo esc_html($point); ?></li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
   </section>
 
   <section class="page-section">
