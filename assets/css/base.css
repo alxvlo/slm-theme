@@ -1,0 +1,64 @@
+:root {
+  --font-size: 16px;
+  --font-sans: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
+  --font-display: "Sora", "Manrope", "Avenir Next", sans-serif;
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #1e3a5f;
+  --primary-foreground: #ffffff;
+  --secondary: #f8f9fa;
+  --secondary-foreground: #1e3a5f;
+  --muted: #f8f9fa;
+  --muted-foreground: #6b7280;
+  --accent: #a67c52;
+  --accent-foreground: #ffffff;
+  --destructive: #d4183d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.08);
+  --input: transparent;
+  --input-background: #f8f9fa;
+  --switch-background: #cbced4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #1e3a5f;
+
+  /* Radius */
+  --radius: 8px;
+
+  /* Layout */
+  --container: 1280px;
+  --pad: 24px;
+
+  /* Sidebar (Portal) */
+  --sidebar: #1e3a5f;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #a67c52;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2d4a6f;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #a67c52;
+}
+
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  background: var(--background);
+  color: var(--foreground);
+}
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+a { color: inherit; text-decoration: none; }
+
+.container { max-width: var(--container); margin: 0 auto; padding: 32px var(--pad); }
+.site-header { position: sticky; top: 0; background: #fff; border-bottom: 1px solid var(--border); z-index: 1000; }
+.site-footer { border-top: 1px solid var(--border); background: #fff; }

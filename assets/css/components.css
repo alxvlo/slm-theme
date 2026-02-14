@@ -1,0 +1,88 @@
+/* =========================
+   Components (reusable)
+========================= */
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px 14px;
+  border-radius: var(--radius, 10px);
+  background: var(--primary, #1e3a5f);
+  color: var(--primary-foreground, #fff);
+  border: 1px solid transparent;
+  text-decoration:none;
+  line-height:1;
+}
+
+.btn:hover{ filter: brightness(.97); }
+
+.btn--ghost{
+  background: transparent;
+  color: var(--primary, #1e3a5f);
+  border-color: var(--border, rgba(0,0,0,.10));
+}
+
+.card{
+  border: 1px solid var(--border, rgba(0,0,0,.10));
+  border-radius: calc(var(--radius, 10px) + 6px);
+  padding: 16px;
+  background: #fff;
+}
+
+.grid{ display:grid; gap:16px; }
+.grid--2{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid--3{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+@media (max-width: 860px){
+  .grid--2, .grid--3{ grid-template-columns: 1fr; }
+}
+
+
+/* =========================
+   Buttons (Figma variants)
+========================= */
+.btn--secondary{
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border-color: transparent;
+}
+.btn--secondary:hover{ filter: brightness(.98); }
+
+.btn--outline{
+  background: transparent;
+  color: var(--primary);
+  border-color: rgba(0,0,0,.14);
+}
+.btn--outline:hover{ background: rgba(0,0,0,.03); }
+
+.btn--accent{
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+.btn--accent:hover{ filter: brightness(.98); }
+
+.btn--light{
+  background: rgba(255,255,255,.95);
+  color: #111827;
+  border: 1px solid rgba(255,255,255,.7);
+}
+.btn--light:hover{ filter: brightness(.99); }
+
+.btn--outlineLight{
+  background: transparent;
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,.7);
+}
+.btn--outlineLight:hover{ background: rgba(255,255,255,.08); }
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid rgba(0,0,0,.08);
+  background: #fff;
+}
