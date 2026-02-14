@@ -194,7 +194,8 @@
 
   revealTargets.forEach((element, index) => {
     element.classList.add('reveal');
-    element.style.setProperty('--reveal-delay', `${(index % 7) * 60}ms`);
+    const staggerStep = Math.min(index, 10);
+    element.style.setProperty('--reveal-delay', `${staggerStep * 60}ms`);
   });
 
   if (!('IntersectionObserver' in window)) {
