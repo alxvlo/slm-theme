@@ -215,3 +215,155 @@
 
   revealTargets.forEach((element) => observer.observe(element));
 })();
+
+(function () {
+  const cards = Array.from(document.querySelectorAll('.portal-tableCard'));
+  if (!cards.length) return;
+
+  function normalizeStatus(text) {
+    return String(text || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '-');
+  }
+
+  function parseRowDate(text) {
+    const value = String(text || '').trim();
+    if (!value) return null;
+    const parsed = Date.parse(value);
+    if (Number.isNaN(parsed)) return null;
+    return parsed;
+  }
+
+  cards.forEach((card, index) => {
+    const table = card.querySelector('.table');
+    const tbody = table ? table.querySelector('tbody') : null;
+    if (!table || !tbody) return;
+
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const dataRows = rows.filter((row) => !row.querySelector('td[colspan]'));
+    if (!dataRows.length) return;
+
+    const controls = document.createElement('div');
+    controls.className = 'table-controls';
+
+    const searchWrap = document.createElement('div');
+    searchWrap.className = 'table-control';
+    const searchId = `table-search-${index}`;
+    searchWrap.innerHTML = `
+      <label for="${searchId}">Search</label>
+      <input id="${searchId}" type="search" placeholder="Search order, customer, service, address">
+    `;
+
+    const statusWrap = document.createElement('div');
+    statusWrap.className = 'table-control';
+    const statusId = `table-status-${index}`;
+    statusWrap.innerHTML = `
+      <label for="${statusId}">Status</label>
+      <select id="${statusId}">
+        <option value="all">All statuses</option>
+        <option value="completed">Completed</option>
+        <option value="in-progress">In Progress</option>
+        <option value="scheduled">Scheduled</option>
+        <option value="pending">Pending</option>
+      </select>
+    `;
+
+    const fromDateWrap = document.createElement('div');
+    fromDateWrap.className = 'table-control';
+    const fromDateId = `table-from-${index}`;
+    fromDateWrap.innerHTML = `
+      <label for="${fromDateId}">From Date</label>
+      <input id="${fromDateId}" type="date">
+    `;
+
+    const toDateWrap = document.createElement('div');
+    toDateWrap.className = 'table-control';
+    const toDateId = `table-to-${index}`;
+    toDateWrap.innerHTML = `
+      <label for="${toDateId}">To Date</label>
+      <input id="${toDateId}" type="date">
+    `;
+
+    const resetWrap = document.createElement('div');
+    resetWrap.className = 'table-control table-control--action';
+    const resetId = `table-reset-${index}`;
+    resetWrap.innerHTML = `
+      <label for="${resetId}">Reset</label>
+      <button id="${resetId}" type="button" class="table-reset btn btn--secondary">Reset Filters</button>
+    `;
+
+    controls.appendChild(searchWrap);
+    controls.appendChild(statusWrap);
+    controls.appendChild(fromDateWrap);
+    controls.appendChild(toDateWrap);
+    controls.appendChild(resetWrap);
+
+    const anchor = card.querySelector('.table-scroll') || table;
+    anchor.parentNode.insertBefore(controls, anchor);
+
+    const searchInput = searchWrap.querySelector('input');
+    const statusSelect = statusWrap.querySelector('select');
+    const fromDateInput = fromDateWrap.querySelector('input');
+    const toDateInput = toDateWrap.querySelector('input');
+    const resetButton = resetWrap.querySelector('button');
+
+    function applyFilters() {
+      const searchTerm = (searchInput.value || '').trim().toLowerCase();
+      const statusFilter = statusSelect.value || 'all';
+      const fromValue = (fromDateInput.value || '').trim();
+      const toValue = (toDateInput.value || '').trim();
+      const fromTimestamp = fromValue ? Date.parse(`${fromValue}T00:00:00`) : null;
+      const toTimestamp = toValue ? Date.parse(`${toValue}T23:59:59`) : null;
+      let visibleCount = 0;
+
+      dataRows.forEach((row) => {
+        const rowText = row.textContent.toLowerCase();
+        const statusText = row.querySelector('.status-pill') ? row.querySelector('.status-pill').textContent : '';
+        const rowStatus = normalizeStatus(statusText);
+        const dateCell = row.querySelector('td:last-child');
+        const rowDate = parseRowDate(dateCell ? dateCell.textContent : '');
+
+        const matchesSearch = searchTerm === '' || rowText.includes(searchTerm);
+        const matchesStatus = statusFilter === 'all' || rowStatus === statusFilter;
+        const matchesDate = (!fromTimestamp && !toTimestamp)
+          || (
+            rowDate !== null
+            && (!fromTimestamp || rowDate >= fromTimestamp)
+            && (!toTimestamp || rowDate <= toTimestamp)
+          );
+        const visible = matchesSearch && matchesStatus && matchesDate;
+
+        row.hidden = !visible;
+        if (visible) visibleCount++;
+      });
+
+      let noResultsRow = tbody.querySelector('.js-no-results');
+      if (visibleCount === 0) {
+        if (!noResultsRow) {
+          noResultsRow = document.createElement('tr');
+          noResultsRow.className = 'js-no-results';
+          const td = document.createElement('td');
+          td.colSpan = table.querySelectorAll('thead th').length || 1;
+          td.textContent = 'No matching rows. Adjust search or status filter.';
+          noResultsRow.appendChild(td);
+          tbody.appendChild(noResultsRow);
+        }
+      } else if (noResultsRow) {
+        noResultsRow.remove();
+      }
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    statusSelect.addEventListener('change', applyFilters);
+    fromDateInput.addEventListener('change', applyFilters);
+    toDateInput.addEventListener('change', applyFilters);
+    resetButton.addEventListener('click', () => {
+      searchInput.value = '';
+      statusSelect.value = 'all';
+      fromDateInput.value = '';
+      toDateInput.value = '';
+      applyFilters();
+    });
+  });
+})();

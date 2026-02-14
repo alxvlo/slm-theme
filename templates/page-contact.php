@@ -127,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slm_contact_submit'])
             </div>
             <div>
               <strong>Phone</strong>
-              <span><a href="tel:+19045551234">(904) 555-1234</a></span>
+              <span><a href="tel:+19042945809">(904)-294-5809</a></span>
             </div>
           </div>
 
@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slm_contact_submit'])
             </div>
             <div>
               <strong>Email</strong>
-              <span><a href="mailto:hello@showcaselistingsmedia.com">hello@showcaselistingsmedia.com</a></span>
+              <span><a href="mailto:Showcaselistingsmedia@gmail.com">Showcaselistingsmedia@gmail.com</a></span>
             </div>
           </div>
 
