@@ -1,0 +1,145 @@
+/* =========================
+   Components (reusable)
+========================= */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(140deg, var(--primary) 0%, #214e84 100%);
+  color: var(--primary-foreground);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 12px 24px rgba(17, 41, 71, 0.2);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+  box-shadow: 0 16px 30px rgba(17, 41, 71, 0.24);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--primary);
+  border-color: rgba(21, 52, 91, 0.22);
+  box-shadow: none;
+}
+
+.btn--ghost:hover {
+  background: rgba(21, 52, 91, 0.07);
+}
+
+.btn--secondary {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border-color: rgba(21, 52, 91, 0.09);
+  box-shadow: none;
+}
+
+.btn--secondary:hover {
+  background: #dde9ff;
+}
+
+.btn--outline {
+  background: transparent;
+  color: var(--primary);
+  border-color: rgba(21, 52, 91, 0.2);
+  box-shadow: none;
+}
+
+.btn--outline:hover {
+  background: rgba(21, 52, 91, 0.06);
+}
+
+.btn--accent {
+  background: linear-gradient(135deg, #be8f55 0%, #d3a66c 100%);
+  color: var(--accent-foreground);
+  box-shadow: 0 12px 24px rgba(190, 143, 85, 0.28);
+}
+
+.btn--accent:hover {
+  filter: brightness(1.04);
+  box-shadow: 0 16px 30px rgba(190, 143, 85, 0.34);
+}
+
+.btn--light,
+.btn--ghostLight {
+  background: rgba(255, 255, 255, 0.94);
+  color: #0f2744;
+  border-color: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 10px 24px rgba(7, 16, 28, 0.22);
+}
+
+.btn--light:hover,
+.btn--ghostLight:hover {
+  background: #ffffff;
+}
+
+.btn--outlineLight {
+  background: transparent;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.72);
+  box-shadow: none;
+}
+
+.btn--outlineLight:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.card {
+  border: 1px solid rgba(15, 39, 68, 0.1);
+  border-radius: calc(var(--radius) + 4px);
+  padding: 18px;
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+
+.grid {
+  display: grid;
+  gap: 18px;
+}
+
+.grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(21, 52, 91, 0.12);
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+@media (max-width: 860px) {
+  .grid--2,
+  .grid--3 {
+    grid-template-columns: 1fr;
+  }
+}
