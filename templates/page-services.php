@@ -119,6 +119,7 @@ $social_packages = [
 
 $monthly_memberships = [
   [
+    'slug' => 'monthly-momentum',
     'name' => 'Monthly Momentum',
     'features' => [
       '45 minute session',
@@ -127,6 +128,7 @@ $monthly_memberships = [
     ],
   ],
   [
+    'slug' => 'growth-engine',
     'name' => 'Growth Engine',
     'features' => [
       '1.5 hour session',
@@ -137,6 +139,7 @@ $monthly_memberships = [
     ],
   ],
   [
+    'slug' => 'brand-authority',
     'name' => 'Brand Authority',
     'features' => [
       '2 hour session',
@@ -147,6 +150,7 @@ $monthly_memberships = [
     ],
   ],
   [
+    'slug' => 'elite-presence',
     'name' => 'Elite Presence',
     'features' => [
       'Half-day session',
@@ -158,6 +162,7 @@ $monthly_memberships = [
     ],
   ],
   [
+    'slug' => 'vip-presence',
     'name' => 'VIP Presence',
     'features' => [
       'Full-day content shoot',
@@ -173,6 +178,7 @@ $monthly_memberships = [
 
 $agent_memberships = [
   [
+    'slug' => 'agent-starting',
     'name' => 'Starting',
     'features' => [
       '1 listing shoot',
@@ -181,6 +187,7 @@ $agent_memberships = [
     ],
   ],
   [
+    'slug' => 'agent-growing',
     'name' => 'Growing',
     'features' => [
       '3 listing shoots',
@@ -191,6 +198,7 @@ $agent_memberships = [
     ],
   ],
   [
+    'slug' => 'agent-established',
     'name' => 'Established',
     'features' => [
       '5 listing shoots',
@@ -201,6 +209,7 @@ $agent_memberships = [
     ],
   ],
   [
+    'slug' => 'agent-elite',
     'name' => 'Elite',
     'features' => [
       '9 listing shoots',
@@ -212,6 +221,7 @@ $agent_memberships = [
     ],
   ],
   [
+    'slug' => 'agent-top-tier',
     'name' => 'Top-Tier',
     'features' => [
       '15 listing shoots',
@@ -246,6 +256,30 @@ $proof_points = [
 ];
 
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
+$portal_membership_url = add_query_arg('view', 'account', slm_portal_url());
+$is_logged_in = is_user_logged_in();
+$subscriptions_enabled = function_exists('slm_subscriptions_can_accept_checkout') && slm_subscriptions_can_accept_checkout();
+$membership_cta = static function (array $pkg) use ($is_logged_in, $subscriptions_enabled, $create_account_url, $portal_membership_url): array {
+  $plan_slug = sanitize_key((string) ($pkg['slug'] ?? ''));
+  if ($is_logged_in && $subscriptions_enabled && $plan_slug !== '' && function_exists('slm_subscriptions_start_url')) {
+    return [
+      'url' => slm_subscriptions_start_url($plan_slug),
+      'label' => 'Start Membership',
+    ];
+  }
+
+  if ($is_logged_in) {
+    return [
+      'url' => $portal_membership_url,
+      'label' => 'Manage Membership',
+    ];
+  }
+
+  return [
+    'url' => $create_account_url,
+    'label' => 'Create Account to Order',
+  ];
+};
 ?>
 
 <main>
@@ -332,6 +366,7 @@ $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
 
       <div class="pkg-grid">
         <?php foreach ($monthly_memberships as $pkg): ?>
+          <?php $cta = $membership_cta($pkg); ?>
           <div class="pkg-card">
             <h3 class="pkg-title"><?php echo esc_html($pkg['name']); ?></h3>
             <ul class="pkg-features">
@@ -344,7 +379,7 @@ $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
                 </li>
               <?php endforeach; ?>
             </ul>
-            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url($create_account_url); ?>">Create Account to Order</a>
+            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url((string) $cta['url']); ?>"><?php echo esc_html((string) $cta['label']); ?></a>
           </div>
         <?php endforeach; ?>
       </div>
@@ -359,6 +394,7 @@ $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
 
       <div class="pkg-grid">
         <?php foreach ($agent_memberships as $pkg): ?>
+          <?php $cta = $membership_cta($pkg); ?>
           <div class="pkg-card">
             <h3 class="pkg-title"><?php echo esc_html($pkg['name']); ?></h3>
             <ul class="pkg-features">
@@ -371,7 +407,7 @@ $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
                 </li>
               <?php endforeach; ?>
             </ul>
-            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url($create_account_url); ?>">Create Account to Order</a>
+            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url((string) $cta['url']); ?>"><?php echo esc_html((string) $cta['label']); ?></a>
           </div>
         <?php endforeach; ?>
       </div>
@@ -383,6 +419,7 @@ $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
     <div class="container">
       <h2 class="center" style="margin-top:0;">Add-Ons</h2>
       <p class="center sub" style="margin-bottom:34px; max-width:820px;">Optional add-ons to customize each order based on listing needs.</p>
+      <p class="center sub" style="margin:-8px auto 26px; max-width:820px;">Add-on availability depends on the selected package. Incompatible combinations are intentionally restricted at checkout.</p>
       <div class="svc-tiles">
         <?php foreach ($addons as $addon): ?>
           <div class="svc-tile">

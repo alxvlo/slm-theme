@@ -26,6 +26,11 @@ $portal_url = slm_portal_url();
 $user = wp_get_current_user();
 $name = $user instanceof WP_User ? $user->display_name : 'there';
 $user_email = $user instanceof WP_User ? (string) $user->user_email : '';
+$subscription_summary = null;
+if ($user instanceof WP_User && function_exists('slm_get_user_subscription_summary')) {
+  $subscription_summary = slm_get_user_subscription_summary((int) $user->ID);
+}
+$subscription_notice = isset($_GET['subscription']) ? sanitize_key((string) $_GET['subscription']) : '';
 
 $recent_orders = [];
 $aryeo_orders = null;
@@ -55,34 +60,6 @@ $display_status = static function ($status): string {
   if (in_array($s, ['in-progress', 'in_progress', 'processing'], true)) return 'in-progress';
   if (in_array($s, ['scheduled', 'scheduled_for'], true)) return 'scheduled';
   return $s;
-};
-
-$to_amount = static function ($value): float {
-  if (is_int($value)) {
-    return ((float) $value) / 100.0;
-  }
-  if (is_float($value)) {
-    $is_whole = abs($value - floor($value)) < 0.00001;
-    return $is_whole ? ($value / 100.0) : $value;
-  }
-  if (is_string($value)) {
-    $value = trim($value);
-    if ($value === '') return 0.0;
-    $normalized = preg_replace('/[^0-9.\-]/', '', $value);
-    if (!is_string($normalized) || $normalized === '' || $normalized === '-' || $normalized === '.') return 0.0;
-    if (strpos($normalized, '.') === false) {
-      return ((float) $normalized) / 100.0;
-    }
-    return (float) $normalized;
-  }
-  if (is_numeric($value)) {
-    return ((float) $value) / 100.0;
-  }
-  return 0.0;
-};
-
-$format_money = static function (float $amount): string {
-  return '$' . number_format($amount, 2);
 };
 
 $order_counts = [
@@ -224,7 +201,7 @@ get_header();
                         $address_raw = (string) ($address_raw['full'] ?? $address_raw['formatted'] ?? $address_raw['street_address'] ?? '');
                       }
                       $address = (string) $address_raw;
-                      $total = $to_amount($order['total'] ?? $order['total_amount'] ?? $order['grand_total'] ?? $order['amount'] ?? 0);
+                      $total = (string) ($order['total'] ?? $order['total_amount'] ?? $order['grand_total'] ?? $order['amount'] ?? '');
                       $created = (string) ($order['created_at'] ?? $order['updated_at'] ?? '');
                       $created_label = $created !== '' ? date_i18n('M j, Y', strtotime($created)) : '';
                     ?>
@@ -233,7 +210,7 @@ get_header();
                       <td><?php echo esc_html($service_name); ?></td>
                       <td><?php echo esc_html($address); ?></td>
                       <td><span class="status-pill <?php echo esc_attr($status_class($status_raw)); ?>"><?php echo esc_html($status_label($status_raw)); ?></span></td>
-                      <td><?php echo esc_html($format_money((float) $total)); ?></td>
+                      <td><?php echo esc_html($total !== '' ? $total : ''); ?></td>
                       <td><?php echo esc_html($created_label); ?></td>
                     </tr>
                   <?php endforeach; ?>
@@ -314,7 +291,7 @@ get_header();
                         $address_raw = (string) ($address_raw['full'] ?? $address_raw['formatted'] ?? $address_raw['street_address'] ?? '');
                       }
                       $address = (string) $address_raw;
-                      $total = $to_amount($order['total'] ?? $order['total_amount'] ?? $order['grand_total'] ?? $order['amount'] ?? 0);
+                      $total = (string) ($order['total'] ?? $order['total_amount'] ?? $order['grand_total'] ?? $order['amount'] ?? '');
                       $delivery = (string) ($order['delivery_date'] ?? $order['delivered_at'] ?? $order['completed_at'] ?? $order['updated_at'] ?? '');
                       $delivery_label = $delivery !== '' ? date_i18n('M j, Y', strtotime($delivery)) : '';
                     ?>
@@ -323,7 +300,7 @@ get_header();
                       <td><?php echo esc_html($service_name); ?></td>
                       <td><?php echo esc_html($address); ?></td>
                       <td><span class="status-pill <?php echo esc_attr($status_class($status_raw)); ?>"><?php echo esc_html($status_label($status_raw)); ?></span></td>
-                      <td><?php echo esc_html($format_money((float) $total)); ?></td>
+                      <td><?php echo esc_html($total !== '' ? $total : ''); ?></td>
                       <td><?php echo esc_html($delivery_label); ?></td>
                     </tr>
                   <?php endforeach; ?>
@@ -339,6 +316,15 @@ get_header();
           <h1>Account</h1>
           <p class="sub">Keep profile and notification settings up to date.</p>
         </section>
+        <?php if ($subscription_notice === 'success'): ?>
+          <section class="portal-section" style="padding-top:0;">
+            <p class="sub" style="margin:0; color:#176b35;">Membership checkout completed. Your subscription status will update shortly.</p>
+          </section>
+        <?php elseif ($subscription_notice === 'cancelled'): ?>
+          <section class="portal-section" style="padding-top:0;">
+            <p class="sub" style="margin:0;">Membership checkout was canceled. You can restart anytime.</p>
+          </section>
+        <?php endif; ?>
         <section class="portal-account">
           <article class="portal-card">
             <h2>Profile</h2>
@@ -353,6 +339,44 @@ get_header();
               </div>
             </div>
           </article>
+          <?php if (is_array($subscription_summary)): ?>
+            <?php
+              $is_subscription_active = !empty($subscription_summary['is_active']);
+              $can_manage_billing = !empty($subscription_summary['can_manage_billing']);
+              $manage_billing_url = (string) ($subscription_summary['manage_billing_url'] ?? '');
+              $membership_catalog_url = home_url('/services/#monthly-content-memberships');
+            ?>
+            <article class="portal-card">
+              <h2>Membership</h2>
+              <div class="account-grid">
+                <div>
+                  <label>Plan</label>
+                  <input type="text" value="<?php echo esc_attr((string) ($subscription_summary['plan_label'] ?? 'No active plan')); ?>" readonly>
+                </div>
+                <div>
+                  <label>Status</label>
+                  <input type="text" value="<?php echo esc_attr((string) ($subscription_summary['status_label'] ?? 'Not Subscribed')); ?>" readonly>
+                </div>
+                <div>
+                  <label>Next Billing Date</label>
+                  <input type="text" value="<?php echo esc_attr((string) ($subscription_summary['current_period_end_label'] ?? 'N/A')); ?>" readonly>
+                </div>
+                <div>
+                  <label>Commitment End</label>
+                  <input type="text" value="<?php echo esc_attr((string) ($subscription_summary['commitment_end_label'] ?? 'N/A')); ?>" readonly>
+                </div>
+              </div>
+              <?php if (!$is_subscription_active): ?>
+                <p style="margin:14px 0 0;">Membership is inactive. Member-only pricing and credits are disabled until billing is active.</p>
+              <?php endif; ?>
+              <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+                <?php if ($can_manage_billing && $manage_billing_url !== ''): ?>
+                  <a class="btn btn--secondary" href="<?php echo esc_url($manage_billing_url); ?>">Manage Billing</a>
+                <?php endif; ?>
+                <a class="btn btn--secondary" href="<?php echo esc_url($membership_catalog_url); ?>">Select Membership Plan</a>
+              </div>
+            </article>
+          <?php endif; ?>
           <article class="portal-card">
             <h2>Security</h2>
             <p>Update your password from WordPress account settings.</p>

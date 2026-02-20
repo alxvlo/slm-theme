@@ -20,8 +20,6 @@ $is_logged_in = is_user_logged_in();
 $place_order_url = add_query_arg('view', 'place-order', slm_portal_url());
 $primary_url = $is_logged_in ? $place_order_url : (string) $args['book_url'];
 $primary_label = $is_logged_in ? 'Place Order' : (string) $args['book_label'];
-$secondary_url = $is_logged_in ? $place_order_url : add_query_arg('mode', 'login', slm_login_url());
-$secondary_label = $is_logged_in ? 'Go to Place Order' : 'Already Have an Account? Sign In';
 $has_hero_media = !empty($args['hero_image']);
 $has_description_media = !empty($args['description_image']);
 $gallery_items = array_values(array_filter((array) $args['gallery'], static function ($item): bool {
@@ -139,7 +137,6 @@ $render_media = static function (string $src): void {
         <p><?php echo esc_html($args['cta_text']); ?></p>
         <div class="service-finalCta__actions">
           <a class="btn btn--accent" href="<?php echo esc_url($primary_url); ?>"><?php echo esc_html($primary_label); ?></a>
-          <a class="btn btn--secondary" href="<?php echo esc_url($secondary_url); ?>"><?php echo esc_html($secondary_label); ?></a>
         </div>
       </div>
     </div>

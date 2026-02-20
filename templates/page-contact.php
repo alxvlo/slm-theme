@@ -2,7 +2,8 @@
 /**
  * Template Name: Contact
  */
-if (!defined('ABSPATH')) exit;
+if (!defined('ABSPATH'))
+  exit;
 
 get_header();
 
@@ -33,17 +34,18 @@ $notice_message = '';
 $notice_type = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slm_contact_submit'])) {
-  $nonce = isset($_POST['slm_contact_nonce']) ? (string) $_POST['slm_contact_nonce'] : '';
+  $nonce = isset($_POST['slm_contact_nonce']) ? (string)$_POST['slm_contact_nonce'] : '';
   if (!wp_verify_nonce($nonce, 'slm_contact_form')) {
     $notice_type = 'error';
     $notice_message = 'Security check failed. Please refresh and try again.';
-  } else {
-    $form['name'] = sanitize_text_field((string) ($_POST['name'] ?? ''));
-    $form['email'] = sanitize_email((string) ($_POST['email'] ?? ''));
-    $form['phone'] = sanitize_text_field((string) ($_POST['phone'] ?? ''));
-    $form['brokerage'] = sanitize_text_field((string) ($_POST['brokerage'] ?? ''));
-    $form['interest'] = sanitize_key((string) ($_POST['interest'] ?? ''));
-    $form['message'] = sanitize_textarea_field((string) ($_POST['message'] ?? ''));
+  }
+  else {
+    $form['name'] = sanitize_text_field((string)($_POST['name'] ?? ''));
+    $form['email'] = sanitize_email((string)($_POST['email'] ?? ''));
+    $form['phone'] = sanitize_text_field((string)($_POST['phone'] ?? ''));
+    $form['brokerage'] = sanitize_text_field((string)($_POST['brokerage'] ?? ''));
+    $form['interest'] = sanitize_key((string)($_POST['interest'] ?? ''));
+    $form['message'] = sanitize_textarea_field((string)($_POST['message'] ?? ''));
 
     $errors = [];
     if ($form['name'] === '') {
@@ -59,8 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slm_contact_submit'])
     if (!empty($errors)) {
       $notice_type = 'error';
       $notice_message = implode(' ', $errors);
-    } else {
-      $site_name = wp_specialchars_decode((string) get_bloginfo('name'), ENT_QUOTES);
+    }
+    else {
+      $site_name = wp_specialchars_decode((string)get_bloginfo('name'), ENT_QUOTES);
       $subject = sprintf('[%s] New Contact Inquiry from %s', $site_name, $form['name']);
 
       $interest_label = $interest_options[$form['interest']] ?? 'Not specified';
@@ -80,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slm_contact_submit'])
         'Reply-To: ' . wp_strip_all_tags($form['name']) . ' <' . $form['email'] . '>',
       ];
 
-      $sent = wp_mail((string) get_option('admin_email'), $subject, implode("\n", $lines), $headers);
+      $sent = wp_mail((string)get_option('admin_email'), $subject, implode("\n", $lines), $headers);
       if ($sent) {
         $notice_type = 'success';
         $notice_message = 'Thanks for reaching out. We received your message and will follow up shortly.';
@@ -92,20 +95,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slm_contact_submit'])
           'interest' => '',
           'message' => '',
         ];
-      } else {
+      }
+      else {
         $notice_type = 'error';
         $notice_message = 'We could not send your message right now. Please try again shortly.';
       }
     }
   }
 }
+
+$pid = get_the_ID();
+$config = function_exists('slm_get_editable_fields_for_template') ? slm_get_editable_fields_for_template('templates/page-contact.php') : [];
+
+$meta_get = function ($key) use ($pid, $config) {
+  $v = get_post_meta($pid, $key, true);
+  if ($v === '') {
+    if ($config && isset($config[$key]))
+      return $config[$key]['default'];
+  }
+  return $v;
+};
+
+$hero_title = $meta_get('slm_contact_hero_title');
+$hero_sub = $meta_get('slm_contact_hero_sub');
+$left_h2 = $meta_get('slm_contact_left_h2');
+$left_p = $meta_get('slm_contact_left_p');
+$form_title = $meta_get('slm_contact_form_title');
+$bottom_text = $meta_get('slm_contact_bottom_text');
+
 ?>
 
 <main>
+  <?php if (current_user_can('edit_page', $pid)): ?>
+    <div style="text-align:right; padding: 10px 20px; background: #fff; border-bottom: 1px solid #ddd; position:sticky; top:0; z-index:9999;">
+       <a href="<?php echo get_edit_post_link($pid); ?>" class="btn" style="padding:8px 16px; font-size:14px;">&#9998; Edit Page Text</a>
+    </div>
+  <?php
+endif; ?>
+
   <section class="page-hero page-hero--solid">
     <div class="container page-hero__content">
-      <h1>Contact Showcase Listings Media</h1>
-      <p class="page-hero__sub">Strategic support, responsive service, and marketing built around better outcomes.</p>
+      <h1><?php echo esc_html($hero_title); ?></h1>
+      <p class="page-hero__sub"><?php echo esc_html($hero_sub); ?></p>
     </div>
     <svg class="page-hero__curve" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
       <path fill="#ffffff" d="M0,96L120,80C240,64,480,32,720,32C960,32,1200,64,1320,80L1440,96L1440,120L0,120Z"></path>
@@ -116,8 +147,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slm_contact_submit'])
     <div class="container contact-wrap">
       <div class="contact-grid">
         <div class="contact-left">
-          <h2>Let us build your competitive advantage</h2>
-          <p>Whether you need listing media, pricing guidance, or support choosing the right package, our team is here to help you move faster with confidence.</p>
+          <h2><?php echo esc_html($left_h2); ?></h2>
+          <p><?php echo esc_html($left_p); ?></p>
 
           <div class="contact-item">
             <div class="contact-ico" aria-hidden="true">
@@ -156,11 +187,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slm_contact_submit'])
         </div>
 
         <div class="card contact-card">
-          <h3>Send us a message</h3>
+          <h3><?php echo esc_html($form_title); ?></h3>
 
           <?php if ($notice_message !== ''): ?>
             <p class="contact-alert contact-alert--<?php echo esc_attr($notice_type); ?>"><?php echo esc_html($notice_message); ?></p>
-          <?php endif; ?>
+          <?php
+endif; ?>
 
           <form class="contact-form" method="post" action="<?php echo esc_url(get_permalink()); ?>">
             <?php wp_nonce_field('slm_contact_form', 'slm_contact_nonce'); ?>
@@ -191,7 +223,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slm_contact_submit'])
                 <option value="">Select an option</option>
                 <?php foreach ($interest_options as $key => $label): ?>
                   <option value="<?php echo esc_attr($key); ?>"<?php selected($form['interest'], $key); ?>><?php echo esc_html($label); ?></option>
-                <?php endforeach; ?>
+                <?php
+endforeach; ?>
               </select>
             </div>
 
@@ -206,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slm_contact_submit'])
       </div>
 
       <div class="center" style="margin-top:56px;">
-        <p class="sub" style="margin-bottom:18px;">Ready to start your next listing campaign?</p>
+        <p class="sub" style="margin-bottom:18px;"><?php echo esc_html($bottom_text); ?></p>
         <a class="btn btn--accent" href="<?php echo esc_url($cta_url); ?>"><?php echo esc_html($cta_label); ?></a>
       </div>
     </div>

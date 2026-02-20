@@ -296,8 +296,6 @@
   }
 
   cards.forEach((card, index) => {
-    if (card.hasAttribute('data-server-filtered')) return;
-
     const table = card.querySelector('.table');
     const tbody = table ? table.querySelector('tbody') : null;
     if (!table || !tbody) return;
@@ -441,4 +439,49 @@
       applyFilters();
     });
   });
+})();
+
+(function () {
+  const banner = document.querySelector('[data-cookie-banner]');
+  if (!banner) return;
+
+  const storageKey = 'slm_cookie_consent';
+  const readStoredValue = () => {
+    try {
+      return window.localStorage.getItem(storageKey);
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const writeStoredValue = (value) => {
+    try {
+      window.localStorage.setItem(storageKey, value);
+    } catch (error) {
+      // Ignore storage errors (private mode, restricted browsers).
+    }
+  };
+
+  const stored = readStoredValue();
+  if (stored === 'accepted' || stored === 'dismissed') {
+    return;
+  }
+
+  const acceptBtn = banner.querySelector('[data-cookie-accept]');
+  const dismissBtn = banner.querySelector('[data-cookie-dismiss]');
+
+  const hideBanner = (value) => {
+    writeStoredValue(value);
+    banner.hidden = true;
+  };
+
+  if (acceptBtn) {
+    acceptBtn.addEventListener('click', () => hideBanner('accepted'));
+  }
+
+  if (dismissBtn) {
+    dismissBtn.addEventListener('click', () => hideBanner('dismissed'));
+  }
+
+  banner.hidden = false;
 })();
