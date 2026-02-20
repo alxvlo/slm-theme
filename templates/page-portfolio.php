@@ -166,9 +166,7 @@ $gallery_ids = slm_page_gallery_ids($pid);
 
 <main>
   <?php if (current_user_can('edit_page', $pid)): ?>
-    <div style="text-align:right; padding: 10px 20px; background: #fff; border-bottom: 1px solid #ddd; position:sticky; top:0; z-index:9999;">
-       <a href="<?php echo get_edit_post_link($pid); ?>" class="btn" style="padding:8px 16px; font-size:14px;">&#9998; Edit Page &amp; Gallery</a>
-    </div>
+    <a href="<?php echo get_edit_post_link($pid); ?>" class="btn" style="position:fixed; bottom:24px; right:24px; z-index:1100; padding:12px 20px; font-size:14px; box-shadow:0 4px 20px rgba(0,0,0,0.25); border-radius:999px;">&#9998; Edit Page &amp; Gallery</a>
   <?php
 endif; ?>
 
