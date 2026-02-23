@@ -1,17 +1,18 @@
 # System Patterns
 
 ## Architecture
-Custom WordPress theme ("SLM Theme") on Bluehost hosting. All functionality is built into the theme via PHP includes — no reliance on heavy page builders or third-party WordPress plugins for core features. External integrations with Aryeo (ordering) and Stripe (subscriptions) via their respective APIs.
+Custom WordPress theme ("SLM Theme") on Bluehost hosting. All functionality is built into the theme via PHP includes — no reliance on heavy page builders. Aryeo integration for ordering is handled via a **WP plugin** (not theme-level). Recurring membership billing uses **Square**. Content (testimonials, portfolio) is managed through WP Admin.
 
 ## Key Design Patterns
 - **Custom theme with page templates** — each major page has its own template file in `/templates/`
 - **Includes-based module system** — core logic split into `/inc/` files (aryeo.php, subscriptions.php, testimonials.php, portfolio-gallery.php, page-editable-text.php, footer-customizer.php)
-- **Custom Post Types** — `portfolio` (gallery items) and `testimonial` (client reviews) registered via theme
+- **Custom Post Types** — `portfolio` (gallery items) and `testimonial` (client reviews) managed via WP Admin
 - **Editable page meta fields** — About and Contact pages use post meta for admin-editable text content
 - **Front-end authentication** — custom login/registration template (no wp-login.php redirect)
 - **Role-based portal routing** — admins → Admin Portal, clients → Client Portal
-- **Aryeo API integration** — order form sessions, order tracking, webhook processing
-- **Stripe API integration** — subscription checkout, billing portal, webhook handling
+- **Three user access levels** — Guest (no prices, no orders), Logged-in (prices + Aryeo orders + Square memberships), Admin (full WP Admin control)
+- **Aryeo integration** — order form sessions, order tracking, webhook processing (via WP plugin)
+- **Square integration** — recurring membership billing
 - **Template parts** — reusable components in `/template-parts/` for homepage sections, nav, footer
 - **Cache-aware** — bypasses full-page cache for logged-in users
 
@@ -38,7 +39,7 @@ Custom WordPress theme ("SLM Theme") on Bluehost hosting. All functionality is b
 │   ├── page-login.php                 # Front-end login/registration
 │   ├── page-portal.php                # Client portal (dashboard, orders, subscription, profile)
 │   ├── admin-portal.php               # Admin portal (all orders, stats, settings, notifications)
-│   ├── page-service-*.php             # Individual service detail pages (7 services)
+│   ├── page-service-*.php             # Individual service detail pages (8 services)
 │   ├── page-privacy-policy.php        # Privacy policy
 │   └── page-terms-of-service.php      # Terms of service
 │
@@ -53,11 +54,12 @@ Custom WordPress theme ("SLM Theme") on Bluehost hosting. All functionality is b
 │   │   ├── nav.php                    # Global navigation
 │   │   ├── footer.php                 # Global footer (customizer-powered)
 │   │   └── guest-dashboard.php        # Unauthenticated portal landing
-│   └── blocks/                        # Block-based components
+│   └── blocks/
+│       └── service-detail.php         # Shared service detail template
 │
 ├── inc/                               # PHP includes (business logic)
 │   ├── aryeo.php                      # Aryeo API client, ordering, webhooks (~1155 lines)
-│   ├── subscriptions.php              # Stripe subscriptions, billing, webhooks (~1177 lines)
+│   ├── subscriptions.php              # Subscription/membership logic (~1177 lines)
 │   ├── testimonials.php               # Testimonial CPT + meta boxes
 │   ├── portfolio-gallery.php          # Portfolio gallery meta + admin UI
 │   ├── page-editable-text.php         # Admin-editable text fields for pages
@@ -90,9 +92,10 @@ Custom WordPress theme ("SLM Theme") on Bluehost hosting. All functionality is b
 - **Header/Footer** → shared across all pages via `get_header()` / `get_footer()`
 - **Homepage** → assembles 5 template parts (hero, services, how-it-works, testimonials, CTA)
 - **Services page** → data-driven from PHP arrays, links to Aryeo/portal for booking
-- **Portfolio** → custom post type + page gallery meta, lightbox with carousel
+- **Portfolio** → custom post type + page gallery meta, lightbox with carousel (managed via WP Admin)
+- **Testimonials** → custom post type with star ratings and meta fields (managed via WP Admin)
 - **Login/Registration** → custom front-end form, redirects to role-appropriate portal
 - **Client Portal** → tabs: dashboard, my-orders, place-order, subscription, account
 - **Admin Portal** → tabs: dashboard, all-jobs, order-detail, subscriptions, settings, notifications
-- **Aryeo** → API integration for order forms, order tracking, webhook notifications
-- **Stripe** → API integration for subscription checkout, billing portal, webhook events
+- **Aryeo** → WP plugin for order forms, order tracking, webhook notifications
+- **Square** → recurring membership billing

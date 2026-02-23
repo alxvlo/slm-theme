@@ -64,7 +64,7 @@ function slm_page_url_by_template(string $template_file, string $fallback_path):
     ]);
 
     if (!empty($page_ids)) {
-      $permalink = get_permalink((int)$page_ids[0]);
+      $permalink = get_permalink((int) $page_ids[0]);
       if (is_string($permalink) && $permalink !== '') {
         $cache[$cache_key] = $permalink;
         return $permalink;
@@ -106,7 +106,7 @@ function slm_asset_ver(string $rel_path): string
 {
   $abs = get_template_directory() . $rel_path;
   if (is_file($abs))
-    return (string)filemtime($abs);
+    return (string) filemtime($abs);
   return slm_theme_ver();
 }
 
@@ -187,7 +187,7 @@ function slm_ensure_legal_pages(): void
     if ($existing) {
       $update = ['ID' => $existing->ID];
       $should_update = false;
-      $current_content = trim((string)$existing->post_content);
+      $current_content = trim((string) $existing->post_content);
 
       if ($existing->post_status !== 'publish') {
         $update['post_status'] = 'publish';
@@ -212,7 +212,7 @@ function slm_ensure_legal_pages(): void
       }
 
       update_post_meta($existing->ID, '_wp_page_template', $template);
-      return (int)$existing->ID;
+      return (int) $existing->ID;
     }
 
     $id = wp_insert_post([
@@ -223,8 +223,8 @@ function slm_ensure_legal_pages(): void
       'post_content' => $content_html,
     ]);
     if ($id && !is_wp_error($id)) {
-      update_post_meta((int)$id, '_wp_page_template', $template);
-      return (int)$id;
+      update_post_meta((int) $id, '_wp_page_template', $template);
+      return (int) $id;
     }
     return 0;
   };
@@ -327,11 +327,11 @@ add_action('template_redirect', function () {
   if (is_admin() || !is_page())
     return;
 
-  $page_id = (int)get_queried_object_id();
+  $page_id = (int) get_queried_object_id();
   if ($page_id <= 0)
     return;
 
-  $template = (string)get_page_template_slug($page_id);
+  $template = (string) get_page_template_slug($page_id);
   if ($template === '')
     return;
 
@@ -341,6 +341,7 @@ add_action('template_redirect', function () {
     'templates/page-service-drone-photography.php' => '#listing-media-packages',
     'templates/page-service-virtual-tours.php' => '#listing-media-packages',
     'templates/page-service-floor-plans.php' => '#listing-media-packages',
+    'templates/page-service-zillow-showcase.php' => '#listing-media-packages',
     'templates/page-service-drone-videography.php' => '#popular-add-ons',
     'templates/page-service-twilight-photography.php' => '#popular-add-ons',
   ];
@@ -372,11 +373,10 @@ add_action('after_switch_theme', function () {
       'post_name' => 'about',
     ]);
     if ($about_id && !is_wp_error($about_id)) {
-      update_post_meta((int)$about_id, '_wp_page_template', 'templates/page-about.php');
+      update_post_meta((int) $about_id, '_wp_page_template', 'templates/page-about.php');
     }
-  }
-  else {
-    update_post_meta((int)$about->ID, '_wp_page_template', 'templates/page-about.php');
+  } else {
+    update_post_meta((int) $about->ID, '_wp_page_template', 'templates/page-about.php');
   }
 
   if (get_option('page_on_front'))
@@ -391,13 +391,12 @@ add_action('after_switch_theme', function () {
       'post_type' => 'page',
       'post_name' => 'home',
     ]);
-  }
-  else {
+  } else {
     $home_id = $home->ID;
   }
 
   update_option('show_on_front', 'page');
-  update_option('page_on_front', (int)$home_id);
+  update_option('page_on_front', (int) $home_id);
 });
 
 function slm_import_theme_image_attachment(int $post_id, string $relative_path, string $title = ''): int
@@ -417,7 +416,7 @@ function slm_import_theme_image_attachment(int $post_id, string $relative_path, 
     'no_found_rows' => true,
   ]);
   if (!empty($existing)) {
-    return (int)$existing[0];
+    return (int) $existing[0];
   }
 
   $source_path = trailingslashit(get_template_directory()) . $relative_path;
@@ -442,7 +441,7 @@ function slm_import_theme_image_attachment(int $post_id, string $relative_path, 
 
   $filetype = wp_check_filetype($filename, null);
   $attach_id = wp_insert_attachment([
-    'post_mime_type' => (string)($filetype['type'] ?? ''),
+    'post_mime_type' => (string) ($filetype['type'] ?? ''),
     'post_title' => $title !== '' ? $title : preg_replace('/\.[^.]+$/', '', $filename),
     'post_content' => '',
     'post_status' => 'inherit',
@@ -452,13 +451,13 @@ function slm_import_theme_image_attachment(int $post_id, string $relative_path, 
     return 0;
   }
 
-  $attach_data = wp_generate_attachment_metadata((int)$attach_id, $target_path);
+  $attach_data = wp_generate_attachment_metadata((int) $attach_id, $target_path);
   if (is_array($attach_data)) {
-    wp_update_attachment_metadata((int)$attach_id, $attach_data);
+    wp_update_attachment_metadata((int) $attach_id, $attach_data);
   }
 
-  update_post_meta((int)$attach_id, '_slm_theme_seed_source', $relative_path);
-  return (int)$attach_id;
+  update_post_meta((int) $attach_id, '_slm_theme_seed_source', $relative_path);
+  return (int) $attach_id;
 }
 
 function slm_seed_portfolio_content(): void
@@ -530,31 +529,31 @@ function slm_seed_portfolio_content(): void
     $post_id = wp_insert_post([
       'post_type' => 'portfolio',
       'post_status' => 'publish',
-      'post_title' => (string)$item['title'],
-      'post_excerpt' => (string)$item['excerpt'],
-      'post_content' => (string)$item['content'],
+      'post_title' => (string) $item['title'],
+      'post_excerpt' => (string) $item['excerpt'],
+      'post_content' => (string) $item['content'],
     ]);
 
     if (!$post_id || is_wp_error($post_id)) {
       continue;
     }
 
-    $featured_id = slm_import_theme_image_attachment((int)$post_id, (string)$item['featured'], (string)$item['title']);
+    $featured_id = slm_import_theme_image_attachment((int) $post_id, (string) $item['featured'], (string) $item['title']);
     if ($featured_id > 0) {
-      set_post_thumbnail((int)$post_id, $featured_id);
+      set_post_thumbnail((int) $post_id, $featured_id);
     }
 
     $gallery_ids = [];
-    foreach ((array)($item['gallery'] ?? []) as $idx => $path) {
-      $title = (string)$item['title'] . ' Gallery ' . ((int)$idx + 1);
-      $image_id = slm_import_theme_image_attachment((int)$post_id, (string)$path, $title);
+    foreach ((array) ($item['gallery'] ?? []) as $idx => $path) {
+      $title = (string) $item['title'] . ' Gallery ' . ((int) $idx + 1);
+      $image_id = slm_import_theme_image_attachment((int) $post_id, (string) $path, $title);
       if ($image_id > 0 && $image_id !== $featured_id) {
         $gallery_ids[] = $image_id;
       }
     }
 
     if (!empty($gallery_ids)) {
-      update_post_meta((int)$post_id, $gallery_meta_key, implode(',', $gallery_ids));
+      update_post_meta((int) $post_id, $gallery_meta_key, implode(',', $gallery_ids));
     }
 
     $created++;

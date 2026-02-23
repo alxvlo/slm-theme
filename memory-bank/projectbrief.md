@@ -4,12 +4,12 @@
 Showcase Listings Media (SLM)
 
 ## Overview
-A premium WordPress website and client platform for Showcase Listings Media — a real estate marketing company that provides professional media services (photography, video, drone, virtual tours, etc.) to real estate agents. The site positions the company as a *Growth Infrastructure Partner*, not just a media vendor. Includes a full client portal, admin portal, Aryeo integration for ordering/scheduling, and Stripe-powered subscription memberships.
+A premium WordPress website and client platform for Showcase Listings Media — a real estate marketing company that provides professional media services (photography, video, drone, virtual tours, etc.) to real estate agents. The site positions the company as a *Growth Infrastructure Partner*, not just a media vendor. Includes a full client portal, admin portal, Aryeo integration (via WP plugin) for ordering/scheduling, and Square for recurring membership billing.
 
 ## Core Requirements
 - Public marketing pages (Homepage, Services, Portfolio, About, Contact, Blog)
 - Service/package showcase with listing packages, social packages, memberships, and add-ons
-- Subscription membership system (Stripe integration) with multiple tiers
+- Subscription membership system (Square integration) with multiple tiers
 - Client portal with order tracking, subscription management, and profile
 - Admin portal with order management, customer overview, revenue stats, and notifications
 - Booking & payment integration via Aryeo
@@ -27,13 +27,13 @@ A premium WordPress website and client platform for Showcase Listings Media — 
 
 ## Scope Boundaries
 - Marketing website + client/admin portals — NOT a standalone CRM
-- Payment processing handled via Aryeo (for orders) and Stripe (for subscriptions)
+- Order payment handled via Aryeo (WP plugin); recurring membership billing via Square
 - No native mobile app
 
 ## Target Users
-- **Primary:** Real estate agents looking to win more listings through elevated marketing
-- **Secondary:** Brokerages seeking scalable marketing solutions
-- **Admin:** Showcase Listings Media staff managing orders and clients
+- **Guest (not logged in):** Can browse services but cannot see prices or place orders
+- **Logged-in User:** Can see prices, place orders through Aryeo, and join memberships via Square
+- **Admin:** Full WP Admin access — manages customer listings, orders, testimonials, portfolio, and site settings
 
 ## Timeline
 No fixed deadline — active development.

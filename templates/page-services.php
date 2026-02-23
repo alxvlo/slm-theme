@@ -2,7 +2,8 @@
 /**
  * Template Name: Services
  */
-if (!defined('ABSPATH')) exit;
+if (!defined('ABSPATH'))
+  exit;
 
 get_header();
 
@@ -235,18 +236,71 @@ $agent_memberships = [
 ];
 
 $addons = [
-  'Zillow add-on',
-  'Spotlight reel',
-  'Agent intro clip',
-  'Full agent video',
-  'Twilight photos',
-  'Dusk conversions',
-  'Drone add-on',
-  'Drone video add-on',
-  'Virtual twilight',
-  'Detail photos',
-  'Virtual staging',
-  'Heavy photoshopping',
+  [
+    'name' => 'Zillow add-on',
+    'desc' => 'Add a Zillow 3D tour and interactive floor plan to boost your listing\'s visibility on Zillow.',
+    'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  ],
+  [
+    'name' => 'Spotlight reel',
+    'desc' => 'A short, scroll-stopping video highlight of your listing built for social media.',
+    'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>',
+  ],
+  [
+    'name' => 'Agent intro clip',
+    'desc' => 'A branded video intro featuring you and the property to build trust with potential buyers.',
+    'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  ],
+  [
+    'name' => 'Full agent video',
+    'desc' => 'A polished, full-length agent-branded walkthrough video for listings or marketing.',
+    'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/></svg>',
+  ],
+  [
+    'name' => 'AI Twilight Photography',
+    'desc' => 'AI-enhanced dusk exterior shots that add dramatic sky and lighting without an evening shoot.',
+    'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18a5 5 0 0 0-10 0"/><line x1="12" y1="9" x2="12" y2="2"/><line x1="4.22" y1="10.22" x2="5.64" y2="11.64"/><line x1="1" y1="18" x2="3" y2="18"/><line x1="21" y1="18" x2="23" y2="18"/><line x1="18.36" y1="11.64" x2="19.78" y2="10.22"/><line x1="23" y1="22" x2="1" y2="22"/><polyline points="16 5 12 9 8 5"/></svg>',
+  ],
+  [
+    'name' => 'In-person Twilight Photography',
+    'desc' => 'On-location twilight session capturing the property in real golden-hour and dusk lighting.',
+    'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
+  ],
+  [
+    'name' => 'Dusk conversions',
+    'desc' => 'Transform daytime exterior photos into warm, eye-catching dusk scenes using AI editing.',
+    'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  ],
+  [
+    'name' => 'Drone add-on',
+    'desc' => 'Aerial photography showcasing property scale, lot layout, and neighborhood surroundings.',
+    'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="8 11 12 15 16 9"/></svg>',
+  ],
+  [
+    'name' => 'Drone video add-on',
+    'desc' => 'Cinematic aerial video footage that highlights the full scope of the property and area.',
+    'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
+  ],
+  [
+    'name' => 'Virtual Video',
+    'desc' => 'An AI-generated walkthrough video created from your listing photos — no extra shoot needed.',
+    'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>',
+  ],
+  [
+    'name' => 'Detail photos',
+    'desc' => 'Close-up shots of unique finishes, fixtures, and features that set the property apart.',
+    'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>',
+  ],
+  [
+    'name' => 'Virtual staging',
+    'desc' => 'Digitally furnished rooms that help buyers visualize the space and boost listing appeal.',
+    'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+  ],
+  [
+    'name' => 'Heavy photoshopping',
+    'desc' => 'Advanced retouching for removing clutter, swapping skies, or correcting major visual distractions.',
+    'icon' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>',
+  ],
 ];
 
 $proof_points = [
@@ -307,7 +361,8 @@ $membership_cta = static function (array $pkg) use ($is_logged_in, $subscription
   <section class="page-section" id="listing-media-packages">
     <div class="container">
       <h2 class="center" style="margin-top:0;">Listing Packages</h2>
-      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Property media packages built for listing launch, Zillow visibility, and premium presentation.</p>
+      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Property media packages built for listing
+        launch, Zillow visibility, and premium presentation.</p>
 
       <div class="pkg-grid">
         <?php foreach ($listing_packages as $pkg): ?>
@@ -317,13 +372,15 @@ $membership_cta = static function (array $pkg) use ($is_logged_in, $subscription
               <?php foreach ($pkg['features'] as $feature): ?>
                 <li>
                   <svg class="pkg-check" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" />
                   </svg>
                   <span><?php echo esc_html($feature); ?></span>
                 </li>
               <?php endforeach; ?>
             </ul>
-            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url($create_account_url); ?>">Create Account to Order</a>
+            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url($create_account_url); ?>">Create Account to
+              Order</a>
           </div>
         <?php endforeach; ?>
       </div>
@@ -333,7 +390,8 @@ $membership_cta = static function (array $pkg) use ($is_logged_in, $subscription
   <section class="page-section page-section--secondary" id="social-content-packages">
     <div class="container">
       <h2 class="center" style="margin-top:0;">Social Packages</h2>
-      <p class="center sub" style="margin-bottom:34px; max-width:820px;">One-time social production packages for reels, talking head clips, and branded post content.</p>
+      <p class="center sub" style="margin-bottom:34px; max-width:820px;">One-time social production packages for reels,
+        talking head clips, and branded post content.</p>
 
       <div class="pkg-grid">
         <?php foreach ($social_packages as $pkg): ?>
@@ -346,13 +404,15 @@ $membership_cta = static function (array $pkg) use ($is_logged_in, $subscription
               <?php foreach ($pkg['features'] as $feature): ?>
                 <li>
                   <svg class="pkg-check" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" />
                   </svg>
                   <span><?php echo esc_html($feature); ?></span>
                 </li>
               <?php endforeach; ?>
             </ul>
-            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url($create_account_url); ?>">Create Account to Order</a>
+            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url($create_account_url); ?>">Create Account to
+              Order</a>
           </div>
         <?php endforeach; ?>
       </div>
@@ -362,7 +422,8 @@ $membership_cta = static function (array $pkg) use ($is_logged_in, $subscription
   <section class="page-section" id="monthly-content-memberships">
     <div class="container">
       <h2 class="center" style="margin-top:0;">Monthly Memberships</h2>
-      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Recurring monthly plans for creators, teams, and brands that need consistent media output.</p>
+      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Recurring monthly plans for creators, teams,
+        and brands that need consistent media output.</p>
 
       <div class="pkg-grid">
         <?php foreach ($monthly_memberships as $pkg): ?>
@@ -373,13 +434,15 @@ $membership_cta = static function (array $pkg) use ($is_logged_in, $subscription
               <?php foreach ($pkg['features'] as $feature): ?>
                 <li>
                   <svg class="pkg-check" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" />
                   </svg>
                   <span><?php echo esc_html($feature); ?></span>
                 </li>
               <?php endforeach; ?>
             </ul>
-            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url((string) $cta['url']); ?>"><?php echo esc_html((string) $cta['label']); ?></a>
+            <a class="btn btn--secondary pkg-cta"
+              href="<?php echo esc_url((string) $cta['url']); ?>"><?php echo esc_html((string) $cta['label']); ?></a>
           </div>
         <?php endforeach; ?>
       </div>
@@ -390,7 +453,8 @@ $membership_cta = static function (array $pkg) use ($is_logged_in, $subscription
   <section class="page-section page-section--secondary" id="listings-agent-memberships">
     <div class="container">
       <h2 class="center" style="margin-top:0;">Listings-Agent Memberships</h2>
-      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Membership tiers for agents combining shoots, AI edits, videos, tours, and branded social assets.</p>
+      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Membership tiers for agents combining shoots,
+        AI edits, videos, tours, and branded social assets.</p>
 
       <div class="pkg-grid">
         <?php foreach ($agent_memberships as $pkg): ?>
@@ -401,13 +465,15 @@ $membership_cta = static function (array $pkg) use ($is_logged_in, $subscription
               <?php foreach ($pkg['features'] as $feature): ?>
                 <li>
                   <svg class="pkg-check" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" />
                   </svg>
                   <span><?php echo esc_html($feature); ?></span>
                 </li>
               <?php endforeach; ?>
             </ul>
-            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url((string) $cta['url']); ?>"><?php echo esc_html((string) $cta['label']); ?></a>
+            <a class="btn btn--secondary pkg-cta"
+              href="<?php echo esc_url((string) $cta['url']); ?>"><?php echo esc_html((string) $cta['label']); ?></a>
           </div>
         <?php endforeach; ?>
       </div>
@@ -417,13 +483,19 @@ $membership_cta = static function (array $pkg) use ($is_logged_in, $subscription
 
   <section class="page-section" id="popular-add-ons">
     <div class="container">
-      <h2 class="center" style="margin-top:0;">Add-Ons</h2>
-      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Optional add-ons to customize each order based on listing needs.</p>
-      <p class="center sub" style="margin:-8px auto 26px; max-width:820px;">Add-on availability depends on the selected package. Incompatible combinations are intentionally restricted at checkout.</p>
-      <div class="svc-tiles">
+      <h2 class="center" style="margin-top:0;">Customize Your Package</h2>
+      <p class="center sub" style="margin-bottom:10px; max-width:820px;">Optional add-ons to tailor each order to the listing's specific needs.</p>
+      <p class="center sub" style="margin:-2px auto 38px; max-width:820px; font-size:13px; opacity:.75;">Add-on availability depends on the selected package. Incompatible combinations are intentionally restricted at checkout.</p>
+      <div class="addon-grid">
         <?php foreach ($addons as $addon): ?>
-          <div class="svc-tile">
-            <h3 style="margin:0;"><?php echo esc_html($addon); ?></h3>
+          <div class="addon-card">
+            <div class="addon-card__icon" aria-hidden="true">
+              <?php echo $addon['icon']; ?>
+            </div>
+            <div class="addon-card__body">
+              <h3 class="addon-card__title"><?php echo esc_html($addon['name']); ?></h3>
+              <p class="addon-card__desc"><?php echo esc_html($addon['desc']); ?></p>
+            </div>
           </div>
         <?php endforeach; ?>
       </div>

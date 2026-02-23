@@ -13,28 +13,33 @@ Real estate agents need professional marketing to win listings, justify higher c
 
 ## How It Should Work
 
-### Public Visitor Journey
+### User Types
+There are three user types with distinct access levels:
+
+1. **Guest (not logged in)** — Can browse the site, view available services and packages, but **cannot see prices** and **cannot place an order**. Must create an account first.
+2. **Logged-in User** — Can see prices, place orders through **Aryeo** (WP plugin), and join recurring memberships through **Square**. Has access to the Client Portal (dashboard, order tracking, subscription management, profile).
+3. **Admin** — Full WP Admin access. Manages customer listings, orders, testimonials, portfolio items, and site settings. Has access to the Admin Portal (order management, revenue stats, customer metrics, notifications, configuration).
+
+### Guest Visitor Journey
 1. Agent visits the website (via referral, search, or social)
-2. Views services, packages, and membership tiers
+2. Views services, packages, and membership tiers (prices hidden)
 3. Creates an account via the front-end registration form
-4. Books a package or joins a membership
-5. Completes payment through Aryeo (orders) or Stripe (subscriptions)
-6. Schedules shoots and receives deliverables
 
-### Client Portal Journey
-- Sign in → Dashboard with order counts and recent orders
-- Place new orders (redirects to Aryeo order form)
-- View/track existing orders with status indicators
-- Manage subscription (upgrade, billing portal via Stripe)
-- Update profile information
+### Logged-in User Journey
+1. Signs in → Client Portal dashboard with order counts and recent orders
+2. Can see full pricing on services page
+3. Places orders through Aryeo (WP plugin)
+4. Joins recurring memberships through Square
+5. Tracks orders, manages subscription, updates profile
 
-### Admin Portal Journey
-- Sign in → Dashboard with revenue stats, order counts, customer metrics
-- View all orders with search, filter, and pagination
-- Drill into individual orders for full details
-- Manage subscriptions and view customer subscriptions
-- Configure Aryeo, Stripe, notification settings
-- Receive webhook notifications for new orders
+### Admin Journey
+- Signs in → Admin Portal dashboard with revenue stats, order counts, customer metrics
+- Views all orders with search, filter, and pagination
+- Drills into individual orders for full details
+- Manages subscriptions and views customer subscriptions
+- Configures Aryeo, Square, notification settings via WP Admin
+- Populates testimonials and portfolio items via WP Admin
+- Receives webhook notifications for new orders
 
 ## User Experience Goals
 - **Premium feel** — the site itself should feel like a competitive advantage
