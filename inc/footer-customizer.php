@@ -36,26 +36,6 @@ add_action('customize_register', function (WP_Customize_Manager $wp_customize) {
     'type' => 'text',
   ]);
 
-  $wp_customize->add_setting('slm_footer_address_line1', [
-    'default' => '1230 Glengarry Rd.',
-    'sanitize_callback' => 'sanitize_text_field',
-  ]);
-  $wp_customize->add_control('slm_footer_address_line1', [
-    'section' => 'slm_footer',
-    'label' => __('Address Line 1', 'slm'),
-    'type' => 'text',
-  ]);
-
-  $wp_customize->add_setting('slm_footer_address_line2', [
-    'default' => 'Jacksonville, FL. 32207',
-    'sanitize_callback' => 'sanitize_text_field',
-  ]);
-  $wp_customize->add_control('slm_footer_address_line2', [
-    'section' => 'slm_footer',
-    'label' => __('Address Line 2', 'slm'),
-    'type' => 'text',
-  ]);
-
   $social = [
     'slm_social_youtube' => [
       'label' => 'YouTube URL',
@@ -68,10 +48,6 @@ add_action('customize_register', function (WP_Customize_Manager $wp_customize) {
     'slm_social_instagram' => [
       'label' => 'Instagram URL',
       'default' => 'https://www.instagram.com/brittneyshowcaselistingsmedia/',
-    ],
-    'slm_social_threads' => [
-      'label' => 'Threads URL',
-      'default' => 'https://www.threads.com/@brittneyshowcaselistingsmedia',
     ],
     'slm_social_linkedin' => [
       'label' => 'LinkedIn URL',

@@ -139,8 +139,10 @@
   }
 
   let timer = null;
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
   function start() {
-    if (timer || slides.length < 2) return;
+    if (timer || slides.length < 2 || prefersReducedMotion.matches) return;
     timer = window.setInterval(() => show(activeIndex + 1), 5000);
   }
 
@@ -243,6 +245,11 @@
     '.pSlider',
     '.pkg-card',
     '.svc-tile',
+    '.service-hero__copy',
+    '.service-mediaCard',
+    '.service-benefitCard',
+    '.service-whyCard',
+    '.service-finalCta',
     '.auth-card',
     '.portal-card',
     '.portal-action',
@@ -251,10 +258,19 @@
 
   if (!revealTargets.length) return;
 
-  revealTargets.forEach((element, index) => {
+  /* Group by closest section/parent so stagger resets per section */
+  const sectionMap = new Map();
+  revealTargets.forEach((element) => {
     element.classList.add('reveal');
-    const staggerStep = Math.min(index, 10);
-    element.style.setProperty('--reveal-delay', `${staggerStep * 60}ms`);
+    const section = element.closest('section, .portal-account, .portal-stats, .portal-actions') || element.parentElement;
+    if (!sectionMap.has(section)) sectionMap.set(section, []);
+    sectionMap.get(section).push(element);
+  });
+  sectionMap.forEach((elements) => {
+    elements.forEach((el, i) => {
+      const staggerStep = Math.min(i, 10);
+      el.style.setProperty('--reveal-delay', `${staggerStep * 60}ms`);
+    });
   });
 
   if (!('IntersectionObserver' in window)) {
@@ -299,6 +315,7 @@
     const table = card.querySelector('.table');
     const tbody = table ? table.querySelector('tbody') : null;
     if (!table || !tbody) return;
+    if (card.querySelector('.table-controls')) return;
 
     const rows = Array.from(tbody.querySelectorAll('tr'));
     const dataRows = rows.filter((row) => !row.querySelector('td[colspan]'));
@@ -381,6 +398,13 @@
       return;
     }
 
+    /* Accessible live region for filter result counts */
+    const liveRegion = document.createElement('span');
+    liveRegion.setAttribute('aria-live', 'polite');
+    liveRegion.setAttribute('role', 'status');
+    liveRegion.className = 'screen-reader-text';
+    controls.appendChild(liveRegion);
+
     function applyFilters() {
       const searchTerm = (searchInput.value || '').trim().toLowerCase();
       const statusFilter = statusSelect.value || 'all';
@@ -425,6 +449,8 @@
       } else if (noResultsRow) {
         noResultsRow.remove();
       }
+
+      liveRegion.textContent = visibleCount === 0 ? 'No matching results.' : visibleCount + ' result' + (visibleCount === 1 ? '' : 's') + ' found.';
     }
 
     searchInput.addEventListener('input', applyFilters);
@@ -484,4 +510,89 @@
   }
 
   banner.hidden = false;
+  banner.setAttribute('role', 'alertdialog');
+  banner.setAttribute('aria-label', 'Cookie consent');
+  if (acceptBtn) acceptBtn.focus();
+})();
+
+/* ── Dirty-form guard: warn before navigating away with unsaved changes ── */
+(function () {
+  var dirty = false;
+
+  function shouldTrackForm(form) {
+    if (!form) return false;
+    if ((form.method || '').toLowerCase() === 'get') return false;
+    if (form.closest('.table-controls')) return false;
+    if (form.id === 'slm-profile-form') return true;
+    if (form.classList.contains('contact-form')) return true;
+
+    if (form.classList.contains('auth-form')) {
+      if (form.querySelector('input[name="slm_action"][value="register"]')) return true;
+      return false;
+    }
+
+    return form.hasAttribute('data-dirty-guard');
+  }
+
+  function markDirty() { dirty = true; }
+  function clearDirty() { dirty = false; }
+
+  document.addEventListener('input', function (e) {
+    var form = e.target.closest('form');
+    if (shouldTrackForm(form)) markDirty();
+  });
+  document.addEventListener('change', function (e) {
+    var form = e.target.closest('form');
+    if (shouldTrackForm(form)) markDirty();
+  });
+
+  document.querySelectorAll('form').forEach(function (form) {
+    if (shouldTrackForm(form)) {
+      form.addEventListener('submit', clearDirty);
+    }
+  });
+
+  window.addEventListener('beforeunload', function (e) {
+    if (!dirty) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
+})();
+
+/* ── Portal profile AJAX save ── */
+(function () {
+  var form = document.getElementById('slm-profile-form');
+  if (!form) return;
+
+  var btn = form.querySelector('[type="submit"]');
+  var feedback = document.getElementById('slm-profile-feedback');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (btn) btn.disabled = true;
+    if (feedback) { feedback.textContent = 'Saving…'; feedback.className = 'portal-feedback'; feedback.hidden = false; }
+
+    var data = new FormData(form);
+    data.append('action', 'slm_save_profile');
+
+    fetch(typeof slmAjax !== 'undefined' ? slmAjax.url : '/wp-admin/admin-ajax.php', {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: data
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (res) {
+      if (feedback) {
+        feedback.textContent = res.success ? (res.data && res.data.message ? res.data.message : 'Profile saved.') : (res.data && res.data.message ? res.data.message : 'Save failed.');
+        feedback.className = 'portal-feedback ' + (res.success ? 'portal-feedback--ok' : 'portal-feedback--err');
+        feedback.hidden = false;
+      }
+    })
+    .catch(function () {
+      if (feedback) { feedback.textContent = 'Network error. Please try again.'; feedback.className = 'portal-feedback portal-feedback--err'; feedback.hidden = false; }
+    })
+    .finally(function () {
+      if (btn) btn.disabled = false;
+    });
+  });
 })();

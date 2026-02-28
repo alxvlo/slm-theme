@@ -114,6 +114,7 @@ $social_packages = [
       '2 horizontal videos',
       '15 branded Instagram posts',
       'Social media post plan',
+      'Caption Suggestions',
     ],
   ],
 ];
@@ -172,6 +173,7 @@ $monthly_memberships = [
       '3 horizontal videos',
       '15 branded Instagram posts',
       'Social media post plan',
+      'Caption Suggestions',
       'Strategic media analysis',
     ],
   ],
@@ -303,38 +305,55 @@ $addons = [
   ],
 ];
 
-$proof_points = [
-  'Offer structure aligned to your current PDF packages',
-  'Anchor-based sections for clean menu dropdown linking',
-  'Flexible add-ons and memberships for scaling media output',
-];
-
-$create_account_url = add_query_arg('mode', 'signup', slm_login_url());
-$portal_membership_url = add_query_arg('view', 'account', slm_portal_url());
+$portal_membership_url = add_query_arg('view', 'membership-shop', slm_portal_url());
+$portal_place_order_url = add_query_arg('view', 'place-order', slm_portal_url());
+$membership_auth_url = add_query_arg([
+  'redirect_to' => $portal_membership_url,
+], slm_login_url());
+$package_auth_url = add_query_arg([
+  'mode' => 'login',
+  'redirect_to' => $portal_place_order_url,
+], slm_login_url());
 $is_logged_in = is_user_logged_in();
+$is_admin = $is_logged_in && slm_user_is_admin();
 $subscriptions_enabled = function_exists('slm_subscriptions_can_accept_checkout') && slm_subscriptions_can_accept_checkout();
-$membership_cta = static function (array $pkg) use ($is_logged_in, $subscriptions_enabled, $create_account_url, $portal_membership_url): array {
-  $plan_slug = sanitize_key((string) ($pkg['slug'] ?? ''));
-  if ($is_logged_in && $subscriptions_enabled && $plan_slug !== '' && function_exists('slm_subscriptions_start_url')) {
+$package_cta = static function () use ($is_logged_in, $is_admin, $portal_place_order_url, $package_auth_url): array {
+  if ($is_admin) {
+    return ['url' => slm_admin_portal_url(), 'label' => 'Open Admin Portal'];
+  }
+  if ($is_logged_in) {
+    return ['url' => $portal_place_order_url, 'label' => 'Order in Portal'];
+  }
+  return ['url' => $package_auth_url, 'label' => 'Log In to Order'];
+};
+$membership_cta = static function (array $pkg) use ($is_logged_in, $is_admin, $subscriptions_enabled, $portal_membership_url, $membership_auth_url): array {
+  if ($is_admin) {
     return [
-      'url' => slm_subscriptions_start_url($plan_slug),
-      'label' => 'Start Membership',
+      'url' => slm_admin_portal_url(),
+      'label' => 'Admin Dashboard',
+    ];
+  }
+
+  if ($is_logged_in && $subscriptions_enabled) {
+    return [
+      'url' => $portal_membership_url,
+      'label' => 'Open Membership Shop',
     ];
   }
 
   if ($is_logged_in) {
     return [
       'url' => $portal_membership_url,
-      'label' => 'Manage Membership',
+      'label' => 'Open Membership Shop',
     ];
   }
 
   return [
-    'url' => $create_account_url,
-    'label' => 'Create Account to Order',
+    'url' => $membership_auth_url,
+    'label' => 'Log In / Create Account',
   ];
 };
-?>
+$package_cta_data = $package_cta();?>
 
 <main>
   <section class="page-hero page-hero--solid">
@@ -349,12 +368,7 @@ $membership_cta = static function (array $pkg) use ($is_logged_in, $subscription
 
   <section class="page-section page-section--secondary page-section--compact">
     <div class="container">
-      <ul class="services-proof" aria-label="How services are organized">
-        <?php foreach ($proof_points as $point): ?>
-          <li><?php echo esc_html($point); ?></li>
-        <?php endforeach; ?>
-      </ul>
-      <p class="center sub" style="margin:16px 0 0;">Pricing is currently hidden. Contact us for current rates.</p>
+      <p class="center sub" style="margin:0 auto; max-width:980px;">We also support businesses with broader content needs, including Google-ready 3D scan delivery, social video production, and promotional photography that helps you stay visible with a consistent brand presence.</p>
     </div>
   </section>
 
@@ -379,8 +393,7 @@ $membership_cta = static function (array $pkg) use ($is_logged_in, $subscription
                 </li>
               <?php endforeach; ?>
             </ul>
-            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url($create_account_url); ?>">Create Account to
-              Order</a>
+            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url((string) $package_cta_data['url']); ?>"><?php echo esc_html((string) $package_cta_data['label']); ?></a>
           </div>
         <?php endforeach; ?>
       </div>
@@ -411,8 +424,7 @@ $membership_cta = static function (array $pkg) use ($is_logged_in, $subscription
                 </li>
               <?php endforeach; ?>
             </ul>
-            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url($create_account_url); ?>">Create Account to
-              Order</a>
+            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url((string) $package_cta_data['url']); ?>"><?php echo esc_html((string) $package_cta_data['label']); ?></a>
           </div>
         <?php endforeach; ?>
       </div>

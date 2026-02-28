@@ -34,6 +34,12 @@ $outcomes_h2 = $meta_get('slm_about_outcomes_h2');
 $outcomes_sub = $meta_get('slm_about_outcomes_sub');
 $compare_h2 = $meta_get('slm_about_compare_h2');
 $compare_sub = $meta_get('slm_about_compare_sub');
+$owner_h2 = $meta_get('slm_about_owner_h2');
+$owner_name = $meta_get('slm_about_owner_name');
+$owner_role = $meta_get('slm_about_owner_role');
+$owner_bio = $meta_get('slm_about_owner_bio');
+$owner_photo_id = absint((string) $meta_get('slm_about_owner_photo_id'));
+$owner_photo_url = $owner_photo_id > 0 ? wp_get_attachment_image_url($owner_photo_id, 'large') : '';
 $cta_h2 = $meta_get('slm_about_cta_h2');
 $cta_p = $meta_get('slm_about_cta_p');
 
@@ -56,6 +62,17 @@ foreach ($values_raw as $l) {
 $outcomes = $parse_list('slm_about_outcomes_list');
 $traditional = $parse_list('slm_about_traditional_list');
 $showcase = $parse_list('slm_about_showcase_list');
+$has_owner_content = trim((string) $owner_name) !== ''
+  || trim((string) $owner_role) !== ''
+  || trim((string) $owner_bio) !== ''
+  || $owner_photo_url !== '';
+
+$intro_h2_html = esc_html((string) $intro_h2);
+$intro_h2_html = str_replace(
+  ['Showcase-Worthy.', 'Showcase-Worthy'],
+  ['<span class="slm-noWrap">Showcase-Worthy.</span>', '<span class="slm-noWrap">Showcase-Worthy</span>'],
+  $intro_h2_html
+);
 
 $page_content = '';
 if (have_posts()) {
@@ -85,7 +102,7 @@ endif; ?>
   <section class="page-section page-section--secondary">
     <div class="container about-wrap">
       <div class="about-intro card">
-        <h2><?php echo esc_html($intro_h2); ?></h2>
+        <h2><?php echo wp_kses($intro_h2_html, ['span' => ['class' => []]]); ?></h2>
         <?php if ($intro_p1): ?><p><?php echo esc_html($intro_p1); ?></p><?php
 endif; ?>
         <?php if ($intro_p2): ?><p><?php echo esc_html($intro_p2); ?></p><?php
@@ -164,6 +181,34 @@ endforeach; ?>
     </section>
   <?php
 endif; ?>
+
+  <?php if ($has_owner_content): ?>
+    <section class="page-section page-section--secondary">
+      <div class="container about-wrap">
+        <article class="about-owner card">
+          <?php if ($owner_photo_url !== ''): ?>
+            <div class="about-owner__media">
+              <img src="<?php echo esc_url($owner_photo_url); ?>" alt="<?php echo esc_attr($owner_name !== '' ? $owner_name : 'Owner photo'); ?>" loading="lazy" decoding="async">
+            </div>
+          <?php endif; ?>
+          <div class="about-owner__body">
+            <?php if (trim((string) $owner_h2) !== ''): ?>
+              <h2><?php echo esc_html($owner_h2); ?></h2>
+            <?php endif; ?>
+            <?php if (trim((string) $owner_name) !== ''): ?>
+              <h3><?php echo esc_html($owner_name); ?></h3>
+            <?php endif; ?>
+            <?php if (trim((string) $owner_role) !== ''): ?>
+              <p class="about-owner__role"><?php echo esc_html($owner_role); ?></p>
+            <?php endif; ?>
+            <?php if (trim((string) $owner_bio) !== ''): ?>
+              <p><?php echo esc_html($owner_bio); ?></p>
+            <?php endif; ?>
+          </div>
+        </article>
+      </div>
+    </section>
+  <?php endif; ?>
 
   <section class="page-section">
     <div class="container about-wrap">

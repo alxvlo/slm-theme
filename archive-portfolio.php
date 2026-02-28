@@ -30,8 +30,8 @@ $placeholder = get_template_directory_uri() . '/assets/img/placeholder.jpg';
                 $excerpt = wp_trim_words(wp_strip_all_tags((string) get_the_content()), 22);
               }
             ?>
-            <article class="post-card">
-              <a class="post-card__img" href="<?php the_permalink(); ?>">
+            <article class="post-card post-card--portfolio">
+              <a class="post-card__img post-card__img--portfolio" href="<?php the_permalink(); ?>">
                 <img src="<?php echo esc_url($img); ?>" alt="<?php echo esc_attr(get_the_title()); ?>" loading="lazy" decoding="async">
               </a>
               <div class="post-card__body">

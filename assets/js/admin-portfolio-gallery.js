@@ -1,25 +1,87 @@
 (function ($) {
   function parseIds(value) {
-    return String(value || '')
-      .split(',')
+    return String(value || "")
+      .split(",")
       .map((v) => Number(String(v).trim()))
       .filter((n) => Number.isFinite(n) && n > 0);
   }
 
-  function setIds(ids) {
-    const uniq = Array.from(new Set(ids.map((n) => Number(n)).filter((n) => n > 0)));
-    $('#slm-portfolio-gallery-ids').val(uniq.join(','));
+  function uniqueIds(ids) {
+    return Array.from(
+      new Set(ids.map((n) => Number(n)).filter((n) => Number.isFinite(n) && n > 0))
+    );
+  }
+
+  function setIds($input, ids) {
+    const uniq = uniqueIds(ids);
+    $input.val(uniq.join(","));
     return uniq;
   }
 
-  function renderThumbs(ids, byIdToThumbHtml) {
-    const $list = $('#slm-portfolio-gallery-list');
+  function collectIdsFromDom($list) {
+    return $list
+      .find(".slm-portfolio-thumb")
+      .toArray()
+      .map((el) => Number($(el).attr("data-id")))
+      .filter((n) => Number.isFinite(n) && n > 0);
+  }
+
+  function esc(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function fallbackThumbHtml(id, type) {
+    if (type === "video") {
+      return `
+        <div style="width:84px; height:84px; border-radius:8px; background:#12253f; color:#fff; display:flex; align-items:center; justify-content:center; text-align:center; padding:8px; font-size:10px; line-height:1.2;">
+          <div>
+            <span style="display:block; font-size:18px; margin-bottom:4px;">&#9654;</span>
+            <span style="display:block; max-width:68px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Video ${id}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    return `<div style="width:84px; height:84px; border-radius:8px; background:#eef3fb; display:grid; place-items:center; color:#173963; font-size:11px;">Image ${id}</div>`;
+  }
+
+  function thumbHtmlFromModel(model, type) {
+    const attrs = (model && model.attributes) || {};
+    if (type === "video") {
+      const icon = attrs.icon || "";
+      const title = attrs.title || attrs.filename || "Video";
+      const iconHtml = icon
+        ? `<img src="${esc(icon)}" alt="" style="width:28px; height:28px; display:block; margin:0 auto 6px; opacity:.9;">`
+        : `<span style="display:block; font-size:18px; margin-bottom:4px;">&#9654;</span>`;
+
+      return `
+        <div style="width:84px; height:84px; border-radius:8px; background:#12253f; color:#fff; display:flex; align-items:center; justify-content:center; text-align:center; padding:8px; font-size:10px; line-height:1.2;">
+          <div>
+            ${iconHtml}
+            <span style="display:block; max-width:68px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(title)}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    const sizes = attrs.sizes || {};
+    const thumb = sizes.thumbnail || sizes.medium || sizes.full || null;
+    const url = thumb ? thumb.url : attrs.url || "";
+    const alt = attrs.alt || "";
+    if (!url) return "";
+    return `<img src="${esc(url)}" alt="${esc(alt)}" style="width:84px; height:84px; object-fit:cover; display:block; border-radius:8px;">`;
+  }
+
+  function renderThumbs($list, ids, byIdToThumbHtml, type) {
     $list.empty();
 
     ids.forEach((id) => {
-      const thumbHtml = byIdToThumbHtml[id];
-      if (!thumbHtml) return;
-
+      const thumbHtml = byIdToThumbHtml[id] || fallbackThumbHtml(id, type);
       const $li = $(`
         <li class="slm-portfolio-thumb" data-id="${id}" style="list-style:none; position:relative; width:84px;">
           <span style="cursor:move; display:block; border:1px solid rgba(0,0,0,.12); border-radius:10px; padding:4px; background:#fff;">
@@ -32,55 +94,48 @@
     });
   }
 
-  $(function () {
-    const $idsInput = $('#slm-portfolio-gallery-ids');
+  function initMediaPicker(config) {
+    const $idsInput = $(config.idsSelector);
     if (!$idsInput.length) return;
 
-    const $list = $('#slm-portfolio-gallery-list');
-    const $add = $('#slm-portfolio-gallery-add');
-    const $clear = $('#slm-portfolio-gallery-clear');
-
-    function collectIdsFromDom() {
-      return $list
-        .find('.slm-portfolio-thumb')
-        .toArray()
-        .map((el) => Number($(el).attr('data-id')))
-        .filter((n) => Number.isFinite(n) && n > 0);
-    }
+    const $list = $(config.listSelector);
+    const $add = $(config.addSelector);
+    const $clear = $(config.clearSelector);
+    if (!$list.length || !$add.length || !$clear.length) return;
 
     $list.sortable({
-      items: '.slm-portfolio-thumb',
-      tolerance: 'pointer',
+      items: ".slm-portfolio-thumb",
+      tolerance: "pointer",
       update: function () {
-        setIds(collectIdsFromDom());
+        setIds($idsInput, collectIdsFromDom($list));
       },
     });
 
-    $list.on('click', '.slm-portfolio-thumb-remove', function () {
-      const $li = $(this).closest('.slm-portfolio-thumb');
-      $li.remove();
-      setIds(collectIdsFromDom());
+    $list.on("click", ".slm-portfolio-thumb-remove", function () {
+      $(this).closest(".slm-portfolio-thumb").remove();
+      setIds($idsInput, collectIdsFromDom($list));
     });
 
-    $clear.on('click', function () {
-      setIds([]);
+    $clear.on("click", function () {
+      setIds($idsInput, []);
       $list.empty();
     });
 
     let frame = null;
-    $add.on('click', function () {
-      const currentIds = parseIds($idsInput.val());
-
+    $add.on("click", function () {
       if (!frame) {
         frame = wp.media({
-          title: 'Select Portfolio Images',
-          button: { text: 'Use these images' },
-          library: { type: 'image' },
+          title: config.type === "video" ? "Select Portfolio Videos" : "Select Portfolio Images",
+          button: {
+            text: config.type === "video" ? "Use these videos" : "Use these images",
+          },
+          library: { type: config.type },
           multiple: true,
         });
 
-        frame.on('open', function () {
-          const selection = frame.state().get('selection');
+        frame.on("open", function () {
+          const currentIds = parseIds($idsInput.val());
+          const selection = frame.state().get("selection");
           selection.reset();
           currentIds.forEach((id) => {
             const attachment = wp.media.attachment(id);
@@ -91,32 +146,46 @@
           });
         });
 
-        frame.on('select', function () {
-          const selection = frame.state().get('selection');
+        frame.on("select", function () {
+          const selection = frame.state().get("selection");
           const models = selection ? selection.toArray() : [];
 
-          const ids = models.map((m) => m && m.id).filter((id) => Number.isFinite(id) && id > 0);
-          const finalIds = setIds(ids);
+          const selectedIds = models
+            .map((m) => m && m.id)
+            .filter((id) => Number.isFinite(id) && id > 0);
+          const finalIds = setIds($idsInput, selectedIds);
 
           const byIdToThumbHtml = {};
           models.forEach((m) => {
             const id = m && m.id;
             if (!id) return;
-            const sizes = (m.attributes && m.attributes.sizes) || {};
-            const thumb = sizes.thumbnail || sizes.medium || sizes.full || null;
-            const url = thumb ? thumb.url : (m.attributes ? m.attributes.url : '');
-            const alt = (m.attributes && m.attributes.alt) || '';
-            if (!url) return;
-            byIdToThumbHtml[id] = `<img src="${url}" alt="${alt}" style="width:84px; height:84px; object-fit:cover; display:block; border-radius:8px;" />`;
+            const html = thumbHtmlFromModel(m, config.type);
+            if (html) byIdToThumbHtml[id] = html;
           });
 
-          // Re-render using the best available thumbs from the selection.
-          renderThumbs(finalIds, byIdToThumbHtml);
+          renderThumbs($list, finalIds, byIdToThumbHtml, config.type);
         });
       }
 
       frame.open();
     });
+  }
+
+  $(function () {
+    initMediaPicker({
+      type: "image",
+      idsSelector: "#slm-portfolio-gallery-ids",
+      listSelector: "#slm-portfolio-gallery-list",
+      addSelector: "#slm-portfolio-gallery-add",
+      clearSelector: "#slm-portfolio-gallery-clear",
+    });
+
+    initMediaPicker({
+      type: "video",
+      idsSelector: "#slm-portfolio-video-ids",
+      listSelector: "#slm-portfolio-video-list",
+      addSelector: "#slm-portfolio-video-add",
+      clearSelector: "#slm-portfolio-video-clear",
+    });
   });
 })(jQuery);
-

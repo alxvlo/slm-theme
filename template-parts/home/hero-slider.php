@@ -8,6 +8,9 @@ $slides = [
   $theme_uri . '/assets/img/Homepage1.jpg',
   $theme_uri . '/assets/img/Homepage2.jpg',
   $theme_uri . '/assets/img/Homepage3.jpg',
+  $theme_uri . '/assets/media/drone-photos/08-52-aerial-front-exterior-1.jpg',
+  $theme_uri . '/assets/media/photos/08-1-front-exterior.jpg',
+  $theme_uri . '/assets/media/twilight/01-99-twilight-aerial-front-exterior-3.jpg',
 ];
 
 $is_logged_in = is_user_logged_in();
@@ -36,7 +39,7 @@ $trust_points = [
 
   <div class="container home-heroSlider__content">
     <h1>Elevate Your Listings with Premium Media</h1>
-    <p>Professional real estate photography, video, and aerial services that help your properties stand out and sell faster.</p>
+    <p>Professional real estate photography, video, and aerial services that help your properties stand out and sell faster. We also help businesses with broader content needs through Google-ready 3D scan delivery, social video production, and promotional photography.</p>
     <div class="home-heroSlider__actions">
       <a class="btn btn--accent" href="<?php echo esc_url($order_url); ?>">Order Now</a>
       <a class="btn btn--ghostLight" href="<?php echo esc_url(home_url('/services/')); ?>">View Services</a>

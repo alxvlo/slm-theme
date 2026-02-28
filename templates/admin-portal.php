@@ -17,7 +17,7 @@ if (!slm_user_is_admin()) {
 }
 
 $view = isset($_GET['view']) ? sanitize_key($_GET['view']) : 'dashboard';
-$allowed_views = ['dashboard', 'all-jobs', 'order-detail', 'notifications', 'account'];
+$allowed_views = ['dashboard', 'all-jobs', 'order-detail', 'memberships', 'clients', 'notifications', 'account'];
 if (!in_array($view, $allowed_views, true)) {
   $view = 'dashboard';
 }
@@ -52,6 +52,7 @@ $orders_status = sanitize_key((string) ($_GET['orders_status'] ?? 'all'));
 $orders_page = max(1, (int) ($_GET['orders_page'] ?? 1));
 $orders_per_page = 50;
 $selected_order_id = sanitize_text_field(wp_unslash((string) ($_GET['order_id'] ?? '')));
+$order_notice = sanitize_key((string) ($_GET['order_notice'] ?? ''));
 $selected_order = null;
 $allowed_status_filters = ['all', 'pending', 'scheduled', 'in-progress', 'completed', 'needs-payment'];
 if (!in_array($orders_status, $allowed_status_filters, true)) {
@@ -101,6 +102,10 @@ $format_datetime = static function (string $date): string {
 };
 
 $map_order = static function (array $order) use ($normalize_status, $to_amount): array {
+  if (function_exists('slm_aryeo_normalize_order')) {
+    return slm_aryeo_normalize_order($order);
+  }
+
   $order_id = (string) ($order['id'] ?? '');
   $order_number = (string) ($order['order_number'] ?? $order['number'] ?? $order_id);
   $listing = $order['listing'] ?? [];
@@ -287,6 +292,112 @@ if ($selected_order === null && $selected_order_id !== '' && function_exists('sl
   }
 }
 
+if ($view === 'order-detail' && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slm_order_action'])) {
+  $action = sanitize_key((string) wp_unslash($_POST['slm_order_action']));
+  $nonce = sanitize_text_field((string) wp_unslash($_POST['slm_order_nonce'] ?? ''));
+  $target_order_id = sanitize_text_field(wp_unslash((string) ($_POST['order_id'] ?? $selected_order_id)));
+  $notice = 'completion-email-failed';
+
+  if ($action === 'send-completion-email' && current_user_can('manage_options') && $nonce !== '' && wp_verify_nonce($nonce, 'slm_order_action')) {
+    $order_for_action = null;
+    if ($target_order_id !== '' && $selected_order !== null && (string) ($selected_order['raw_id'] ?? '') === $target_order_id) {
+      $order_for_action = $selected_order;
+    } elseif ($target_order_id !== '' && isset($orders_by_raw_id[$target_order_id])) {
+      $order_for_action = $orders_by_raw_id[$target_order_id];
+    } elseif ($target_order_id !== '' && function_exists('slm_aryeo_get_order_by_id')) {
+      $raw_action_order = slm_aryeo_get_order_by_id($target_order_id);
+      if (is_array($raw_action_order)) {
+        $order_for_action = $map_order($raw_action_order);
+      }
+    }
+
+    if (!is_array($order_for_action)) {
+      $notice = 'completion-email-failed';
+    } elseif (trim((string) ($order_for_action['customer_email'] ?? '')) === '') {
+      $notice = 'completion-email-missing-email';
+    } else {
+      $ready = ((string) ($order_for_action['status'] ?? '') === 'completed') || trim((string) ($order_for_action['delivery_url'] ?? '')) !== '';
+      if (!$ready) {
+        $notice = 'completion-email-not-ready';
+      } elseif (function_exists('slm_customer_order_completion_email_result')) {
+        $result = slm_customer_order_completion_email_result(
+          $order_for_action,
+          'admin_manual',
+          ['event_name' => 'admin.manual_completion_email']
+        );
+        if (!empty($result['ok'])) {
+          $notice = 'completion-email-sent';
+        } else {
+          $status = (string) ($result['status'] ?? '');
+          if ($status === 'duplicate') {
+            $notice = 'completion-email-duplicate';
+          } elseif ($status === 'missing-email') {
+            $notice = 'completion-email-missing-email';
+          } elseif ($status === 'not-ready') {
+            $notice = 'completion-email-not-ready';
+          } else {
+            $notice = 'completion-email-failed';
+          }
+        }
+      }
+    }
+  }
+
+  $redirect_args = [
+    'view' => 'order-detail',
+    'order_notice' => $notice,
+  ];
+  if ($target_order_id !== '') {
+    $redirect_args['order_id'] = $target_order_id;
+  } elseif ($selected_order_id !== '') {
+    $redirect_args['order_id'] = $selected_order_id;
+  }
+  wp_safe_redirect(add_query_arg($redirect_args, $admin_portal_url));
+  exit;
+}
+
+if ($view === 'memberships' && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['slm_memberships_action'])) {
+  $action = sanitize_key((string) wp_unslash($_POST['slm_memberships_action']));
+  $nonce = sanitize_text_field((string) wp_unslash($_POST['slm_memberships_nonce'] ?? ''));
+  $target_user_id = max(0, (int) ($_POST['member_user_id'] ?? $_GET['member_user_id'] ?? 0));
+  $memberships_q_redirect = sanitize_text_field(wp_unslash((string) ($_GET['memberships_q'] ?? '')));
+  $notice = 'membership-action-failed';
+
+  if ($nonce !== '' && wp_verify_nonce($nonce, 'slm_memberships_action') && current_user_can('manage_options')) {
+    if ($action === 'adjust-credit' && function_exists('slm_member_credits_admin_adjust')) {
+      $credit_key = sanitize_key((string) wp_unslash($_POST['credit_key'] ?? ''));
+      $quantity_delta = (int) wp_unslash($_POST['quantity_delta'] ?? 0);
+      $note = sanitize_text_field((string) wp_unslash($_POST['adjust_note'] ?? ''));
+      $result = slm_member_credits_admin_adjust($target_user_id, $credit_key, $quantity_delta, $note, get_current_user_id());
+      $notice = is_wp_error($result) ? 'credit-adjust-failed' : 'credit-adjusted';
+    } elseif ($action === 'resolve-credit-flag' && function_exists('slm_member_credits_resolve_flag')) {
+      $flag_id = max(0, (int) ($_POST['flag_id'] ?? 0));
+      $notice = slm_member_credits_resolve_flag($flag_id, get_current_user_id()) ? 'flag-resolved' : 'flag-resolve-failed';
+    } elseif ($action === 'sync-member-credits' && function_exists('slm_member_credits_reconcile_user')) {
+      $result = slm_member_credits_reconcile_user($target_user_id);
+      $notice = (is_array($result) && !empty($result['ok'])) ? 'credits-synced' : 'credits-sync-failed';
+    } elseif ($action === 'cancel-membership' && $target_user_id > 0 && function_exists('slm_subscriptions_square_cancel_membership_for_user')) {
+      $target_user = get_userdata($target_user_id);
+      if ($target_user instanceof WP_User) {
+        $result = slm_subscriptions_square_cancel_membership_for_user($target_user);
+        if (is_wp_error($result)) {
+          $notice = $result->get_error_code() === 'slm_subscription_commitment_active' ? 'membership-cancel-blocked' : 'membership-cancel-failed';
+        } else {
+          $notice = 'membership-cancel-scheduled';
+        }
+      } else {
+        $notice = 'membership-cancel-failed';
+      }
+    }
+  }
+
+  $redirect_args = ['view' => 'memberships', 'membership_notice' => $notice];
+  if ($target_user_id > 0) $redirect_args['member_user_id'] = (string) $target_user_id;
+  if ($memberships_q_redirect !== '') $redirect_args['memberships_q'] = $memberships_q_redirect;
+  wp_safe_redirect(add_query_arg($redirect_args, $admin_portal_url));
+  exit;
+}
+
 usort($orders, static function (array $a, array $b): int {
   $a_time = strtotime((string) ($a['date'] ?? '')) ?: 0;
   $b_time = strtotime((string) ($b['date'] ?? '')) ?: 0;
@@ -377,12 +488,12 @@ $notifications_type = sanitize_key((string) ($_GET['notifications_type'] ?? 'all
 $notifications_page = max(1, (int) ($_GET['notifications_page'] ?? 1));
 $notifications_per_page = 25;
 
-$allowed_notification_statuses = ['all', 'sent', 'failed-send', 'skipped-disabled', 'skipped-invalid-recipient', 'skipped-empty-body'];
+$allowed_notification_statuses = ['all', 'sent', 'failed-send', 'skipped-disabled', 'skipped-invalid-recipient', 'skipped-empty-body', 'skipped-duplicate', 'skipped-not-ready'];
 if (!in_array($notifications_status, $allowed_notification_statuses, true)) {
   $notifications_status = 'all';
 }
 
-$allowed_notification_types = ['all', 'aryeo-webhook', 'account-created', 'manual-test', 'notification'];
+$allowed_notification_types = ['all', 'aryeo-webhook', 'account-created', 'manual-test', 'customer-submission', 'customer-completion', 'notification'];
 if (!in_array($notifications_type, $allowed_notification_types, true)) {
   $notifications_type = 'all';
 }
@@ -494,6 +605,116 @@ $notifications_page_url = static function (int $page) use ($notifications_base_u
 };
 $notifications_reset_url = add_query_arg('view', 'notifications', $admin_portal_url);
 
+$clients_q = sanitize_text_field(wp_unslash((string) ($_GET['clients_q'] ?? '')));
+$clients_page = max(1, (int) ($_GET['clients_page'] ?? 1));
+$clients_per_page = 50;
+$clients_rows = [];
+$all_wp_users = get_users([
+  'number' => -1,
+  'orderby' => 'registered',
+  'order' => 'DESC',
+]);
+if (is_array($all_wp_users)) {
+  foreach ($all_wp_users as $client_user) {
+    if (!$client_user instanceof WP_User) {
+      continue;
+    }
+
+    $user_id = (int) $client_user->ID;
+    $phone = trim((string) get_user_meta($user_id, 'phone', true));
+    $brokerage = trim((string) get_user_meta($user_id, 'brokerage', true));
+    $display_name = trim((string) $client_user->display_name);
+    if ($display_name === '') {
+      $display_name = trim((string) $client_user->user_login);
+    }
+    $email = (string) $client_user->user_email;
+    $roles = array_values(array_map('strval', (array) $client_user->roles));
+    $is_admin_user = in_array('administrator', $roles, true);
+
+    if ($clients_q !== '') {
+      $needle = strtolower($clients_q);
+      $haystack = strtolower(implode(' ', [
+        $display_name,
+        (string) $client_user->user_login,
+        $email,
+        $phone,
+        $brokerage,
+        implode(' ', $roles),
+      ]));
+      if (strpos($haystack, $needle) === false) {
+        continue;
+      }
+    }
+
+    $clients_rows[] = [
+      'user_id' => $user_id,
+      'name' => $display_name,
+      'email' => $email,
+      'phone' => $phone,
+      'brokerage' => $brokerage,
+      'registered' => (string) $client_user->user_registered,
+      'roles' => $roles,
+      'is_admin' => $is_admin_user,
+      'edit_url' => add_query_arg('user_id', (string) $user_id, admin_url('user-edit.php')),
+      'portal_url' => slm_portal_url(),
+    ];
+  }
+}
+
+usort($clients_rows, static function (array $a, array $b): int {
+  if (!empty($a['is_admin']) !== !empty($b['is_admin'])) {
+    return !empty($a['is_admin']) ? 1 : -1;
+  }
+  $a_time = strtotime((string) ($a['registered'] ?? '')) ?: 0;
+  $b_time = strtotime((string) ($b['registered'] ?? '')) ?: 0;
+  if ($a_time === $b_time) {
+    return strcmp((string) ($a['name'] ?? ''), (string) ($b['name'] ?? ''));
+  }
+  return $b_time <=> $a_time;
+});
+
+$total_clients = count($clients_rows);
+$total_client_pages = max(1, (int) ceil($total_clients / $clients_per_page));
+$clients_page = min($clients_page, $total_client_pages);
+$clients_offset = ($clients_page - 1) * $clients_per_page;
+$paged_clients = array_slice($clients_rows, $clients_offset, $clients_per_page);
+$clients_showing_from = $total_clients > 0 ? $clients_offset + 1 : 0;
+$clients_showing_to = min($clients_offset + count($paged_clients), $total_clients);
+
+$clients_base_args = ['view' => 'clients'];
+if ($clients_q !== '') {
+  $clients_base_args['clients_q'] = $clients_q;
+}
+$clients_base_url = add_query_arg($clients_base_args, $admin_portal_url);
+$clients_page_url = static function (int $page) use ($clients_base_url): string {
+  return add_query_arg('clients_page', (string) max(1, $page), $clients_base_url);
+};
+$clients_reset_url = add_query_arg('view', 'clients', $admin_portal_url);
+
+$memberships_q = sanitize_text_field(wp_unslash((string) ($_GET['memberships_q'] ?? '')));
+$memberships_page = max(1, (int) ($_GET['memberships_page'] ?? 1));
+$memberships_per_page = 50;
+$selected_member_user_id = max(0, (int) ($_GET['member_user_id'] ?? 0));
+$membership_notice = sanitize_key((string) ($_GET['membership_notice'] ?? ''));
+$memberships_rows = function_exists('slm_member_credits_membership_rows') ? slm_member_credits_membership_rows(['search' => $memberships_q, 'include_inactive' => false]) : [];
+if (!is_array($memberships_rows)) $memberships_rows = [];
+$total_memberships = count($memberships_rows);
+$total_membership_pages = max(1, (int) ceil($total_memberships / $memberships_per_page));
+$memberships_page = min($memberships_page, $total_membership_pages);
+$memberships_offset = ($memberships_page - 1) * $memberships_per_page;
+$paged_memberships = array_slice($memberships_rows, $memberships_offset, $memberships_per_page);
+$memberships_showing_from = $total_memberships > 0 ? $memberships_offset + 1 : 0;
+$memberships_showing_to = min($memberships_offset + count($paged_memberships), $total_memberships);
+$memberships_base_args = ['view' => 'memberships'];
+if ($memberships_q !== '') $memberships_base_args['memberships_q'] = $memberships_q;
+if ($selected_member_user_id > 0) $memberships_base_args['member_user_id'] = (string) $selected_member_user_id;
+$memberships_base_url = add_query_arg($memberships_base_args, $admin_portal_url);
+$memberships_page_url = static function (int $page) use ($memberships_base_url): string {
+  return add_query_arg('memberships_page', (string) max(1, $page), $memberships_base_url);
+};
+$memberships_reset_url = add_query_arg('view', 'memberships', $admin_portal_url);
+$selected_member_detail = ($selected_member_user_id > 0 && function_exists('slm_member_credits_member_detail')) ? slm_member_credits_member_detail($selected_member_user_id) : [];
+
 get_header();
 ?>
 
@@ -508,10 +729,12 @@ get_header();
     </div>
 
     <nav class="portal-nav" aria-label="Admin Portal">
-      <a class="<?php echo $view === 'dashboard' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'dashboard', $admin_portal_url)); ?>">Dashboard</a>
-      <a class="<?php echo in_array($view, ['all-jobs', 'order-detail'], true) ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'all-jobs', $admin_portal_url)); ?>">All Orders</a>
-      <a class="<?php echo $view === 'notifications' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'notifications', $admin_portal_url)); ?>">Notifications</a>
-      <a class="<?php echo $view === 'account' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'account', $admin_portal_url)); ?>">Account</a>
+      <a class="<?php echo $view === 'dashboard' ? 'is-active' : ''; ?>"<?php echo $view === 'dashboard' ? ' aria-current="page"' : ''; ?> href="<?php echo esc_url(add_query_arg('view', 'dashboard', $admin_portal_url)); ?>">Dashboard</a>
+      <a class="<?php echo in_array($view, ['all-jobs', 'order-detail'], true) ? 'is-active' : ''; ?>"<?php echo in_array($view, ['all-jobs', 'order-detail'], true) ? ' aria-current="page"' : ''; ?> href="<?php echo esc_url(add_query_arg('view', 'all-jobs', $admin_portal_url)); ?>">All Orders</a>
+      <a class="<?php echo $view === 'memberships' ? 'is-active' : ''; ?>"<?php echo $view === 'memberships' ? ' aria-current="page"' : ''; ?> href="<?php echo esc_url(add_query_arg('view', 'memberships', $admin_portal_url)); ?>">Memberships</a>
+      <a class="<?php echo $view === 'clients' ? 'is-active' : ''; ?>"<?php echo $view === 'clients' ? ' aria-current="page"' : ''; ?> href="<?php echo esc_url(add_query_arg('view', 'clients', $admin_portal_url)); ?>">Clients</a>
+      <a class="<?php echo $view === 'notifications' ? 'is-active' : ''; ?>"<?php echo $view === 'notifications' ? ' aria-current="page"' : ''; ?> href="<?php echo esc_url(add_query_arg('view', 'notifications', $admin_portal_url)); ?>">Notifications</a>
+      <a class="<?php echo $view === 'account' ? 'is-active' : ''; ?>"<?php echo $view === 'account' ? ' aria-current="page"' : ''; ?> href="<?php echo esc_url(add_query_arg('view', 'account', $admin_portal_url)); ?>">Account</a>
     </nav>
 
     <div class="portal-sidebar__footer">
@@ -524,6 +747,8 @@ get_header();
       <section class="portal-toolbar" aria-label="Admin Quick Actions">
         <a class="portal-toolbar__pill <?php echo $view === 'dashboard' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'dashboard', $admin_portal_url)); ?>">Overview</a>
         <a class="portal-toolbar__pill <?php echo in_array($view, ['all-jobs', 'order-detail'], true) ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'all-jobs', $admin_portal_url)); ?>">Order Queue</a>
+        <a class="portal-toolbar__pill <?php echo $view === 'memberships' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'memberships', $admin_portal_url)); ?>">Memberships</a>
+        <a class="portal-toolbar__pill <?php echo $view === 'clients' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'clients', $admin_portal_url)); ?>">Clients</a>
         <a class="portal-toolbar__pill <?php echo $view === 'notifications' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'notifications', $admin_portal_url)); ?>">Notifications</a>
         <a class="portal-toolbar__pill <?php echo $view === 'account' ? 'is-active' : ''; ?>" href="<?php echo esc_url(add_query_arg('view', 'account', $admin_portal_url)); ?>">Admin Profile</a>
       </section>
@@ -752,11 +977,407 @@ get_header();
         </section>
       <?php endif; ?>
 
+      <?php if ($view === 'memberships'): ?>
+        <section class="portal-section">
+          <h1>Memberships</h1>
+          <p class="sub">Monitor active members, credit balances, overages, and Square membership actions.</p>
+        </section>
+
+        <?php if ($membership_notice !== ''): ?>
+          <section class="portal-tableCard">
+            <div style="padding:12px 16px;">
+              <?php
+                $membership_notice_map = [
+                  'credit-adjusted' => ['ok', 'Credit adjustment saved.'],
+                  'credit-adjust-failed' => ['warn', 'Credit adjustment failed. Check the credit key and amount.'],
+                  'flag-resolved' => ['ok', 'Member credit flag marked as resolved.'],
+                  'flag-resolve-failed' => ['warn', 'Could not resolve the selected flag.'],
+                  'credits-synced' => ['ok', 'Member credit entitlement sync was run.'],
+                  'credits-sync-failed' => ['warn', 'Member credit sync failed. Check the subscription mapping and logs.'],
+                  'membership-cancel-scheduled' => ['ok', 'Square membership cancellation was scheduled.'],
+                  'membership-cancel-blocked' => ['warn', 'Membership cancellation is blocked until the commitment period ends.'],
+                  'membership-cancel-failed' => ['warn', 'Membership cancellation failed. Check Square configuration and logs.'],
+                  'membership-action-failed' => ['warn', 'Membership action failed. Please try again.'],
+                ];
+                $notice_meta = $membership_notice_map[$membership_notice] ?? ['warn', 'Membership action completed with an unknown result.'];
+              ?>
+              <p class="portal-notice portal-notice--<?php echo esc_attr($notice_meta[0]); ?>"><?php echo esc_html($notice_meta[1]); ?></p>
+            </div>
+          </section>
+        <?php endif; ?>
+
+        <section class="portal-tableCard" data-server-filtered="1">
+          <div class="portal-tableCard__head">
+            <h2>Member Accounts</h2>
+            <a href="<?php echo esc_url($memberships_reset_url); ?>">Reset</a>
+          </div>
+
+          <form class="table-controls table-controls--server" method="get" action="<?php echo esc_url($admin_portal_url); ?>">
+            <input type="hidden" name="view" value="memberships">
+            <div class="table-control">
+              <label for="memberships_q">Search</label>
+              <input id="memberships_q" name="memberships_q" type="search" value="<?php echo esc_attr($memberships_q); ?>" placeholder="Search member, email, tier, term">
+            </div>
+            <div class="table-control table-control--action">
+              <label for="memberships_apply">Apply</label>
+              <button id="memberships_apply" type="submit" class="table-reset btn btn--secondary">Apply</button>
+            </div>
+            <div class="table-control table-control--action">
+              <label>Reset</label>
+              <a class="table-reset btn btn--secondary" href="<?php echo esc_url($memberships_reset_url); ?>">Reset</a>
+            </div>
+          </form>
+
+          <div class="table-scroll">
+            <table class="table" aria-label="Memberships">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Plan</th>
+                  <th>Term</th>
+                  <th>Provider</th>
+                  <th>Status</th>
+                  <th>Commitment End</th>
+                  <th>Flags</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php if (empty($memberships_rows)): ?>
+                  <tr><td colspan="8">No memberships found yet.</td></tr>
+                <?php elseif (empty($paged_memberships)): ?>
+                  <tr><td colspan="8">No matching memberships for this search.</td></tr>
+                <?php else: ?>
+                  <?php foreach ($paged_memberships as $member_row): ?>
+                    <?php
+                      $commitment_label = 'n/a';
+                      if ((int) ($member_row['commitment_end'] ?? 0) > 0) {
+                        $commitment_label = date_i18n('M j, Y', (int) $member_row['commitment_end']);
+                      }
+                    ?>
+                    <tr>
+                      <td>
+                        <strong><?php echo esc_html((string) ($member_row['name'] ?? '')); ?></strong><br>
+                        <span class="muted"><?php echo esc_html((string) ($member_row['email'] ?? '')); ?></span>
+                      </td>
+                      <td><?php echo esc_html((string) ($member_row['plan_label'] ?? 'n/a')); ?></td>
+                      <td><?php echo esc_html((string) (($member_row['term_label'] ?? '') !== '' ? $member_row['term_label'] : 'n/a')); ?></td>
+                      <td><?php echo esc_html(strtoupper((string) ($member_row['provider'] ?? ''))); ?></td>
+                      <td><?php echo esc_html((string) ($member_row['status_label'] ?? 'Unknown')); ?></td>
+                      <td><?php echo esc_html($commitment_label); ?></td>
+                      <td><?php echo esc_html((string) (int) ($member_row['open_flag_count'] ?? 0)); ?></td>
+                      <td>
+                        <a class="btn btn--secondary" href="<?php echo esc_url(add_query_arg(['view' => 'memberships', 'member_user_id' => (string) ($member_row['user_id'] ?? 0)], $admin_portal_url)); ?>">View</a>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </tbody>
+            </table>
+          </div>
+
+          <?php if (!empty($memberships_rows)): ?>
+            <div class="portal-pagination">
+              <p class="portal-pagination__summary">
+                Showing <?php echo esc_html((string) $memberships_showing_from); ?>-<?php echo esc_html((string) $memberships_showing_to); ?>
+                of <?php echo esc_html((string) $total_memberships); ?> membership record<?php echo $total_memberships === 1 ? '' : 's'; ?>
+              </p>
+              <?php if ($total_membership_pages > 1): ?>
+                <div class="portal-pagination__actions">
+                  <?php if ($memberships_page > 1): ?>
+                    <a class="btn btn--secondary" href="<?php echo esc_url($memberships_page_url($memberships_page - 1)); ?>">Previous</a>
+                  <?php else: ?>
+                    <span class="btn btn--secondary is-disabled" aria-disabled="true">Previous</span>
+                  <?php endif; ?>
+                  <span class="portal-pagination__page">Page <?php echo esc_html((string) $memberships_page); ?> of <?php echo esc_html((string) $total_membership_pages); ?></span>
+                  <?php if ($memberships_page < $total_membership_pages): ?>
+                    <a class="btn btn--secondary" href="<?php echo esc_url($memberships_page_url($memberships_page + 1)); ?>">Next</a>
+                  <?php else: ?>
+                    <span class="btn btn--secondary is-disabled" aria-disabled="true">Next</span>
+                  <?php endif; ?>
+                </div>
+              <?php endif; ?>
+            </div>
+          <?php endif; ?>
+        </section>
+
+        <?php if (!empty($selected_member_detail) && is_array($selected_member_detail)): ?>
+          <?php
+            $member_user = $selected_member_detail['user'] ?? null;
+            $member_sub = is_array($selected_member_detail['subscription'] ?? null) ? $selected_member_detail['subscription'] : [];
+            $member_balances = is_array($selected_member_detail['balances'] ?? null) ? $selected_member_detail['balances'] : ['balances' => []];
+            $member_ledger = is_array($selected_member_detail['ledger'] ?? null) ? $selected_member_detail['ledger'] : [];
+            $member_flags = is_array($selected_member_detail['flags'] ?? null) ? $selected_member_detail['flags'] : [];
+            $member_user_id = ($member_user instanceof WP_User) ? (int) $member_user->ID : $selected_member_user_id;
+            $member_plan_arr = is_array($member_sub['plan'] ?? null) ? $member_sub['plan'] : [];
+            $member_plan_label = (string) ($member_plan_arr['label'] ?? ($member_sub['plan_slug'] ?? 'n/a'));
+          ?>
+          <section class="portal-tableCard">
+            <div class="portal-tableCard__head">
+              <h2>Member Detail<?php if ($member_user instanceof WP_User): ?>: <?php echo esc_html((string) $member_user->display_name); ?><?php endif; ?></h2>
+              <a href="<?php echo esc_url(add_query_arg('view', 'memberships', $admin_portal_url)); ?>">Back to Memberships</a>
+            </div>
+            <div class="order-detail" style="padding:16px;">
+              <div class="order-detail__summary">
+                <article class="portal-card"><p>Plan</p><strong><?php echo esc_html($member_plan_label); ?></strong></article>
+                <article class="portal-card"><p>Term</p><strong><?php echo esc_html((string) (($member_sub['term_label'] ?? '') !== '' ? $member_sub['term_label'] : 'n/a')); ?></strong></article>
+                <article class="portal-card"><p>Status</p><strong><?php echo esc_html(function_exists('slm_subscriptions_status_label') ? slm_subscriptions_status_label((string) ($member_sub['status'] ?? '')) : (string) ($member_sub['status'] ?? '')); ?></strong></article>
+                <article class="portal-card"><p>Provider</p><strong><?php echo esc_html(strtoupper((string) ($member_sub['provider'] ?? ''))); ?></strong></article>
+              </div>
+
+              <div class="order-detail__grid">
+                <article class="portal-card">
+                  <h2>Credit Balances</h2>
+                  <div class="table-scroll">
+                    <table class="table" aria-label="Member Credit Balances">
+                      <thead><tr><th>Credit</th><th>Remaining</th></tr></thead>
+                      <tbody>
+                        <?php foreach ((array) ($member_balances['balances'] ?? []) as $balance): ?>
+                          <?php if (!is_array($balance)) continue; ?>
+                          <tr>
+                            <td><?php echo esc_html((string) ($balance['label'] ?? 'Credit')); ?></td>
+                            <td><?php echo esc_html((string) (int) ($balance['qty'] ?? 0)); ?></td>
+                          </tr>
+                        <?php endforeach; ?>
+                      </tbody>
+                    </table>
+                  </div>
+                </article>
+
+                <article class="portal-card">
+                  <h2>Adjust Credits</h2>
+                  <form method="post" action="<?php echo esc_url(add_query_arg(['view' => 'memberships', 'member_user_id' => (string) $member_user_id], $admin_portal_url)); ?>">
+                    <?php wp_nonce_field('slm_memberships_action', 'slm_memberships_nonce'); ?>
+                    <input type="hidden" name="slm_memberships_action" value="adjust-credit">
+                    <input type="hidden" name="member_user_id" value="<?php echo esc_attr((string) $member_user_id); ?>">
+                    <p><label for="credit_key"><strong>Credit</strong></label><br>
+                    <select id="credit_key" name="credit_key" style="width:100%;">
+                      <?php foreach ((function_exists('slm_member_credits_key_labels') ? slm_member_credits_key_labels() : []) as $credit_key => $credit_label): ?>
+                        <option value="<?php echo esc_attr((string) $credit_key); ?>"><?php echo esc_html((string) $credit_label); ?></option>
+                      <?php endforeach; ?>
+                    </select></p>
+                    <p><label for="quantity_delta"><strong>Quantity Delta</strong></label><br>
+                    <input id="quantity_delta" type="number" name="quantity_delta" value="1" step="1"></p>
+                    <p><label for="adjust_note"><strong>Note</strong></label><br>
+                    <input id="adjust_note" type="text" name="adjust_note" value="" style="width:100%;"></p>
+                    <button type="submit" class="btn btn--secondary">Save Adjustment</button>
+                  </form>
+                </article>
+
+                <article class="portal-card">
+                  <h2>Actions</h2>
+                  <form method="post" action="<?php echo esc_url(add_query_arg(['view' => 'memberships', 'member_user_id' => (string) $member_user_id], $admin_portal_url)); ?>" style="margin-bottom:10px;">
+                    <?php wp_nonce_field('slm_memberships_action', 'slm_memberships_nonce'); ?>
+                    <input type="hidden" name="slm_memberships_action" value="sync-member-credits">
+                    <input type="hidden" name="member_user_id" value="<?php echo esc_attr((string) $member_user_id); ?>">
+                    <button type="submit" class="btn btn--secondary">Re-run Entitlement Sync</button>
+                  </form>
+                  <?php if ((string) ($member_sub['provider'] ?? '') === 'square'): ?>
+                    <?php $member_commitment_active = ((int) ($member_sub['commitment_end'] ?? 0) > time()); ?>
+                    <form method="post" action="<?php echo esc_url(add_query_arg(['view' => 'memberships', 'member_user_id' => (string) $member_user_id], $admin_portal_url)); ?>" onsubmit="return confirm('Schedule Square cancellation for this member if eligible?');">
+                      <?php wp_nonce_field('slm_memberships_action', 'slm_memberships_nonce'); ?>
+                      <input type="hidden" name="slm_memberships_action" value="cancel-membership">
+                      <input type="hidden" name="member_user_id" value="<?php echo esc_attr((string) $member_user_id); ?>">
+                      <button type="submit" class="btn btn--secondary"<?php echo $member_commitment_active ? ' disabled aria-disabled="true"' : ''; ?>>Schedule Cancel (Square)</button>
+                    </form>
+                    <?php if ($member_commitment_active): ?>
+                      <p class="sub" style="margin:8px 0 0;">Commitment active until <?php echo esc_html(date_i18n('M j, Y', (int) $member_sub['commitment_end'])); ?>.</p>
+                    <?php endif; ?>
+                  <?php else: ?>
+                    <p>Square cancellation action is only available for Square memberships.</p>
+                  <?php endif; ?>
+                </article>
+
+                <article class="portal-card">
+                  <h2>Open Flags</h2>
+                  <?php if (empty($member_flags)): ?>
+                    <p>No open overage or unmatched-service flags.</p>
+                  <?php else: ?>
+                    <ul class="order-detail__items">
+                      <?php foreach ($member_flags as $flag_row): ?>
+                        <?php if (!is_array($flag_row)) continue; ?>
+                        <li>
+                          <strong><?php echo esc_html((string) ($flag_row['flag_type'] ?? 'flag')); ?></strong>: <?php echo esc_html((string) ($flag_row['message'] ?? '')); ?>
+                          <form method="post" action="<?php echo esc_url(add_query_arg(['view' => 'memberships', 'member_user_id' => (string) $member_user_id], $admin_portal_url)); ?>" style="display:inline-block; margin-left:8px;">
+                            <?php wp_nonce_field('slm_memberships_action', 'slm_memberships_nonce'); ?>
+                            <input type="hidden" name="slm_memberships_action" value="resolve-credit-flag">
+                            <input type="hidden" name="member_user_id" value="<?php echo esc_attr((string) $member_user_id); ?>">
+                            <input type="hidden" name="flag_id" value="<?php echo esc_attr((string) (int) ($flag_row['id'] ?? 0)); ?>">
+                            <button type="submit" class="btn btn--secondary">Resolve</button>
+                          </form>
+                        </li>
+                      <?php endforeach; ?>
+                    </ul>
+                  <?php endif; ?>
+                </article>
+              </div>
+
+              <article class="portal-card">
+                <h2>Recent Credit Ledger</h2>
+                <div class="table-scroll">
+                  <table class="table" aria-label="Member Credit Ledger">
+                    <thead>
+                      <tr><th>Time (GMT)</th><th>Type</th><th>Credit</th><th>Qty</th><th>Source</th><th>Ref</th></tr>
+                    </thead>
+                    <tbody>
+                      <?php if (empty($member_ledger)): ?>
+                        <tr><td colspan="6">No credit ledger transactions yet.</td></tr>
+                      <?php else: ?>
+                        <?php foreach ($member_ledger as $ledger_row): ?>
+                          <?php if (!is_array($ledger_row)) continue; ?>
+                          <tr>
+                            <td><?php echo esc_html((string) ($ledger_row['created_at_gmt'] ?? '')); ?></td>
+                            <td><?php echo esc_html((string) ($ledger_row['txn_type'] ?? '')); ?></td>
+                            <td><?php echo esc_html((string) ($ledger_row['credit_key'] ?? '')); ?></td>
+                            <td><?php echo esc_html((string) (int) ($ledger_row['quantity_delta'] ?? 0)); ?></td>
+                            <td><?php echo esc_html((string) ($ledger_row['source'] ?? '')); ?></td>
+                            <td><?php echo esc_html((string) ($ledger_row['source_ref'] ?? '')); ?></td>
+                          </tr>
+                        <?php endforeach; ?>
+                      <?php endif; ?>
+                    </tbody>
+                  </table>
+                </div>
+              </article>
+            </div>
+          </section>
+        <?php endif; ?>
+      <?php endif; ?>
+
+      <?php if ($view === 'clients'): ?>
+        <section class="portal-section">
+          <h1>Clients</h1>
+          <p class="sub">Manage WordPress client accounts and jump to the standard user editor when changes are needed.</p>
+        </section>
+
+        <section class="portal-tableCard" data-server-filtered="1">
+          <div class="portal-tableCard__head">
+            <h2>Client Accounts</h2>
+            <a href="<?php echo esc_url($clients_reset_url); ?>">Reset Search</a>
+          </div>
+
+          <form class="table-controls table-controls--server" method="get" action="<?php echo esc_url($admin_portal_url); ?>">
+            <input type="hidden" name="view" value="clients">
+
+            <div class="table-control">
+              <label for="clients_q">Search</label>
+              <input id="clients_q" name="clients_q" type="search" value="<?php echo esc_attr($clients_q); ?>" placeholder="Search name, email, phone, brokerage">
+            </div>
+
+            <div class="table-control table-control--action">
+              <label for="clients_apply">Apply</label>
+              <button id="clients_apply" type="submit" class="table-reset btn btn--secondary">Apply</button>
+            </div>
+
+            <div class="table-control table-control--action">
+              <label>Reset</label>
+              <a class="table-reset btn btn--secondary" href="<?php echo esc_url($clients_reset_url); ?>">Reset</a>
+            </div>
+          </form>
+
+          <div class="table-scroll">
+            <table class="table" aria-label="Client Accounts">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Brokerage</th>
+                  <th>Registered</th>
+                  <th>Roles</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php if (empty($clients_rows)): ?>
+                  <tr><td colspan="7">No users found yet.</td></tr>
+                <?php elseif (empty($paged_clients)): ?>
+                  <tr><td colspan="7">No matching client accounts for this search.</td></tr>
+                <?php else: ?>
+                  <?php foreach ($paged_clients as $client_row): ?>
+                    <?php
+                      $registered_label = '';
+                      if ((string) ($client_row['registered'] ?? '') !== '') {
+                        $timestamp = strtotime((string) $client_row['registered']);
+                        if ($timestamp) {
+                          $registered_label = date_i18n('M j, Y', $timestamp);
+                        }
+                      }
+                      $roles = array_values(array_map('strval', (array) ($client_row['roles'] ?? [])));
+                      $role_label = !empty($roles) ? implode(', ', $roles) : 'n/a';
+                      if (!empty($client_row['is_admin'])) {
+                        $role_label .= ' (admin)';
+                      }
+                    ?>
+                    <tr>
+                      <td><?php echo esc_html((string) ($client_row['name'] ?? '')); ?></td>
+                      <td><?php echo esc_html((string) ($client_row['email'] ?? '')); ?></td>
+                      <td><?php echo esc_html((string) (($client_row['phone'] ?? '') !== '' ? $client_row['phone'] : 'n/a')); ?></td>
+                      <td><?php echo esc_html((string) (($client_row['brokerage'] ?? '') !== '' ? $client_row['brokerage'] : 'n/a')); ?></td>
+                      <td><?php echo esc_html($registered_label !== '' ? $registered_label : 'n/a'); ?></td>
+                      <td><?php echo esc_html($role_label); ?></td>
+                      <td>
+                        <a class="btn btn--secondary" href="<?php echo esc_url((string) ($client_row['edit_url'] ?? '')); ?>">Edit User</a>
+                        <a class="btn btn--secondary" href="<?php echo esc_url((string) ($client_row['portal_url'] ?? '')); ?>" target="_blank" rel="noopener">Open Portal</a>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </tbody>
+            </table>
+          </div>
+
+          <?php if (!empty($clients_rows)): ?>
+            <div class="portal-pagination">
+              <p class="portal-pagination__summary">
+                Showing <?php echo esc_html((string) $clients_showing_from); ?>-<?php echo esc_html((string) $clients_showing_to); ?>
+                of <?php echo esc_html((string) $total_clients); ?> user<?php echo $total_clients === 1 ? '' : 's'; ?>
+              </p>
+              <?php if ($total_client_pages > 1): ?>
+                <div class="portal-pagination__actions">
+                  <?php if ($clients_page > 1): ?>
+                    <a class="btn btn--secondary" href="<?php echo esc_url($clients_page_url($clients_page - 1)); ?>">Previous</a>
+                  <?php else: ?>
+                    <span class="btn btn--secondary is-disabled" aria-disabled="true">Previous</span>
+                  <?php endif; ?>
+
+                  <span class="portal-pagination__page">Page <?php echo esc_html((string) $clients_page); ?> of <?php echo esc_html((string) $total_client_pages); ?></span>
+
+                  <?php if ($clients_page < $total_client_pages): ?>
+                    <a class="btn btn--secondary" href="<?php echo esc_url($clients_page_url($clients_page + 1)); ?>">Next</a>
+                  <?php else: ?>
+                    <span class="btn btn--secondary is-disabled" aria-disabled="true">Next</span>
+                  <?php endif; ?>
+                </div>
+              <?php endif; ?>
+            </div>
+          <?php endif; ?>
+        </section>
+      <?php endif; ?>
+
       <?php if ($view === 'order-detail'): ?>
         <section class="portal-section">
           <h1>Order Detail</h1>
           <p class="sub">Track delivery and payment status for a specific order.</p>
         </section>
+
+        <?php if ($order_notice !== ''): ?>
+          <section class="portal-tableCard">
+            <div style="padding: 12px 16px;">
+              <?php if ($order_notice === 'completion-email-sent'): ?>
+                <p class="portal-notice portal-notice--ok">Completion email sent to the customer.</p>
+              <?php elseif ($order_notice === 'completion-email-duplicate'): ?>
+                <p class="portal-notice portal-notice--warn">A completion email was already sent recently for this order.</p>
+              <?php elseif ($order_notice === 'completion-email-missing-email'): ?>
+                <p class="portal-notice portal-notice--warn">Cannot send completion email because the order is missing a customer email.</p>
+              <?php elseif ($order_notice === 'completion-email-not-ready'): ?>
+                <p class="portal-notice portal-notice--warn">Order is not ready for a completion email yet.</p>
+              <?php elseif ($order_notice === 'completion-email-failed'): ?>
+                <p class="portal-notice portal-notice--warn">Completion email could not be sent. Check mail configuration and order details.</p>
+              <?php endif; ?>
+            </div>
+          </section>
+        <?php endif; ?>
 
         <?php if ($selected_order === null): ?>
           <section class="portal-tableCard">
@@ -771,6 +1392,8 @@ get_header();
         <?php else: ?>
           <?php
             $timeline = [];
+            $completion_email_recipient = trim((string) ($selected_order['customer_email'] ?? ''));
+            $completion_email_ready = ((string) ($selected_order['status'] ?? '') === 'completed') || trim((string) ($selected_order['delivery_url'] ?? '')) !== '';
             if ((string) ($selected_order['created_at'] ?? '') !== '') {
               $timeline[] = ['label' => 'Order Created', 'date' => (string) $selected_order['created_at']];
             }
@@ -849,6 +1472,24 @@ get_header();
                   <p>Payment Status: <?php echo esc_html(ucwords(str_replace('-', ' ', (string) ($selected_order['payment_status'] ?? 'unknown')))); ?></p>
                   <?php if ((float) ($selected_order['due_amount'] ?? 0) > 0.009 && (string) ($selected_order['payment_url'] ?? '') !== ''): ?>
                     <a class="btn btn--secondary" href="<?php echo esc_url((string) $selected_order['payment_url']); ?>" target="_blank" rel="noopener">Open Payment Link</a>
+                  <?php endif; ?>
+                </article>
+
+                <article class="portal-card">
+                  <h2>Customer Notifications</h2>
+                  <p>Customer Email: <?php echo esc_html($completion_email_recipient !== '' ? $completion_email_recipient : 'n/a'); ?></p>
+                  <?php if ($completion_email_recipient === ''): ?>
+                    <p>Completion email unavailable until a customer email is present on the order.</p>
+                  <?php elseif (!$completion_email_ready): ?>
+                    <p>Order is not ready for completion email yet. Delivery link or completed status is required.</p>
+                  <?php else: ?>
+                    <p>Send the customer a completion update email from WordPress (delivery link is only included when fully paid).</p>
+                    <form method="post" action="<?php echo esc_url(add_query_arg(['view' => 'order-detail', 'order_id' => (string) ($selected_order['raw_id'] ?? '')], $admin_portal_url)); ?>">
+                      <?php wp_nonce_field('slm_order_action', 'slm_order_nonce'); ?>
+                      <input type="hidden" name="slm_order_action" value="send-completion-email">
+                      <input type="hidden" name="order_id" value="<?php echo esc_attr((string) ($selected_order['raw_id'] ?? '')); ?>">
+                      <button type="submit" class="btn btn--secondary">Send Completion Email</button>
+                    </form>
                   <?php endif; ?>
                 </article>
               </div>
@@ -936,6 +1577,8 @@ get_header();
                 <option value="skipped-disabled" <?php selected($notifications_status, 'skipped-disabled'); ?>>Skipped (Disabled)</option>
                 <option value="skipped-invalid-recipient" <?php selected($notifications_status, 'skipped-invalid-recipient'); ?>>Skipped (Bad Recipient)</option>
                 <option value="skipped-empty-body" <?php selected($notifications_status, 'skipped-empty-body'); ?>>Skipped (Empty Body)</option>
+                <option value="skipped-duplicate" <?php selected($notifications_status, 'skipped-duplicate'); ?>>Skipped (Duplicate)</option>
+                <option value="skipped-not-ready" <?php selected($notifications_status, 'skipped-not-ready'); ?>>Skipped (Not Ready)</option>
               </select>
             </div>
 
@@ -946,6 +1589,8 @@ get_header();
                 <option value="aryeo-webhook" <?php selected($notifications_type, 'aryeo-webhook'); ?>>Aryeo Webhook</option>
                 <option value="account-created" <?php selected($notifications_type, 'account-created'); ?>>Account Created</option>
                 <option value="manual-test" <?php selected($notifications_type, 'manual-test'); ?>>Manual Test</option>
+                <option value="customer-submission" <?php selected($notifications_type, 'customer-submission'); ?>>Customer Submission</option>
+                <option value="customer-completion" <?php selected($notifications_type, 'customer-completion'); ?>>Customer Completion</option>
               </select>
             </div>
 

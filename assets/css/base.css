@@ -173,7 +173,7 @@ select:focus-visible {
 
 .footer {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  grid-template-columns: 1.4fr 1fr 1fr;
   gap: 26px;
   align-items: start;
   padding-top: 22px;
@@ -307,6 +307,16 @@ select:focus-visible {
 .footer__meta a {
   color: rgba(255, 255, 255, 0.9);
   font-weight: 600;
+}
+
+.slm-noWrap {
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .slm-noWrap {
+    white-space: normal;
+  }
 }
 
 @media (max-width: 720px) {

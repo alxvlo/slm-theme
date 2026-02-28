@@ -4,6 +4,7 @@ if (!defined('ABSPATH'))
 
 require_once __DIR__ . '/inc/aryeo.php';
 require_once __DIR__ . '/inc/subscriptions.php';
+require_once __DIR__ . '/inc/member-credits.php';
 require_once __DIR__ . '/inc/testimonials.php';
 require_once __DIR__ . '/inc/portfolio-gallery.php';
 require_once __DIR__ . '/inc/footer-customizer.php';
@@ -15,6 +16,48 @@ require_once __DIR__ . '/inc/page-editable-text.php';
 add_action('init', function () {
   if (is_user_logged_in() && !defined('DONOTCACHEPAGE')) {
     define('DONOTCACHEPAGE', true);
+  }
+}, 1);
+
+function slm_has_auth_cookie(): bool
+{
+  $cookie_names = [];
+
+  if (defined('LOGGED_IN_COOKIE') && is_string(LOGGED_IN_COOKIE) && LOGGED_IN_COOKIE !== '') {
+    $cookie_names[] = LOGGED_IN_COOKIE;
+  }
+  if (defined('AUTH_COOKIE') && is_string(AUTH_COOKIE) && AUTH_COOKIE !== '') {
+    $cookie_names[] = AUTH_COOKIE;
+  }
+  if (defined('SECURE_AUTH_COOKIE') && is_string(SECURE_AUTH_COOKIE) && SECURE_AUTH_COOKIE !== '') {
+    $cookie_names[] = SECURE_AUTH_COOKIE;
+  }
+
+  foreach ($cookie_names as $cookie_name) {
+    if (!empty($_COOKIE[$cookie_name])) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+add_action('init', function () {
+  if (!(is_user_logged_in() || slm_has_auth_cookie())) {
+    return;
+  }
+
+  if (!defined('DONOTCACHEPAGE')) {
+    define('DONOTCACHEPAGE', true);
+  }
+  if (!defined('DONOTCACHEOBJECT')) {
+    define('DONOTCACHEOBJECT', true);
+  }
+  if (!defined('DONOTCACHEDB')) {
+    define('DONOTCACHEDB', true);
+  }
+  if (!defined('DONOTMINIFY')) {
+    define('DONOTMINIFY', true);
   }
 }, 1);
 
@@ -34,6 +77,25 @@ function slm_user_is_admin($user = null): bool
   }
   return ($user instanceof WP_User) && user_can($user, 'manage_options');
 }
+
+/**
+ * Hide the WordPress admin toolbar on all frontend pages for clients, while
+ * keeping it visible for admins/staff.
+ */
+add_filter('show_admin_bar', function ($show) {
+  if (is_admin()) {
+    return $show;
+  }
+
+  if (!is_user_logged_in()) {
+    return $show;
+  }
+
+  if (slm_user_is_admin()) {
+    return $show;
+  }
+  return false;
+}, 20);
 
 /**
  * Resolve a published page URL by assigned page template.
@@ -64,7 +126,7 @@ function slm_page_url_by_template(string $template_file, string $fallback_path):
     ]);
 
     if (!empty($page_ids)) {
-      $permalink = get_permalink((int) $page_ids[0]);
+      $permalink = get_permalink((int)$page_ids[0]);
       if (is_string($permalink) && $permalink !== '') {
         $cache[$cache_key] = $permalink;
         return $permalink;
@@ -91,6 +153,165 @@ function slm_login_url(): string
   return slm_page_url_by_template('page-login.php', '/login/');
 }
 
+function slm_memberships_url(): string
+{
+  return slm_page_url_by_template('page-memberships.php', '/memberships/');
+}
+
+/**
+ * Primary role-aware CTA used across shared templates.
+ */
+function slm_primary_cta_for_user($user = null): array
+{
+  if (!$user instanceof WP_User) {
+    $user = wp_get_current_user();
+  }
+
+  if ($user instanceof WP_User && $user->ID > 0 && slm_user_is_admin($user)) {
+    return [
+      'url' => slm_admin_portal_url(),
+      'label' => 'Admin Dashboard',
+      'is_order' => false,
+    ];
+  }
+
+  if ($user instanceof WP_User && $user->ID > 0) {
+    return [
+      'url' => add_query_arg('view', 'place-order', slm_portal_url()),
+      'label' => 'Place Order',
+      'is_order' => true,
+    ];
+  }
+
+  return [
+    'url' => add_query_arg('mode', 'signup', slm_login_url()),
+    'label' => 'Create Account',
+    'is_order' => false,
+  ];
+}
+
+/**
+ * Canonical service detail pages by key.
+ */
+function slm_service_pages(): array
+{
+  return [
+    're-photography' => [
+      'template' => 'templates/page-service-re-photography.php',
+      'fallback' => '/service-real-estate-photography/',
+      'label' => 'Real Estate Photography',
+    ],
+    're-videography' => [
+      'template' => 'templates/page-service-re-videography.php',
+      'fallback' => '/service-real-estate-videography/',
+      'label' => 'Real Estate Videography',
+    ],
+    'drone-photography' => [
+      'template' => 'templates/page-service-drone-photography.php',
+      'fallback' => '/service-drone-photography/',
+      'label' => 'Drone Photography',
+    ],
+    'virtual-tours' => [
+      'template' => 'templates/page-service-virtual-tours.php',
+      'fallback' => '/service-virtual-tours/',
+      'label' => 'Virtual Tours',
+    ],
+    'floor-plans' => [
+      'template' => 'templates/page-service-floor-plans.php',
+      'fallback' => '/service-floor-plans/',
+      'label' => 'Floor Plans',
+    ],
+    'drone-videography' => [
+      'template' => 'templates/page-service-drone-videography.php',
+      'fallback' => '/service-drone-videography/',
+      'label' => 'Drone Videography',
+    ],
+    'twilight-photography' => [
+      'template' => 'templates/page-service-twilight-photography.php',
+      'fallback' => '/service-twilight-photography/',
+      'label' => 'Twilight Photography',
+    ],
+  ];
+}
+
+function slm_service_page_url(string $service_key): string
+{
+  $services = slm_service_pages();
+  if (!isset($services[$service_key])) {
+    return home_url('/services/');
+  }
+
+  $service = $services[$service_key];
+  return slm_page_url_by_template((string) $service['template'], (string) $service['fallback']);
+}
+
+function slm_service_page_urls(): array
+{
+  $services = slm_service_pages();
+  $urls = [];
+  foreach ($services as $key => $service) {
+    $urls[$key] = [
+      'label' => (string) $service['label'],
+      'url' => slm_service_page_url((string) $key),
+    ];
+  }
+  return $urls;
+}
+
+function slm_primary_nav_fallback(): void
+{
+  $service_links = slm_service_page_urls();
+  echo '<ul class="nav__menu" id="site-primary-menu">';
+  echo '<li><a href="' . esc_url(home_url('/')) . '">Home</a></li>';
+  echo '<li class="menu-item-has-children"><a href="' . esc_url(home_url('/services/')) . '">Services</a>';
+  echo '<ul class="sub-menu">';
+  foreach ($service_links as $service) {
+    echo '<li><a href="' . esc_url((string) $service['url']) . '">' . esc_html((string) $service['label']) . '</a></li>';
+  }
+  echo '</ul></li>';
+  echo '<li><a href="' . esc_url(slm_memberships_url()) . '">Memberships</a></li>';
+  echo '<li><a href="' . esc_url(home_url('/portfolio/')) . '">Portfolio</a></li>';
+  echo '<li><a href="' . esc_url(home_url('/contact/')) . '">Contact</a></li>';
+  echo '</ul>';
+}
+
+/**
+ * Prevent cache bleed on auth-sensitive pages/routes.
+ */
+add_action('send_headers', function () {
+  if (is_admin()) {
+    return;
+  }
+
+  if (!headers_sent()) {
+    header('Vary: Cookie', false);
+  }
+
+  $is_auth_template = is_page_template('templates/page-login.php')
+    || is_page_template('templates/page-portal.php')
+    || is_page_template('templates/admin-portal.php');
+
+  $is_auth_query = isset($_GET['mode'])
+    || isset($_GET['auth'])
+    || isset($_GET['slm_aryeo_start_order'])
+    || isset($_GET['slm_subscription_action']);
+
+  $has_auth_cookie = slm_has_auth_cookie();
+
+  if (!(is_user_logged_in() || $has_auth_cookie || $is_auth_template || $is_auth_query)) {
+    return;
+  }
+
+  if (!defined('DONOTCACHEPAGE')) {
+    define('DONOTCACHEPAGE', true);
+  }
+
+  nocache_headers();
+  if (!headers_sent()) {
+    header('Cache-Control: private, no-cache, no-store, must-revalidate, max-age=0');
+  }
+}, 2);
+
 /**
  * Role-aware dashboard target.
  */
@@ -106,7 +327,7 @@ function slm_asset_ver(string $rel_path): string
 {
   $abs = get_template_directory() . $rel_path;
   if (is_file($abs))
-    return (string) filemtime($abs);
+    return (string)filemtime($abs);
   return slm_theme_ver();
 }
 
@@ -183,11 +404,22 @@ function slm_legal_default_content(): array
 function slm_ensure_legal_pages(): void
 {
   $ensure_page = static function (string $title, string $slug, string $template, string $content_html): int {
-    $existing = get_page_by_path($slug) ?: get_page_by_title($title);
+    $existing = get_page_by_path($slug);
+    if (!$existing) {
+      $query = new WP_Query([
+        'post_type' => 'page',
+        'title' => $title,
+        'post_status' => 'any',
+        'posts_per_page' => 1,
+        'no_found_rows' => true,
+      ]);
+      $existing = $query->have_posts() ? $query->posts[0] : null;
+      wp_reset_postdata();
+    }
     if ($existing) {
       $update = ['ID' => $existing->ID];
       $should_update = false;
-      $current_content = trim((string) $existing->post_content);
+      $current_content = trim((string)$existing->post_content);
 
       if ($existing->post_status !== 'publish') {
         $update['post_status'] = 'publish';
@@ -212,7 +444,7 @@ function slm_ensure_legal_pages(): void
       }
 
       update_post_meta($existing->ID, '_wp_page_template', $template);
-      return (int) $existing->ID;
+      return (int)$existing->ID;
     }
 
     $id = wp_insert_post([
@@ -223,8 +455,8 @@ function slm_ensure_legal_pages(): void
       'post_content' => $content_html,
     ]);
     if ($id && !is_wp_error($id)) {
-      update_post_meta((int) $id, '_wp_page_template', $template);
-      return (int) $id;
+      update_post_meta((int)$id, '_wp_page_template', $template);
+      return (int)$id;
     }
     return 0;
   };
@@ -236,9 +468,13 @@ function slm_ensure_legal_pages(): void
 
 /**
  * Keep legal pages available even when the theme was activated before this logic existed.
+ * Guarded by a transient to avoid DB queries on every request.
  */
 add_action('init', function () {
   if (wp_installing())
+    return;
+
+  if (get_transient('slm_legal_pages_exist'))
     return;
 
   $privacy = get_page_by_path('privacy-policy');
@@ -246,7 +482,36 @@ add_action('init', function () {
   if (!$privacy || !$terms) {
     slm_ensure_legal_pages();
   }
+
+  set_transient('slm_legal_pages_exist', '1', DAY_IN_SECONDS);
 }, 5);
+
+add_action('init', function () {
+  if (wp_installing()) {
+    return;
+  }
+
+  if (get_transient('slm_memberships_page_exists')) {
+    return;
+  }
+
+  $memberships = get_page_by_path('memberships') ?: get_page_by_title('Memberships');
+  if (!$memberships) {
+    $memberships_id = wp_insert_post([
+      'post_title' => 'Memberships',
+      'post_status' => 'publish',
+      'post_type' => 'page',
+      'post_name' => 'memberships',
+    ]);
+    if ($memberships_id && !is_wp_error($memberships_id)) {
+      update_post_meta((int)$memberships_id, '_wp_page_template', 'templates/page-memberships.php');
+    }
+  } else {
+    update_post_meta((int)$memberships->ID, '_wp_page_template', 'templates/page-memberships.php');
+  }
+
+  set_transient('slm_memberships_page_exists', '1', DAY_IN_SECONDS);
+}, 6);
 
 add_action('after_setup_theme', function () {
   add_theme_support('title-tag');
@@ -290,6 +555,54 @@ add_action('wp_enqueue_scripts', function () {
 });
 
 /**
+ * Localize AJAX URL for front-end scripts.
+ */
+add_action('wp_enqueue_scripts', function () {
+  wp_localize_script('slm-main', 'slmAjax', [
+    'url' => admin_url('admin-ajax.php'),
+  ]);
+}, 20);
+
+/**
+ * AJAX handler: save user profile from the portal Account view.
+ */
+add_action('wp_ajax_slm_save_profile', function () {
+  if (!is_user_logged_in()) {
+    wp_send_json_error(['message' => 'Not logged in.'], 403);
+  }
+  if (!check_ajax_referer('slm_save_profile', 'slm_profile_nonce', false)) {
+    wp_send_json_error(['message' => 'Session expired. Please refresh the page.'], 403);
+  }
+  $user = wp_get_current_user();
+  $display_name = sanitize_text_field(wp_unslash($_POST['display_name'] ?? ''));
+  $email = sanitize_email(wp_unslash($_POST['user_email'] ?? ''));
+
+  if ($display_name === '') {
+    wp_send_json_error(['message' => 'Name cannot be empty.']);
+  }
+  if ($email === '' || !is_email($email)) {
+    wp_send_json_error(['message' => 'Please enter a valid email address.']);
+  }
+  if ($email !== $user->user_email && email_exists($email)) {
+    wp_send_json_error(['message' => 'That email is already in use by another account.']);
+  }
+
+  $parts = explode(' ', $display_name, 2);
+  $result = wp_update_user([
+    'ID' => $user->ID,
+    'display_name' => $display_name,
+    'first_name' => $parts[0],
+    'last_name' => $parts[1] ?? '',
+    'user_email' => $email,
+  ]);
+
+  if (is_wp_error($result)) {
+    wp_send_json_error(['message' => $result->get_error_message()]);
+  }
+  wp_send_json_success(['message' => 'Profile saved successfully.']);
+});
+
+/**
  * Force role-based redirect after successful login, regardless of requested URL.
  */
 add_filter('login_redirect', function ($redirect_to, $requested_redirect_to, $user) {
@@ -311,48 +624,55 @@ add_action('wp_login_failed', function () {
   if (strpos($referrer, $login_url) === false)
     return;
 
-  $target = add_query_arg('auth', 'failed', remove_query_arg('auth', $referrer));
+  $target = add_query_arg(['auth' => 'failed', 'mode' => 'login'], remove_query_arg(['auth', 'mode'], $referrer));
   wp_safe_redirect($target);
   exit;
 });
 
 /**
- * Optional redirect of legacy individual service pages to anchor sections.
- * Disabled by default so individual service pages remain accessible.
+ * Redirect legacy service URLs to canonical service detail pages.
+ * Enabled by default and can be disabled via filter if needed.
  */
 add_action('template_redirect', function () {
-  if (!apply_filters('slm_enable_service_anchor_redirects', false))
+  if (!apply_filters('slm_enable_service_legacy_redirects', true))
     return;
 
-  if (is_admin() || !is_page())
+  if (is_admin() || wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST))
     return;
 
-  $page_id = (int) get_queried_object_id();
-  if ($page_id <= 0)
+  $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+  $path = strtolower(trim((string) wp_parse_url($request_uri, PHP_URL_PATH), '/'));
+  if ($path === '')
     return;
 
-  $template = (string) get_page_template_slug($page_id);
-  if ($template === '')
-    return;
-
-  $anchor_map = [
-    'templates/page-service-re-photography.php' => '#listing-media-packages',
-    'templates/page-service-re-videography.php' => '#listing-media-packages',
-    'templates/page-service-drone-photography.php' => '#listing-media-packages',
-    'templates/page-service-virtual-tours.php' => '#listing-media-packages',
-    'templates/page-service-floor-plans.php' => '#listing-media-packages',
-    'templates/page-service-zillow-showcase.php' => '#listing-media-packages',
-    'templates/page-service-drone-videography.php' => '#popular-add-ons',
-    'templates/page-service-twilight-photography.php' => '#popular-add-ons',
+  $legacy_map = [
+    'service-re-photography' => 're-photography',
+    'service-re-videography' => 're-videography',
+    'service-drone-photography' => 'drone-photography',
+    'service-virtual-tours' => 'virtual-tours',
+    'service-floor-plans' => 'floor-plans',
+    'service-drone-videography' => 'drone-videography',
+    'service-twilight-photography' => 'twilight-photography',
+    'services/real-estate-photography' => 're-photography',
+    'services/real-estate-videography' => 're-videography',
+    'services/drone-photography' => 'drone-photography',
+    'services/virtual-tours' => 'virtual-tours',
+    'services/floor-plans' => 'floor-plans',
+    'services/drone-videography' => 'drone-videography',
+    'services/twilight-photography' => 'twilight-photography',
   ];
 
-  if (!isset($anchor_map[$template]))
+  if (!isset($legacy_map[$path]))
     return;
 
-  $target = home_url('/services/' . $anchor_map[$template]);
+  $target = slm_service_page_url((string) $legacy_map[$path]);
+  $requested_url = home_url('/' . $path . '/');
+  if (untrailingslashit($target) === untrailingslashit($requested_url))
+    return;
+
   wp_safe_redirect($target, 301);
   exit;
-});
+}, 1);
 
 /**
  * Local/dev convenience: ensure WP uses a static front page when the theme is activated.
@@ -362,6 +682,21 @@ add_action('after_switch_theme', function () {
   // Always ensure legal pages exist, even if a front page is already set.
   slm_ensure_legal_pages();
   update_option('page_for_posts', 0);
+
+  $memberships = get_page_by_path('memberships') ?: get_page_by_title('Memberships');
+  if (!$memberships) {
+    $memberships_id = wp_insert_post([
+      'post_title' => 'Memberships',
+      'post_status' => 'publish',
+      'post_type' => 'page',
+      'post_name' => 'memberships',
+    ]);
+    if ($memberships_id && !is_wp_error($memberships_id)) {
+      update_post_meta((int)$memberships_id, '_wp_page_template', 'templates/page-memberships.php');
+    }
+  } else {
+    update_post_meta((int)$memberships->ID, '_wp_page_template', 'templates/page-memberships.php');
+  }
 
   // Keep an editable company-values page available when blog is disabled.
   $about = get_page_by_path('about') ?: get_page_by_title('About');
@@ -373,10 +708,11 @@ add_action('after_switch_theme', function () {
       'post_name' => 'about',
     ]);
     if ($about_id && !is_wp_error($about_id)) {
-      update_post_meta((int) $about_id, '_wp_page_template', 'templates/page-about.php');
+      update_post_meta((int)$about_id, '_wp_page_template', 'templates/page-about.php');
     }
-  } else {
-    update_post_meta((int) $about->ID, '_wp_page_template', 'templates/page-about.php');
+  }
+  else {
+    update_post_meta((int)$about->ID, '_wp_page_template', 'templates/page-about.php');
   }
 
   if (get_option('page_on_front'))
@@ -391,12 +727,13 @@ add_action('after_switch_theme', function () {
       'post_type' => 'page',
       'post_name' => 'home',
     ]);
-  } else {
+  }
+  else {
     $home_id = $home->ID;
   }
 
   update_option('show_on_front', 'page');
-  update_option('page_on_front', (int) $home_id);
+  update_option('page_on_front', (int)$home_id);
 });
 
 function slm_import_theme_image_attachment(int $post_id, string $relative_path, string $title = ''): int
@@ -416,7 +753,7 @@ function slm_import_theme_image_attachment(int $post_id, string $relative_path, 
     'no_found_rows' => true,
   ]);
   if (!empty($existing)) {
-    return (int) $existing[0];
+    return (int)$existing[0];
   }
 
   $source_path = trailingslashit(get_template_directory()) . $relative_path;
@@ -441,7 +778,7 @@ function slm_import_theme_image_attachment(int $post_id, string $relative_path, 
 
   $filetype = wp_check_filetype($filename, null);
   $attach_id = wp_insert_attachment([
-    'post_mime_type' => (string) ($filetype['type'] ?? ''),
+    'post_mime_type' => (string)($filetype['type'] ?? ''),
     'post_title' => $title !== '' ? $title : preg_replace('/\.[^.]+$/', '', $filename),
     'post_content' => '',
     'post_status' => 'inherit',
@@ -451,13 +788,13 @@ function slm_import_theme_image_attachment(int $post_id, string $relative_path, 
     return 0;
   }
 
-  $attach_data = wp_generate_attachment_metadata((int) $attach_id, $target_path);
+  $attach_data = wp_generate_attachment_metadata((int)$attach_id, $target_path);
   if (is_array($attach_data)) {
-    wp_update_attachment_metadata((int) $attach_id, $attach_data);
+    wp_update_attachment_metadata((int)$attach_id, $attach_data);
   }
 
-  update_post_meta((int) $attach_id, '_slm_theme_seed_source', $relative_path);
-  return (int) $attach_id;
+  update_post_meta((int)$attach_id, '_slm_theme_seed_source', $relative_path);
+  return (int)$attach_id;
 }
 
 function slm_seed_portfolio_content(): void
@@ -529,31 +866,31 @@ function slm_seed_portfolio_content(): void
     $post_id = wp_insert_post([
       'post_type' => 'portfolio',
       'post_status' => 'publish',
-      'post_title' => (string) $item['title'],
-      'post_excerpt' => (string) $item['excerpt'],
-      'post_content' => (string) $item['content'],
+      'post_title' => (string)$item['title'],
+      'post_excerpt' => (string)$item['excerpt'],
+      'post_content' => (string)$item['content'],
     ]);
 
     if (!$post_id || is_wp_error($post_id)) {
       continue;
     }
 
-    $featured_id = slm_import_theme_image_attachment((int) $post_id, (string) $item['featured'], (string) $item['title']);
+    $featured_id = slm_import_theme_image_attachment((int)$post_id, (string)$item['featured'], (string)$item['title']);
     if ($featured_id > 0) {
-      set_post_thumbnail((int) $post_id, $featured_id);
+      set_post_thumbnail((int)$post_id, $featured_id);
     }
 
     $gallery_ids = [];
-    foreach ((array) ($item['gallery'] ?? []) as $idx => $path) {
-      $title = (string) $item['title'] . ' Gallery ' . ((int) $idx + 1);
-      $image_id = slm_import_theme_image_attachment((int) $post_id, (string) $path, $title);
+    foreach ((array)($item['gallery'] ?? []) as $idx => $path) {
+      $title = (string)$item['title'] . ' Gallery ' . ((int)$idx + 1);
+      $image_id = slm_import_theme_image_attachment((int)$post_id, (string)$path, $title);
       if ($image_id > 0 && $image_id !== $featured_id) {
         $gallery_ids[] = $image_id;
       }
     }
 
     if (!empty($gallery_ids)) {
-      update_post_meta((int) $post_id, $gallery_meta_key, implode(',', $gallery_ids));
+      update_post_meta((int)$post_id, $gallery_meta_key, implode(',', $gallery_ids));
     }
 
     $created++;

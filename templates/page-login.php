@@ -3,9 +3,19 @@
  * Template Name: Login
  */
 if (!defined('ABSPATH')) exit;
+// Preserve intended destination (portal membership shop, place-order, etc.) through login/signup.
+$requested_redirect = isset($_REQUEST['redirect_to']) ? (string) wp_unslash($_REQUEST['redirect_to']) : '';
+$validated_redirect = '';
+if ($requested_redirect !== '') {
+  $candidate = wp_validate_redirect($requested_redirect, '');
+  if (is_string($candidate) && $candidate !== '') {
+    $validated_redirect = $candidate;
+  }
+}
+$post_auth_redirect = $validated_redirect !== '' ? $validated_redirect : slm_dashboard_url();
 
 if (is_user_logged_in()) {
-  wp_safe_redirect(slm_dashboard_url());
+  wp_safe_redirect($post_auth_redirect);
   exit;
 }
 
@@ -17,9 +27,16 @@ if (!in_array($mode, $allowed_modes, true)) {
 
 $users_can_register = (bool) get_option('users_can_register');
 $login_page_url = slm_login_url();
-$login_mode_url = add_query_arg('mode', 'login', $login_page_url);
-$signup_mode_url = add_query_arg('mode', 'signup', $login_page_url);
+$auth_link_args = [];
+if ($validated_redirect !== '') {
+  $auth_link_args['redirect_to'] = $validated_redirect;
+}
+$login_mode_url = add_query_arg(array_merge(['mode' => 'login'], $auth_link_args), $login_page_url);
+$signup_mode_url = add_query_arg(array_merge(['mode' => 'signup'], $auth_link_args), $login_page_url);
 $portal_mode_url = remove_query_arg(['mode', 'auth'], $login_page_url);
+if ($validated_redirect !== '') {
+  $portal_mode_url = add_query_arg('redirect_to', $validated_redirect, $portal_mode_url);
+}
 $auth = isset($_GET['auth']) ? sanitize_key($_GET['auth']) : '';
 $signup_error = '';
 
@@ -130,7 +147,7 @@ if (
           wp_set_current_user($user_id);
           wp_set_auth_cookie($user_id, true);
           do_action('wp_login', $new_user->user_login, $new_user);
-          wp_safe_redirect(slm_dashboard_url($new_user));
+          wp_safe_redirect($post_auth_redirect);
           exit;
         }
 
@@ -231,7 +248,7 @@ get_header();
               <a href="<?php echo esc_url(wp_lostpassword_url($login_page_url)); ?>">Forgot password?</a>
             </div>
 
-            <input type="hidden" name="redirect_to" value="<?php echo esc_url(slm_dashboard_url()); ?>">
+            <input type="hidden" name="redirect_to" value="<?php echo esc_url($post_auth_redirect); ?>">
             <button class="btn auth-submit" type="submit">Sign In</button>
           </form>
 
@@ -256,6 +273,7 @@ get_header();
             <form class="auth-form" method="post" action="<?php echo esc_url($signup_mode_url); ?>" novalidate>
               <?php wp_nonce_field('slm_front_register', 'slm_register_nonce'); ?>
               <input type="hidden" name="slm_action" value="register">
+              <input type="hidden" name="redirect_to" value="<?php echo esc_url($post_auth_redirect); ?>">
 
               <div class="auth-grid">
                 <div class="auth-field">

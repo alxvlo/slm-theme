@@ -8,6 +8,7 @@
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
+<a class="skip-link screen-reader-text" href="#main-content">Skip to content</a>
 
 <header class="site-header">
   <div class="container">

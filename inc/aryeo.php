@@ -28,6 +28,27 @@ function slm_aryeo_public_order_form_url(): string {
   return esc_url_raw($url);
 }
 
+function slm_customer_notifications_enabled(): bool {
+  $raw = get_option('slm_customer_notifications_enabled', '0');
+  if (is_bool($raw)) return $raw;
+  $value = strtolower(trim((string) $raw));
+  return !in_array($value, ['0', 'false', 'off', 'no', ''], true);
+}
+
+function slm_customer_submission_email_enabled(): bool {
+  $raw = get_option('slm_customer_submission_email_enabled', '1');
+  if (is_bool($raw)) return $raw;
+  $value = strtolower(trim((string) $raw));
+  return !in_array($value, ['0', 'false', 'off', 'no', ''], true);
+}
+
+function slm_customer_completion_email_enabled(): bool {
+  $raw = get_option('slm_customer_completion_email_enabled', '1');
+  if (is_bool($raw)) return $raw;
+  $value = strtolower(trim((string) $raw));
+  return !in_array($value, ['0', 'false', 'off', 'no', ''], true);
+}
+
 function slm_aryeo_normalize_order_form_id(string $value): string {
   $value = trim($value);
   if ($value === '') {
@@ -323,29 +344,40 @@ function slm_aryeo_create_order_form_session_for_user(WP_User $user) {
 }
 
 function slm_aryeo_handle_start_order_request(): void {
+  $order_portal_url = add_query_arg('view', 'place-order', slm_portal_url());
   if (!is_user_logged_in()) {
-    wp_safe_redirect(add_query_arg('mode', 'login', slm_login_url()));
+    wp_safe_redirect(add_query_arg([
+      'mode' => 'login',
+      'redirect_to' => $order_portal_url,
+    ], slm_login_url()));
     exit;
   }
 
   $nonce = (string) ($_GET['_wpnonce'] ?? '');
   if ($nonce !== '' && !wp_verify_nonce($nonce, 'slm_aryeo_start_order')) {
-    wp_die('Invalid request.', 403);
+    wp_safe_redirect(add_query_arg(['view' => 'place-order', 'error' => 'invalid_request'], slm_portal_url()));
+    exit;
   }
 
   $user = wp_get_current_user();
   if (!$user instanceof WP_User || !$user->ID) {
-    wp_die('Not logged in.', 403);
+    wp_safe_redirect(add_query_arg([
+      'mode' => 'login',
+      'redirect_to' => $order_portal_url,
+    ], slm_login_url()));
+    exit;
   }
 
   $session_url = slm_aryeo_create_order_form_session_for_user($user);
   if (is_wp_error($session_url)) {
-    wp_die(esc_html($session_url->get_error_message()), 500);
+    wp_safe_redirect(add_query_arg(['view' => 'place-order', 'error' => 'session_failed'], slm_portal_url()));
+    exit;
   }
 
   $session_url = is_string($session_url) ? $session_url : '';
   if ($session_url === '' || !wp_http_validate_url($session_url)) {
-    wp_die('Invalid Aryeo session URL.', 500);
+    wp_safe_redirect(add_query_arg(['view' => 'place-order', 'error' => 'invalid_url'], slm_portal_url()));
+    exit;
   }
 
   // Aryeo sessions are hosted externally; wp_safe_redirect() can fall back to /wp-admin/.
@@ -667,14 +699,16 @@ function slm_ops_append_notification_log(array $entry): void {
   update_option('slm_ops_notification_log', $log, false);
 }
 
-function slm_ops_send_notification_email(string $subject, array $lines, array $meta = []): bool {
-  $recipient = slm_ops_notification_email();
+function slm_notifications_send_email(string $to, string $subject, array $lines, array $meta = []): bool {
   $type = (string) ($meta['type'] ?? 'notification');
   $event = (string) ($meta['event'] ?? '');
   $order_id = (string) ($meta['order_id'] ?? '');
   $order_number = (string) ($meta['order_number'] ?? '');
+  $enabled = array_key_exists('enabled', $meta) ? !empty($meta['enabled']) : true;
+  $disabled_details = (string) ($meta['disabled_details'] ?? 'Notifications are disabled.');
+  $recipient = sanitize_email((string) $to);
 
-  if (!slm_ops_notifications_enabled()) {
+  if (!$enabled) {
     slm_ops_append_notification_log([
       'type' => $type,
       'event' => $event,
@@ -683,19 +717,18 @@ function slm_ops_send_notification_email(string $subject, array $lines, array $m
       'recipient' => $recipient,
       'order_id' => $order_id,
       'order_number' => $order_number,
-      'details' => 'Ops notifications are disabled.',
+      'details' => $disabled_details,
     ]);
     return false;
   }
 
-  $to = $recipient;
-  if ($to === '' || !is_email($to)) {
+  if ($recipient === '' || !is_email($recipient)) {
     slm_ops_append_notification_log([
       'type' => $type,
       'event' => $event,
       'status' => 'skipped-invalid-recipient',
       'subject' => $subject,
-      'recipient' => $to,
+      'recipient' => (string) $to,
       'order_id' => $order_id,
       'order_number' => $order_number,
       'details' => 'Recipient email is invalid.',
@@ -712,7 +745,7 @@ function slm_ops_send_notification_email(string $subject, array $lines, array $m
       'event' => $event,
       'status' => 'skipped-empty-body',
       'subject' => $subject,
-      'recipient' => $to,
+      'recipient' => $recipient,
       'order_id' => $order_id,
       'order_number' => $order_number,
       'details' => 'Email body was empty.',
@@ -721,20 +754,36 @@ function slm_ops_send_notification_email(string $subject, array $lines, array $m
   }
 
   $headers = ['Content-Type: text/plain; charset=UTF-8'];
-  $sent = (bool) wp_mail($to, $subject, $body, $headers);
+  $reply_to = sanitize_email((string) ($meta['reply_to'] ?? ''));
+  if ($reply_to !== '') {
+    $headers[] = 'Reply-To: ' . $reply_to;
+  }
+  $sent = (bool) wp_mail($recipient, $subject, $body, $headers);
 
   slm_ops_append_notification_log([
     'type' => $type,
     'event' => $event,
     'status' => $sent ? 'sent' : 'failed-send',
     'subject' => $subject,
-    'recipient' => $to,
+    'recipient' => $recipient,
     'order_id' => $order_id,
     'order_number' => $order_number,
     'details' => $sent ? 'Notification sent.' : 'wp_mail returned false.',
   ]);
 
   return $sent;
+}
+
+function slm_ops_send_notification_email(string $subject, array $lines, array $meta = []): bool {
+  return slm_notifications_send_email(
+    slm_ops_notification_email(),
+    $subject,
+    $lines,
+    array_merge($meta, [
+      'enabled' => slm_ops_notifications_enabled(),
+      'disabled_details' => 'Ops notifications are disabled.',
+    ])
+  );
 }
 
 function slm_ops_number_from_value($value): float {
@@ -766,6 +815,466 @@ function slm_ops_number_from_value($value): float {
     return ((float) $value) / 100.0;
   }
   return 0.0;
+}
+
+function slm_aryeo_order_status_normalized($status): string {
+  $s = is_string($status) ? strtolower(trim($status)) : '';
+  if ($s === '') return 'pending';
+  if (in_array($s, ['completed', 'complete', 'delivered'], true)) return 'completed';
+  if (in_array($s, ['in-progress', 'in_progress', 'processing'], true)) return 'in-progress';
+  if (in_array($s, ['scheduled', 'scheduled_for'], true)) return 'scheduled';
+  return 'pending';
+}
+
+function slm_aryeo_order_payment_summary(array $order): array {
+  $payment = $order['payment'] ?? [];
+  if (!is_array($payment)) {
+    $payment = [];
+  }
+
+  $total_amount = slm_ops_number_from_value($order['total'] ?? $order['total_amount'] ?? $order['grand_total'] ?? $order['amount'] ?? 0);
+  $paid_amount = slm_ops_number_from_value(
+    $order['amount_paid']
+      ?? $order['paid_amount']
+      ?? $payment['amount_paid']
+      ?? $payment['paid_amount']
+      ?? 0
+  );
+  $due_amount = slm_ops_number_from_value(
+    $order['amount_due']
+      ?? $order['balance_due']
+      ?? $payment['amount_due']
+      ?? $payment['balance_due']
+      ?? max($total_amount - $paid_amount, 0)
+  );
+  if ($due_amount <= 0 && $total_amount > 0) {
+    $due_amount = max($total_amount - $paid_amount, 0);
+  }
+
+  $payment_status = 'unknown';
+  if ($total_amount <= 0 && $paid_amount <= 0 && $due_amount <= 0) {
+    $payment_status = 'not-set';
+  } elseif ($due_amount <= 0.009 && $total_amount > 0) {
+    $payment_status = 'paid';
+  } elseif ($paid_amount > 0) {
+    $payment_status = 'partial';
+  } else {
+    $payment_status = 'due';
+  }
+
+  $payment_url = trim((string) (
+    $order['payment_url']
+      ?? $payment['url']
+      ?? $payment['payment_url']
+      ?? $order['invoice_url']
+      ?? ''
+  ));
+
+  return [
+    'total_amount' => $total_amount,
+    'paid_amount' => $paid_amount,
+    'due_amount' => $due_amount,
+    'payment_status' => $payment_status,
+    'payment_url' => $payment_url,
+  ];
+}
+
+function slm_aryeo_order_client_actions(array $normalized_order): array {
+  $due_amount = (float) ($normalized_order['due_amount'] ?? 0);
+  $payment_url = trim((string) ($normalized_order['payment_url'] ?? ''));
+  $delivery_url = trim((string) ($normalized_order['delivery_url'] ?? ''));
+
+  $client_can_pay = $due_amount > 0.009 && $payment_url !== '';
+  $client_can_view_delivery = $due_amount <= 0.009 && $delivery_url !== '';
+  $delivery_locked_for_payment = $due_amount > 0.009 && $delivery_url !== '';
+
+  return [
+    'client_can_pay' => $client_can_pay,
+    'client_can_view_delivery' => $client_can_view_delivery,
+    'delivery_locked_for_payment' => $delivery_locked_for_payment,
+  ];
+}
+
+function slm_aryeo_normalize_order(array $order): array {
+  $order_id = (string) ($order['id'] ?? '');
+  $order_number = (string) ($order['order_number'] ?? $order['number'] ?? $order_id);
+
+  $customer_name = '';
+  $customer_email = '';
+  $customer_phone = '';
+  $customer = $order['customer'] ?? [];
+  if (is_array($customer)) {
+    $customer_name = (string) ($customer['full_name'] ?? $customer['name'] ?? '');
+    if ($customer_name === '') {
+      $first = trim((string) ($customer['first_name'] ?? ''));
+      $last = trim((string) ($customer['last_name'] ?? ''));
+      $customer_name = trim($first . ' ' . $last);
+    }
+    $customer_email = (string) ($customer['email'] ?? '');
+    $customer_phone = (string) ($customer['phone'] ?? $customer['phone_number'] ?? '');
+  }
+  if ($customer_email === '') {
+    $customer_email = slm_aryeo_extract_order_customer_email($order);
+  }
+  if ($customer_phone === '') {
+    $customer_phone = (string) ($order['customer_phone'] ?? $order['phone'] ?? '');
+  }
+  if ($customer_name === '') {
+    $customer_name = 'Customer';
+  }
+
+  $item_labels = [];
+  $service_name = '';
+  $items = $order['items'] ?? [];
+  if (is_array($items) && !empty($items)) {
+    foreach ($items as $item) {
+      if (!is_array($item)) continue;
+      $product = $item['product'] ?? [];
+      if (!is_array($product)) {
+        $product = [];
+      }
+      $label = trim((string) ($item['name'] ?? $item['title'] ?? $product['name'] ?? $product['title'] ?? ''));
+      if ($label === '') continue;
+      $item_labels[] = $label;
+    }
+  }
+  if (!empty($item_labels)) {
+    $service_name = $item_labels[0];
+  }
+  if ($service_name === '') {
+    $service_name = 'Order';
+  }
+
+  $listing = $order['listing'] ?? [];
+  if (!is_array($listing)) {
+    $listing = [];
+  }
+  $address_raw = $listing['address'] ?? $order['address'] ?? '';
+  if (is_array($address_raw)) {
+    $address_raw = (string) ($address_raw['full'] ?? $address_raw['formatted'] ?? $address_raw['street_address'] ?? '');
+  }
+  $address = trim((string) $address_raw);
+
+  $status = slm_aryeo_order_status_normalized($order['status'] ?? $order['order_status'] ?? '');
+  $created_at = (string) ($order['created_at'] ?? '');
+  $updated_at = (string) ($order['updated_at'] ?? '');
+
+  $delivery_at = (string) ($order['delivery_date'] ?? $order['delivered_at'] ?? $order['completed_at'] ?? '');
+  $delivery_url = trim((string) (
+    $order['delivery_url']
+      ?? $order['gallery_url']
+      ?? $order['listing_website_url']
+      ?? $order['url']
+      ?? ''
+  ));
+
+  $appointment_at = '';
+  $appointments = $order['appointments'] ?? [];
+  if (is_array($appointments) && !empty($appointments)) {
+    $first_appointment = $appointments[0] ?? [];
+    if (is_array($first_appointment)) {
+      $appointment_at = (string) ($first_appointment['start_at'] ?? $first_appointment['starts_at'] ?? $first_appointment['scheduled_for'] ?? '');
+    }
+  }
+
+  $payment = slm_aryeo_order_payment_summary($order);
+  $normalized = [
+    'raw_id' => $order_id,
+    'id' => $order_number,
+    'customer' => $customer_name,
+    'customer_email' => trim($customer_email),
+    'customer_phone' => trim($customer_phone),
+    'service' => $service_name,
+    'items' => $item_labels,
+    'address' => $address,
+    'status' => $status,
+    'price' => (string) ($order['total'] ?? $order['total_amount'] ?? $order['grand_total'] ?? $order['amount'] ?? ''),
+    'total_amount' => (float) ($payment['total_amount'] ?? 0),
+    'paid_amount' => (float) ($payment['paid_amount'] ?? 0),
+    'due_amount' => (float) ($payment['due_amount'] ?? 0),
+    'payment_status' => (string) ($payment['payment_status'] ?? 'unknown'),
+    'payment_url' => (string) ($payment['payment_url'] ?? ''),
+    'delivery_at' => $delivery_at,
+    'delivery_url' => $delivery_url,
+    'appointment_at' => $appointment_at,
+    'date' => (string) ($created_at !== '' ? $created_at : $updated_at),
+    'created_at' => $created_at,
+    'updated_at' => $updated_at,
+    'raw' => $order,
+  ];
+
+  return array_merge($normalized, slm_aryeo_order_client_actions($normalized));
+}
+
+function slm_aryeo_normalize_orders(array $orders): array {
+  $normalized = [];
+  foreach ($orders as $order) {
+    if (!is_array($order)) continue;
+    $normalized[] = slm_aryeo_normalize_order($order);
+  }
+  return $normalized;
+}
+
+function slm_customer_order_email_enabled(string $type): bool {
+  if (!slm_customer_notifications_enabled()) return false;
+  $type = sanitize_key($type);
+  if ($type === 'submission') return slm_customer_submission_email_enabled();
+  if ($type === 'completion') return slm_customer_completion_email_enabled();
+  return false;
+}
+
+function slm_customer_order_email_recipient(array $normalized_order): string {
+  return sanitize_email((string) ($normalized_order['customer_email'] ?? ''));
+}
+
+function slm_aryeo_customer_email_ttl_seconds(string $template): int {
+  $template = sanitize_key($template);
+  if ($template === 'completion') return 30 * DAY_IN_SECONDS;
+  return 14 * DAY_IN_SECONDS;
+}
+
+function slm_aryeo_customer_email_primary_dedupe_key(string $template, array $normalized_order): string {
+  $template = sanitize_key($template);
+  $order_id = trim((string) ($normalized_order['raw_id'] ?? $normalized_order['id'] ?? ''));
+  $order_num = trim((string) ($normalized_order['id'] ?? ''));
+  $email = strtolower(trim((string) slm_customer_order_email_recipient($normalized_order)));
+  return 'slm_customer_mail_primary_' . md5(implode('|', [$template, $order_id, $order_num, $email]));
+}
+
+function slm_aryeo_customer_email_dedupe_key(string $template, array $normalized_order, array $context = []): string {
+  $template = sanitize_key($template);
+  $trigger = sanitize_key((string) ($context['trigger'] ?? 'webhook'));
+  $order_id = trim((string) ($normalized_order['raw_id'] ?? $normalized_order['id'] ?? ''));
+  $order_num = trim((string) ($normalized_order['id'] ?? ''));
+  $email = strtolower(trim((string) slm_customer_order_email_recipient($normalized_order)));
+  $event_id = trim((string) ($context['event_id'] ?? ''));
+  $fingerprint = $event_id;
+  if ($fingerprint === '') {
+    $fingerprint = trim((string) ($context['event_fingerprint'] ?? ''));
+  }
+  if ($fingerprint === '') {
+    $fingerprint = trim((string) ($normalized_order['delivery_at'] ?? $normalized_order['updated_at'] ?? ''));
+  }
+  return 'slm_customer_mail_' . md5(implode('|', [$template, $trigger, $order_id, $order_num, $email, $fingerprint]));
+}
+
+function slm_aryeo_customer_email_should_send(string $template, array $normalized_order, array $context = []): array {
+  $primary_key = slm_aryeo_customer_email_primary_dedupe_key($template, $normalized_order);
+  $event_key = slm_aryeo_customer_email_dedupe_key($template, $normalized_order, $context);
+  if (get_transient($primary_key)) {
+    return ['ok' => false, 'reason' => 'duplicate', 'primary_key' => $primary_key, 'event_key' => $event_key];
+  }
+  if (get_transient($event_key)) {
+    return ['ok' => false, 'reason' => 'duplicate', 'primary_key' => $primary_key, 'event_key' => $event_key];
+  }
+  return ['ok' => true, 'primary_key' => $primary_key, 'event_key' => $event_key];
+}
+
+function slm_aryeo_customer_email_mark_sent(string $template, array $normalized_order, array $context = []): void {
+  $ttl = slm_aryeo_customer_email_ttl_seconds($template);
+  $primary_key = slm_aryeo_customer_email_primary_dedupe_key($template, $normalized_order);
+  $event_key = slm_aryeo_customer_email_dedupe_key($template, $normalized_order, $context);
+  set_transient($primary_key, 1, $ttl);
+  set_transient($event_key, 1, $ttl);
+}
+
+function slm_aryeo_customer_email_log_duplicate(string $template, array $normalized_order, array $context = []): void {
+  $type = $template === 'completion' ? 'customer-completion' : 'customer-submission';
+  slm_ops_append_notification_log([
+    'type' => $type,
+    'event' => (string) ($context['event_name'] ?? 'duplicate'),
+    'status' => 'skipped-duplicate',
+    'subject' => (string) ($context['subject'] ?? ''),
+    'recipient' => slm_customer_order_email_recipient($normalized_order),
+    'order_id' => (string) ($normalized_order['raw_id'] ?? ''),
+    'order_number' => (string) ($normalized_order['id'] ?? ''),
+    'details' => 'Customer email skipped because a matching message was already sent recently.',
+  ]);
+}
+
+function slm_aryeo_customer_email_support_contact(): string {
+  $email = sanitize_email((string) slm_ops_notification_email());
+  if ($email !== '') return $email;
+  return sanitize_email((string) get_option('admin_email', ''));
+}
+
+function slm_aryeo_customer_order_email_subject(string $template, array $normalized_order): string {
+  $site_name = wp_specialchars_decode((string) get_bloginfo('name'), ENT_QUOTES);
+  if ($site_name === '') $site_name = 'Showcase Listings Media';
+  $order_label = trim((string) ($normalized_order['id'] ?? $normalized_order['raw_id'] ?? ''));
+  if ($order_label === '') $order_label = 'your order';
+  if ($template === 'completion') {
+    return '[' . $site_name . '] Your order is complete: ' . $order_label;
+  }
+  return '[' . $site_name . '] Order received: ' . $order_label;
+}
+
+function slm_aryeo_customer_order_submission_lines(array $normalized_order): array {
+  $due = (float) ($normalized_order['due_amount'] ?? 0);
+  $total = (float) ($normalized_order['total_amount'] ?? 0);
+  $payment_url = trim((string) ($normalized_order['payment_url'] ?? ''));
+  $support = slm_aryeo_customer_email_support_contact();
+  $lines = [
+    'Thanks for your submission. We received your job request.',
+    'Order #: ' . ((string) ($normalized_order['id'] ?? $normalized_order['raw_id'] ?? 'n/a')),
+    'Service: ' . ((string) ($normalized_order['service'] ?? 'n/a')),
+    'Address: ' . ((string) ($normalized_order['address'] ?? 'n/a')),
+    'Status: ' . ucwords(str_replace('-', ' ', (string) ($normalized_order['status'] ?? 'pending'))),
+    'Total: $' . number_format($total, 2),
+  ];
+  if ($due > 0.009) {
+    $lines[] = 'Balance Due: $' . number_format($due, 2);
+    if ($payment_url !== '') {
+      $lines[] = 'Pay Online: ' . $payment_url;
+    }
+  } else {
+    $lines[] = 'Payment Status: Paid or no balance due.';
+  }
+  $lines[] = '';
+  $lines[] = 'Preferred scheduling can be requested in the ordering flow, but it is not guaranteed.';
+  $lines[] = 'We will confirm scheduling details by phone.';
+  if ($support !== '') {
+    $lines[] = 'Questions? Reply to this email or contact: ' . $support;
+  }
+  return $lines;
+}
+
+function slm_aryeo_customer_order_completion_lines(array $normalized_order): array {
+  $due = (float) ($normalized_order['due_amount'] ?? 0);
+  $delivery_url = trim((string) ($normalized_order['delivery_url'] ?? ''));
+  $payment_url = trim((string) ($normalized_order['payment_url'] ?? ''));
+  $support = slm_aryeo_customer_email_support_contact();
+  $lines = [
+    'Your order update is complete.',
+    'Order #: ' . ((string) ($normalized_order['id'] ?? $normalized_order['raw_id'] ?? 'n/a')),
+    'Service: ' . ((string) ($normalized_order['service'] ?? 'n/a')),
+    'Address: ' . ((string) ($normalized_order['address'] ?? 'n/a')),
+  ];
+
+  if ($due <= 0.009) {
+    $lines[] = 'Payment Status: Paid / no balance due.';
+    if ($delivery_url !== '') {
+      $lines[] = 'Delivery Link: ' . $delivery_url;
+    } else {
+      $lines[] = 'Delivery link will be shared shortly.';
+    }
+  } else {
+    $lines[] = 'Balance Due: $' . number_format($due, 2);
+    $lines[] = 'Complete payment before delivery access is granted.';
+    if ($payment_url !== '') {
+      $lines[] = 'Pay Online: ' . $payment_url;
+    }
+  }
+
+  if ($support !== '') {
+    $lines[] = '';
+    $lines[] = 'Questions? Contact: ' . $support;
+  }
+  return $lines;
+}
+
+function slm_customer_order_email_result(string $template, array $normalized_order, array $context = []): array {
+  $template = sanitize_key($template);
+  if (!in_array($template, ['submission', 'completion'], true)) {
+    return ['ok' => false, 'status' => 'invalid-type', 'message' => 'Invalid customer email type.'];
+  }
+
+  $order_id = (string) ($normalized_order['raw_id'] ?? '');
+  $order_number = (string) ($normalized_order['id'] ?? '');
+  $event_name = (string) ($context['event_name'] ?? ($template === 'completion' ? 'order.completed' : 'order.created'));
+  $type_label = $template === 'completion' ? 'customer-completion' : 'customer-submission';
+  $subject = slm_aryeo_customer_order_email_subject($template, $normalized_order);
+  $recipient = slm_customer_order_email_recipient($normalized_order);
+
+  if ($template === 'completion') {
+    $ready = ((string) ($normalized_order['status'] ?? '') === 'completed') || trim((string) ($normalized_order['delivery_url'] ?? '')) !== '';
+    if (!$ready) {
+      slm_ops_append_notification_log([
+        'type' => $type_label,
+        'event' => $event_name,
+        'status' => 'skipped-not-ready',
+        'subject' => $subject,
+        'recipient' => $recipient,
+        'order_id' => $order_id,
+        'order_number' => $order_number,
+        'details' => 'Order was not ready for a completion email.',
+      ]);
+      return ['ok' => false, 'status' => 'not-ready', 'message' => 'Order is not ready for a completion email.'];
+    }
+  }
+
+  if (!slm_customer_order_email_enabled($template)) {
+    slm_notifications_send_email($recipient, $subject, ['Customer notifications are disabled.'], [
+      'enabled' => false,
+      'disabled_details' => 'Customer notifications are disabled for this email type.',
+      'type' => $type_label,
+      'event' => $event_name,
+      'order_id' => $order_id,
+      'order_number' => $order_number,
+    ]);
+    return ['ok' => false, 'status' => 'disabled', 'message' => 'Customer notifications are disabled.'];
+  }
+
+  $dedupe = slm_aryeo_customer_email_should_send($template, $normalized_order, $context);
+  if (empty($dedupe['ok'])) {
+    slm_aryeo_customer_email_log_duplicate($template, $normalized_order, array_merge($context, ['subject' => $subject]));
+    return ['ok' => false, 'status' => 'duplicate', 'message' => 'A matching customer email was already sent recently.'];
+  }
+
+  $lines = $template === 'completion'
+    ? slm_aryeo_customer_order_completion_lines($normalized_order)
+    : slm_aryeo_customer_order_submission_lines($normalized_order);
+
+  $reply_to = slm_aryeo_customer_email_support_contact();
+  $sent = slm_notifications_send_email($recipient, $subject, $lines, [
+    'type' => $type_label,
+    'event' => $event_name,
+    'order_id' => $order_id,
+    'order_number' => $order_number,
+    'reply_to' => $reply_to,
+    'enabled' => true,
+  ]);
+  if (!$sent) {
+    return ['ok' => false, 'status' => ($recipient === '' ? 'missing-email' : 'failed'), 'message' => 'Customer email could not be sent.'];
+  }
+
+  slm_aryeo_customer_email_mark_sent($template, $normalized_order, $context);
+  return ['ok' => true, 'status' => 'sent', 'message' => 'Customer email sent.'];
+}
+
+function slm_customer_order_submission_email_result(array $normalized_order, array $context = []): array {
+  $context = array_merge(['trigger' => 'webhook'], $context);
+  return slm_customer_order_email_result('submission', $normalized_order, $context);
+}
+
+function slm_customer_order_completion_email_result(array $normalized_order, string $trigger = 'webhook', array $context = []): array {
+  $context = array_merge($context, ['trigger' => sanitize_key($trigger) ?: 'webhook']);
+  return slm_customer_order_email_result('completion', $normalized_order, $context);
+}
+
+function slm_customer_order_submission_email(array $normalized_order): bool {
+  $res = slm_customer_order_submission_email_result($normalized_order, ['trigger' => 'manual']);
+  return !empty($res['ok']);
+}
+
+function slm_customer_order_completion_email(array $normalized_order, string $trigger = 'webhook'): bool {
+  $res = slm_customer_order_completion_email_result($normalized_order, $trigger);
+  return !empty($res['ok']);
+}
+
+function slm_aryeo_webhook_event_id(array $payload): string {
+  $event_candidates = [
+    $payload['id'] ?? null,
+    $payload['event_id'] ?? null,
+    (is_array($payload['event'] ?? null) ? ($payload['event']['id'] ?? null) : null),
+    (is_array($payload['meta'] ?? null) ? ($payload['meta']['id'] ?? null) : null),
+  ];
+  foreach ($event_candidates as $candidate) {
+    if (is_string($candidate) && trim($candidate) !== '') {
+      return trim($candidate);
+    }
+  }
+  return '';
 }
 
 function slm_aryeo_detect_webhook_event_name(array $payload): string {
@@ -827,26 +1336,86 @@ function slm_aryeo_extract_webhook_order_payload(array $payload): array {
 }
 
 function slm_aryeo_webhook_dedupe_key(array $payload, string $raw_body): string {
-  $event_id = '';
-  $event_candidates = [
-    $payload['id'] ?? null,
-    $payload['event_id'] ?? null,
-    (is_array($payload['event'] ?? null) ? ($payload['event']['id'] ?? null) : null),
-    (is_array($payload['meta'] ?? null) ? ($payload['meta']['id'] ?? null) : null),
-  ];
-
-  foreach ($event_candidates as $candidate) {
-    if (is_string($candidate) && trim($candidate) !== '') {
-      $event_id = trim($candidate);
-      break;
-    }
-  }
-
+  $event_id = slm_aryeo_webhook_event_id($payload);
   if ($event_id !== '') {
     return 'slm_aryeo_event_mail_' . md5($event_id);
   }
 
   return 'slm_aryeo_event_mail_' . md5($raw_body);
+}
+
+function slm_aryeo_customer_webhook_seen_key(array $normalized_order): string {
+  $order_id = trim((string) ($normalized_order['raw_id'] ?? ''));
+  $order_number = trim((string) ($normalized_order['id'] ?? ''));
+  $recipient = strtolower(trim((string) slm_customer_order_email_recipient($normalized_order)));
+  return 'slm_aryeo_seen_order_' . md5(implode('|', [$order_id, $order_number, $recipient]));
+}
+
+function slm_aryeo_customer_webhook_is_first_seen(array $normalized_order): bool {
+  $key = slm_aryeo_customer_webhook_seen_key($normalized_order);
+  if (get_transient($key)) {
+    return false;
+  }
+  set_transient($key, 1, 120 * DAY_IN_SECONDS);
+  return true;
+}
+
+function slm_aryeo_webhook_event_is_creation_like(string $event_name): bool {
+  $event_name = strtolower(trim($event_name));
+  if ($event_name === '') {
+    return false;
+  }
+  return strpos($event_name, 'create') !== false
+    || strpos($event_name, 'new') !== false
+    || $event_name === 'order.created';
+}
+
+function slm_aryeo_webhook_event_is_completion_like(string $event_name, array $normalized_order): bool {
+  $event_name = strtolower(trim($event_name));
+  if (
+    strpos($event_name, 'deliver') !== false
+    || strpos($event_name, 'complete') !== false
+    || $event_name === 'order.delivered'
+    || $event_name === 'order.completed'
+  ) {
+    return true;
+  }
+
+  return ((string) ($normalized_order['status'] ?? '')) === 'completed';
+}
+
+function slm_aryeo_send_customer_webhook_emails(array $payload, string $raw_body): void {
+  $order = slm_aryeo_extract_webhook_order_payload($payload);
+  if (empty($order) || !is_array($order)) {
+    return;
+  }
+
+  $normalized = slm_aryeo_normalize_order($order);
+  $recipient = slm_customer_order_email_recipient($normalized);
+  if ($recipient === '') {
+    return;
+  }
+
+  $event_name = slm_aryeo_detect_webhook_event_name($payload);
+  $event_id = slm_aryeo_webhook_event_id($payload);
+  $context = [
+    'trigger' => 'webhook',
+    'event_name' => $event_name,
+    'event_id' => $event_id,
+    'event_fingerprint' => $raw_body !== '' ? md5($raw_body) : '',
+  ];
+
+  $is_completion_event = slm_aryeo_webhook_event_is_completion_like($event_name, $normalized);
+  $is_creation_event = slm_aryeo_webhook_event_is_creation_like($event_name);
+  $is_first_seen = slm_aryeo_customer_webhook_is_first_seen($normalized);
+
+  if ($is_creation_event || ($is_first_seen && !$is_completion_event)) {
+    slm_customer_order_submission_email_result($normalized, $context);
+  }
+
+  if ($is_completion_event) {
+    slm_customer_order_completion_email_result($normalized, 'webhook', $context);
+  }
 }
 
 function slm_aryeo_send_webhook_notification(array $payload, string $raw_body): void {
@@ -1028,6 +1597,10 @@ add_action('rest_api_init', function () {
       }
 
       slm_aryeo_send_webhook_notification($payload, $raw);
+      slm_aryeo_send_customer_webhook_emails($payload, $raw);
+      if (function_exists('slm_member_credits_handle_aryeo_webhook')) {
+        slm_member_credits_handle_aryeo_webhook($payload, $raw);
+      }
 
       return new WP_REST_Response(['ok' => true], 200);
     },
@@ -1069,6 +1642,21 @@ add_action('admin_init', function () {
       return sanitize_email((string) $value);
     },
   ]);
+  register_setting('slm_aryeo', 'slm_customer_notifications_enabled', [
+    'sanitize_callback' => function ($value) {
+      return empty($value) ? '0' : '1';
+    },
+  ]);
+  register_setting('slm_aryeo', 'slm_customer_submission_email_enabled', [
+    'sanitize_callback' => function ($value) {
+      return empty($value) ? '0' : '1';
+    },
+  ]);
+  register_setting('slm_aryeo', 'slm_customer_completion_email_enabled', [
+    'sanitize_callback' => function ($value) {
+      return empty($value) ? '0' : '1';
+    },
+  ]);
 
   add_settings_section('slm_aryeo_main', 'Configuration', '__return_false', 'slm_aryeo');
 
@@ -1107,6 +1695,27 @@ add_action('admin_init', function () {
     $val = esc_attr(slm_ops_notification_email());
     echo '<input type="email" name="slm_ops_notification_email" value="' . $val . '" class="regular-text" />';
     echo '<p class="description">Where operational notifications are sent. Defaults to WordPress admin email if blank.</p>';
+  }, 'slm_aryeo', 'slm_aryeo_main');
+
+  add_settings_field('slm_customer_notifications_enabled', 'Customer Email Notifications', function () {
+    $enabled = slm_customer_notifications_enabled();
+    echo '<input type="hidden" name="slm_customer_notifications_enabled" value="0" />';
+    echo '<label><input type="checkbox" name="slm_customer_notifications_enabled" value="1" ' . checked($enabled, true, false) . ' /> Enable customer order emails from WordPress (submission + completion)</label>';
+    echo '<p class="description">Leave this off until you confirm Aryeo is not already sending duplicate customer emails.</p>';
+  }, 'slm_aryeo', 'slm_aryeo_main');
+
+  add_settings_field('slm_customer_submission_email_enabled', 'Customer Submission Email', function () {
+    $enabled = slm_customer_submission_email_enabled();
+    echo '<input type="hidden" name="slm_customer_submission_email_enabled" value="0" />';
+    echo '<label><input type="checkbox" name="slm_customer_submission_email_enabled" value="1" ' . checked($enabled, true, false) . ' /> Send customer confirmation when a job is submitted</label>';
+    echo '<p class="description">Requires the master customer email toggle above.</p>';
+  }, 'slm_aryeo', 'slm_aryeo_main');
+
+  add_settings_field('slm_customer_completion_email_enabled', 'Customer Completion Email', function () {
+    $enabled = slm_customer_completion_email_enabled();
+    echo '<input type="hidden" name="slm_customer_completion_email_enabled" value="0" />';
+    echo '<label><input type="checkbox" name="slm_customer_completion_email_enabled" value="1" ' . checked($enabled, true, false) . ' /> Send customer completion / delivery-ready email</label>';
+    echo '<p class="description">Requires the master customer email toggle above.</p>';
   }, 'slm_aryeo', 'slm_aryeo_main');
 });
 
