@@ -180,6 +180,7 @@
     const thumbs = Array.from(root.querySelectorAll('[data-ps-thumb][data-ps-index]'));
     const prev = root.querySelector('[data-ps-prev]');
     const next = root.querySelector('[data-ps-next]');
+    const counter = root.querySelector('[data-ps-counter]');
     if (!slides.length) return;
 
     let activeIndex = slides.findIndex((s) => s.classList.contains('is-active'));
@@ -201,7 +202,14 @@
         const active = i === nextIndex;
         btn.classList.toggle('is-active', active);
         btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        if (active) {
+          btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
       });
+
+      if (counter) {
+        counter.textContent = (nextIndex + 1) + ' / ' + n;
+      }
     }
 
     if (prev) prev.addEventListener('click', () => show(activeIndex - 1));
@@ -229,6 +237,76 @@
   });
 })();
 
+/* ── Masonry gallery lightbox ── */
+(function () {
+  var gallery = document.querySelector('[data-masonry-gallery]');
+  var lightbox = document.querySelector('[data-masonry-lightbox]');
+  if (!gallery || !lightbox) return;
+
+  var items = Array.from(gallery.querySelectorAll('.pMasonry__item'));
+  var lbImg = lightbox.querySelector('[data-lb-img]');
+  var lbCounter = lightbox.querySelector('[data-lb-counter]');
+  var lbClose = lightbox.querySelector('[data-lb-close]');
+  var lbPrev = lightbox.querySelector('[data-lb-prev]');
+  var lbNext = lightbox.querySelector('[data-lb-next]');
+  if (!items.length || !lbImg) return;
+
+  var urls = items.map(function (item) {
+    var hidden = item.querySelector('.pMasonry__full');
+    return hidden ? hidden.value : '';
+  });
+  var currentIndex = 0;
+
+  function openLightbox(index) {
+    currentIndex = index;
+    lbImg.src = urls[index];
+    lbImg.alt = 'Portfolio image ' + (index + 1);
+    if (lbCounter) {
+      lbCounter.textContent = (index + 1) + ' / ' + urls.length;
+    }
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+
+    // Preload adjacent images
+    if (urls[index - 1]) { new Image().src = urls[index - 1]; }
+    if (urls[index + 1]) { new Image().src = urls[index + 1]; }
+  }
+
+  function closeLightbox() {
+    lightbox.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    lbImg.src = '';
+  }
+
+  function showNext() {
+    openLightbox((currentIndex + 1) % urls.length);
+  }
+
+  function showPrev() {
+    openLightbox((currentIndex - 1 + urls.length) % urls.length);
+  }
+
+  items.forEach(function (item, i) {
+    item.addEventListener('click', function () {
+      openLightbox(i);
+    });
+  });
+
+  if (lbClose) lbClose.addEventListener('click', closeLightbox);
+  if (lbPrev) lbPrev.addEventListener('click', showPrev);
+  if (lbNext) lbNext.addEventListener('click', showNext);
+
+  lightbox.addEventListener('click', function (e) {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (lightbox.getAttribute('aria-hidden') !== 'false') return;
+    if (e.key === 'Escape') { closeLightbox(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); showPrev(); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); showNext(); }
+  });
+})();
 (function () {
   const revealTargets = Array.from(document.querySelectorAll([
     '.home-services__header',
@@ -243,6 +321,7 @@
     '.contact-card',
     '.post-card',
     '.pSlider',
+    '.pMasonry__item',
     '.pkg-card',
     '.svc-tile',
     '.service-hero__copy',
@@ -580,19 +659,19 @@
       credentials: 'same-origin',
       body: data
     })
-    .then(function (r) { return r.json(); })
-    .then(function (res) {
-      if (feedback) {
-        feedback.textContent = res.success ? (res.data && res.data.message ? res.data.message : 'Profile saved.') : (res.data && res.data.message ? res.data.message : 'Save failed.');
-        feedback.className = 'portal-feedback ' + (res.success ? 'portal-feedback--ok' : 'portal-feedback--err');
-        feedback.hidden = false;
-      }
-    })
-    .catch(function () {
-      if (feedback) { feedback.textContent = 'Network error. Please try again.'; feedback.className = 'portal-feedback portal-feedback--err'; feedback.hidden = false; }
-    })
-    .finally(function () {
-      if (btn) btn.disabled = false;
-    });
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (feedback) {
+          feedback.textContent = res.success ? (res.data && res.data.message ? res.data.message : 'Profile saved.') : (res.data && res.data.message ? res.data.message : 'Save failed.');
+          feedback.className = 'portal-feedback ' + (res.success ? 'portal-feedback--ok' : 'portal-feedback--err');
+          feedback.hidden = false;
+        }
+      })
+      .catch(function () {
+        if (feedback) { feedback.textContent = 'Network error. Please try again.'; feedback.className = 'portal-feedback portal-feedback--err'; feedback.hidden = false; }
+      })
+      .finally(function () {
+        if (btn) btn.disabled = false;
+      });
   });
 })();
