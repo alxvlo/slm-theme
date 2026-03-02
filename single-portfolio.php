@@ -5,10 +5,6 @@ if (!defined('ABSPATH'))
 get_header();
 
 $placeholder = get_template_directory_uri() . '/assets/img/placeholder.jpg';
-$archive_url = get_post_type_archive_link('portfolio');
-if (!is_string($archive_url) || $archive_url === '') {
-  $archive_url = home_url('/portfolio/');
-}
 
 function slm_portfolio_gallery_ids_for_post(int $post_id): array
 {
@@ -55,17 +51,6 @@ function slm_portfolio_gallery_ids_for_post(int $post_id): array
       </section>
 
       <section class="page-section">
-        <div class="container">
-          <?php if ($archive_url): ?>
-            <a class="pBreadcrumb" href="<?php echo esc_url($archive_url); ?>">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"></polyline>
-              </svg>
-              Back to Portfolio
-            </a>
-          <?php endif; ?>
-        </div>
 
         <?php if (!empty($gallery_ids)): ?>
           <div class="pMasonry" data-masonry-gallery>

@@ -1,5 +1,6 @@
 <?php
-if (!defined('ABSPATH')) exit;
+if (!defined('ABSPATH'))
+  exit;
 
 $args = wp_parse_args($args ?? [], [
   'title' => '',
@@ -27,13 +28,14 @@ $gallery_items = array_values(array_filter((array) $args['gallery'], static func
 }));
 
 $render_media = static function (string $src): void {
-  if ($src === '') return;
+  if ($src === '')
+    return;
 
   $path = (string) parse_url($src, PHP_URL_PATH);
   $ext = strtolower((string) pathinfo($path, PATHINFO_EXTENSION));
   if (in_array($ext, ['mp4', 'webm', 'mov'], true)) {
     ?>
-    <video src="<?php echo esc_url($src); ?>" controls playsinline preload="metadata"></video>
+    <video src="<?php echo esc_url($src); ?>" autoplay loop muted playsinline preload="metadata"></video>
     <?php
     return;
   }
@@ -52,7 +54,8 @@ $render_media = static function (string $src): void {
           <h1><?php echo esc_html($args['title']); ?></h1>
           <p><?php echo esc_html($args['subtitle']); ?></p>
           <p class="service-hero__actions">
-            <a class="btn btn--accent" href="<?php echo esc_url($primary_url); ?>"><?php echo esc_html($primary_label); ?></a>
+            <a class="btn btn--accent"
+              href="<?php echo esc_url($primary_url); ?>"><?php echo esc_html($primary_label); ?></a>
           </p>
         </div>
 
@@ -67,19 +70,13 @@ $render_media = static function (string $src): void {
 
   <section class="service-section service-section--alt">
     <div class="container">
-      <div class="service-overview<?php echo !$has_description_media ? ' service-overview--single' : ''; ?>">
+      <div class="service-overview service-overview--single">
         <div>
           <h2>Overview</h2>
           <?php foreach ((array) $args['description'] as $p): ?>
             <p><?php echo esc_html($p); ?></p>
           <?php endforeach; ?>
         </div>
-
-        <?php if ($has_description_media): ?>
-          <div class="service-mediaCard">
-            <?php $render_media((string) $args['description_image']); ?>
-          </div>
-        <?php endif; ?>
       </div>
     </div>
   </section>
@@ -136,7 +133,8 @@ $render_media = static function (string $src): void {
         <h2><?php echo esc_html($args['cta_title']); ?></h2>
         <p><?php echo esc_html($args['cta_text']); ?></p>
         <div class="service-finalCta__actions">
-          <a class="btn btn--accent" href="<?php echo esc_url($primary_url); ?>"><?php echo esc_html($primary_label); ?></a>
+          <a class="btn btn--accent"
+            href="<?php echo esc_url($primary_url); ?>"><?php echo esc_html($primary_label); ?></a>
         </div>
       </div>
     </div>

@@ -59,10 +59,11 @@ $has_footer_menu = has_nav_menu('footer');
 
 <div class="footer">
   <div class="footer__brand">
-    <strong><?php bloginfo('name'); ?></strong>
-    <p class="footer__desc"><strong>Where Listings Become <span class="slm-noWrap">Showcase-Worthy.</span></strong>
-      Premium real estate media for agents and broker teams that want stronger listing presentation and faster marketing
-      execution.</p>
+    <strong class="footer__brand-name"><?php bloginfo('name'); ?></strong>
+    <p class="footer__tagline"><strong>Where Listings Become <span class="slm-noWrap">Showcase-Worthy.</span></strong>
+    </p>
+    <p class="footer__desc">Premium real estate media for agents and broker teams that want stronger listing
+      presentation and faster marketing execution.</p>
   </div>
 
   <div class="footer__col">
@@ -108,13 +109,13 @@ $has_footer_menu = has_nav_menu('footer');
       </div>
     <?php endif; ?>
 
-    <h3 class="footer__title" style="margin-top:16px;">Contact</h3>
+    <h3 class="footer__title" style="margin-top:24px;">Contact</h3>
     <ul class="footer__list">
       <?php if ($phone !== ''): ?>
-        <li>Call us at <a href="tel:<?php echo esc_attr($phone_href); ?>"><?php echo esc_html($phone); ?></a></li>
+        <li><a href="tel:<?php echo esc_attr($phone_href); ?>"><?php echo esc_html($phone); ?></a></li>
       <?php endif; ?>
       <?php if ($email !== ''): ?>
-        <li>Contact us at <a href="mailto:<?php echo esc_attr($email); ?>"><?php echo esc_html($email); ?></a></li>
+        <li><a href="mailto:<?php echo esc_attr($email); ?>"><?php echo esc_html($email); ?></a></li>
       <?php endif; ?>
     </ul>
   </div>

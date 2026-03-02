@@ -35,15 +35,14 @@ function slm_portfolio_sanitize_ids($raw): array
 {
   if (is_array($raw)) {
     $parts = $raw;
-  }
-  else {
-    $raw = (string)$raw;
+  } else {
+    $raw = (string) $raw;
     $parts = preg_split('/[\\s,]+/', $raw, -1, PREG_SPLIT_NO_EMPTY) ?: [];
   }
 
   $ids = [];
   foreach ($parts as $p) {
-    $id = (int)$p;
+    $id = (int) $p;
     if ($id > 0)
       $ids[] = $id;
   }
@@ -51,12 +50,23 @@ function slm_portfolio_sanitize_ids($raw): array
   return $ids;
 }
 
-function slm_portfolio_is_portfolio_template_page(int $post_id): bool
+function slm_portfolio_is_gallery_supported_page(int $post_id): bool
 {
   if ($post_id <= 0 || get_post_type($post_id) !== 'page') {
     return false;
   }
-  return (string) get_page_template_slug($post_id) === 'templates/page-portfolio.php';
+  $template = (string) get_page_template_slug($post_id);
+  return in_array($template, [
+    'templates/page-portfolio.php',
+    'templates/page-service-drone-photography.php',
+    'templates/page-service-drone-videography.php',
+    'templates/page-service-floor-plans.php',
+    'templates/page-service-re-photography.php',
+    'templates/page-service-re-videography.php',
+    'templates/page-service-twilight-photography.php',
+    'templates/page-service-virtual-tours.php',
+    'templates/page-service-zillow-showcase.php'
+  ], true);
 }
 
 function slm_portfolio_media_thumb_html(int $id, string $type): string
@@ -130,8 +140,7 @@ add_action('add_meta_boxes', function () {
 });
 
 add_action('add_meta_boxes_page', function (WP_Post $post): void {
-  $template = (string) get_page_template_slug($post->ID);
-  if ($template !== 'templates/page-portfolio.php') {
+  if (!slm_portfolio_is_gallery_supported_page($post->ID)) {
     return;
   }
 
@@ -152,7 +161,7 @@ function slm_render_portfolio_gallery_meta_box(WP_Post $post): void
   $image_ids = slm_portfolio_sanitize_ids(get_post_meta($post->ID, slm_portfolio_gallery_meta_key(), true));
   slm_portfolio_render_media_picker_panel('image', $image_ids);
 
-  if (slm_portfolio_is_portfolio_template_page((int) $post->ID)) {
+  if (slm_portfolio_is_gallery_supported_page((int) $post->ID)) {
     $video_ids = slm_portfolio_sanitize_ids(get_post_meta($post->ID, slm_portfolio_video_meta_key(), true));
     slm_portfolio_render_media_picker_panel('video', $video_ids);
   }
@@ -164,14 +173,14 @@ add_action('save_post', function (int $post_id) {
   if (!current_user_can('edit_post', $post_id))
     return;
 
-  $nonce = (string)($_POST['slm_portfolio_gallery_nonce'] ?? '');
+  $nonce = (string) ($_POST['slm_portfolio_gallery_nonce'] ?? '');
   if (!wp_verify_nonce($nonce, 'slm_portfolio_gallery_save'))
     return;
 
   $ids = slm_portfolio_sanitize_ids($_POST['slm_portfolio_gallery_ids'] ?? '');
   update_post_meta($post_id, slm_portfolio_gallery_meta_key(), implode(',', $ids));
 
-  if (slm_portfolio_is_portfolio_template_page($post_id)) {
+  if (slm_portfolio_is_gallery_supported_page($post_id)) {
     $video_ids = slm_portfolio_sanitize_ids($_POST['slm_portfolio_video_ids'] ?? '');
     update_post_meta($post_id, slm_portfolio_video_meta_key(), implode(',', $video_ids));
   }
@@ -264,8 +273,7 @@ add_action('admin_enqueue_scripts', function (string $hook) {
       }
 
       if ($post_id > 0) {
-        $template = (string) get_page_template_slug($post_id);
-        if ($template !== 'templates/page-portfolio.php') {
+        if (!slm_portfolio_is_gallery_supported_page($post_id)) {
           return;
         }
       }

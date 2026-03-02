@@ -2,14 +2,33 @@
 /**
  * Template Name: Service - Twilight Photography
  */
-if (!defined('ABSPATH')) exit;
+if (!defined('ABSPATH'))
+  exit;
 
 get_header();
 
 $theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
-$hero_media = $theme_uri . '/assets/media/twilight/01-99-twilight-aerial-front-exterior-3.jpg';
-$description_media = '';
+// Retrieve media specifically assigned via this page's Portfolio Admin Settings
+$page_id = get_queried_object_id();
+$photo_ids = $page_id > 0 ? get_post_meta($page_id, 'slm_portfolio_gallery_ids', true) : '';
+$video_ids = $page_id > 0 ? get_post_meta($page_id, 'slm_portfolio_video_ids', true) : '';
+$media_ids_raw = trim($photo_ids . ',' . $video_ids, ',');
+$media_ids_array = preg_split('/[\s,]+/', (string) $media_ids_raw, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+$media_urls = [];
+foreach ($media_ids_array as $m_id) {
+  $url = wp_get_attachment_url((int) $m_id);
+  if (is_string($url) && $url !== '') {
+    $media_urls[] = $url;
+  }
+}
+
+// Fallbacks if no media is configured in the portfolio settings
+$hero_media = !empty($media_urls) ? $media_urls[0] : $theme_uri . '/assets/media/twilight/01-99-twilight-aerial-front-exterior-3.jpg';
+
+// The rest go into the gallery block
+$gallery_media = count($media_urls) > 1 ? array_slice($media_urls, 1) : [];
 
 $description = [
   'Twilight photography creates visual impact that instantly separates a listing from standard daytime coverage. The result is a premium, attention-grabbing presentation.',
@@ -37,7 +56,7 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'title' => 'Twilight Photography',
   'subtitle' => 'Premium twilight imagery that elevates listing perception and helps your marketing stand out with authority.',
   'hero_image' => $hero_media,
-  'description_image' => $description_media,
+  'gallery' => $gallery_media,
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,

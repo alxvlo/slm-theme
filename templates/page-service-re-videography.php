@@ -2,18 +2,32 @@
 /**
  * Template Name: Service - Real Estate Videography
  */
-if (!defined('ABSPATH')) exit;
+if (!defined('ABSPATH'))
+  exit;
 
 get_header();
 
 $theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
-$hero_media = $theme_uri . '/assets/media/horizontal-videos/02-inside-this-stunning-north-florida-home-real-tours-north-florida.mp4';
-$description_media = $theme_uri . '/assets/media/staged/03-15-living-room-5-of-6-virtually-staged.jpeg';
-$gallery_media = [
-  $theme_uri . '/assets/media/staged/09-7-living-room-1-of-6-virtually-staged.jpeg',
-  $theme_uri . '/assets/media/photos/15-42-guest-bathroom-1-of-2.jpg',
-  $theme_uri . '/assets/media/horizontal-videos/03-thank-you-aubrey-wessolowski.mp4',
+// Retrieve videos specifically assigned via this page's Portfolio Admin Settings
+$page_id = get_queried_object_id();
+$video_ids_raw = $page_id > 0 ? get_post_meta($page_id, 'slm_portfolio_video_ids', true) : '';
+$video_ids_array = preg_split('/[\s,]+/', (string) $video_ids_raw, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+$video_urls = [];
+foreach ($video_ids_array as $vid_id) {
+  $url = wp_get_attachment_url((int) $vid_id);
+  if (is_string($url) && $url !== '') {
+    $video_urls[] = $url;
+  }
+}
+
+// Fallbacks if no videos are configured in the portfolio settings
+$hero_media = !empty($video_urls) ? $video_urls[0] : $theme_uri . '/assets/media/horizontal-videos/02-inside-this-stunning-north-florida-home-real-tours-north-florida.mp4';
+
+// The rest go into the gallery block
+$gallery_media = count($video_urls) > 1 ? array_slice($video_urls, 1) : [
+  $theme_uri . '/assets/media/staged/03-15-living-room-5-of-6-virtually-staged.jpeg'
 ];
 
 $description = [
@@ -42,7 +56,6 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'title' => 'Real Estate Videography',
   'subtitle' => 'Cinematic listing videos that build trust, increase engagement, and position your marketing above the standard.',
   'hero_image' => $hero_media,
-  'description_image' => $description_media,
   'gallery' => $gallery_media,
   'description' => $description,
   'benefits' => $benefits,

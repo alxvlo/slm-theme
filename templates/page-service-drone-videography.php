@@ -2,18 +2,32 @@
 /**
  * Template Name: Service - Drone Videography
  */
-if (!defined('ABSPATH')) exit;
+if (!defined('ABSPATH'))
+  exit;
 
 get_header();
 
 $theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
-$hero_media = $theme_uri . '/assets/media/horizontal-videos/02-inside-this-stunning-north-florida-home-real-tours-north-florida.mp4';
-$description_media = $theme_uri . '/assets/media/drone-photos/05-3-aerial-overview.jpg';
-$gallery_media = [
-  $theme_uri . '/assets/media/drone-photos/08-52-aerial-front-exterior-1.jpg',
-  $theme_uri . '/assets/media/drone-photos/10-75-aerial-view-2.jpg',
-  $theme_uri . '/assets/media/horizontal-videos/03-thank-you-aubrey-wessolowski.mp4',
+// Retrieve videos specifically assigned via this page's Portfolio Admin Settings
+$page_id = get_queried_object_id();
+$video_ids_raw = $page_id > 0 ? get_post_meta($page_id, 'slm_portfolio_video_ids', true) : '';
+$video_ids_array = preg_split('/[\s,]+/', (string) $video_ids_raw, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+$video_urls = [];
+foreach ($video_ids_array as $vid_id) {
+  $url = wp_get_attachment_url((int) $vid_id);
+  if (is_string($url) && $url !== '') {
+    $video_urls[] = $url;
+  }
+}
+
+// Fallbacks if no videos are configured in the portfolio settings
+$hero_media = !empty($video_urls) ? $video_urls[0] : $theme_uri . '/assets/media/horizontal-videos/02-inside-this-stunning-north-florida-home-real-tours-north-florida.mp4';
+
+// The rest go into the gallery block
+$gallery_media = count($video_urls) > 1 ? array_slice($video_urls, 1) : [
+  $theme_uri . '/assets/media/drone-photos/05-3-aerial-overview.jpg'
 ];
 
 $description = [
@@ -42,7 +56,6 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'title' => 'Drone Videography',
   'subtitle' => 'Cinematic aerial video that adds scale, movement, and authority to your listing marketing system.',
   'hero_image' => $hero_media,
-  'description_image' => $description_media,
   'gallery' => $gallery_media,
   'description' => $description,
   'benefits' => $benefits,

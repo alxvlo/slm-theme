@@ -81,9 +81,10 @@ h3,
 h4,
 h5,
 h6 {
-  margin: 0 0 0.55em;
+  margin: 0 0 0.6em;
   font-family: var(--font-display);
-  line-height: 1.1;
+  font-style: normal;
+  line-height: 1.15;
   letter-spacing: -0.02em;
   color: var(--primary-strong);
 }
@@ -186,18 +187,26 @@ select:focus-visible {
   }
 }
 
-.footer__brand strong {
+.footer__brand-name {
   display: block;
   font-family: var(--font-display);
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   letter-spacing: -0.01em;
   color: #ffffff;
+  margin-bottom: 12px;
+}
+
+.footer__tagline {
+  margin: 0 0 8px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1.05rem;
 }
 
 .footer__desc {
-  margin: 10px 0 0;
+  margin: 0;
   max-width: 52ch;
   color: rgba(255, 255, 255, 0.78);
+  line-height: 1.6;
 }
 
 .footer__brand p {
@@ -254,6 +263,7 @@ select:focus-visible {
 .footer__list a {
   color: rgba(255, 255, 255, 0.86);
   text-decoration: none;
+  word-break: break-word;
 }
 
 .footer__list a:hover {

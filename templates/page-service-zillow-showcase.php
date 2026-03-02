@@ -9,9 +9,27 @@ get_header();
 
 $theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
-$hero_media = $theme_uri . '/assets/media/floor-plans/02-floor-plan-main.jpg';
-$description_media = $theme_uri . '/assets/media/floor-plans/04-floor-plan-combined.jpg';
-$gallery_media = [
+// Retrieve media specifically assigned via this page's Portfolio Admin Settings
+$page_id = get_queried_object_id();
+$photo_ids = $page_id > 0 ? get_post_meta($page_id, 'slm_portfolio_gallery_ids', true) : '';
+$video_ids = $page_id > 0 ? get_post_meta($page_id, 'slm_portfolio_video_ids', true) : '';
+$media_ids_raw = trim($photo_ids . ',' . $video_ids, ',');
+$media_ids_array = preg_split('/[\s,]+/', (string) $media_ids_raw, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+$media_urls = [];
+foreach ($media_ids_array as $m_id) {
+    $url = wp_get_attachment_url((int) $m_id);
+    if (is_string($url) && $url !== '') {
+        $media_urls[] = $url;
+    }
+}
+
+// Fallbacks if no media is configured in the portfolio settings
+$hero_media = !empty($media_urls) ? $media_urls[0] : $theme_uri . '/assets/media/floor-plans/02-floor-plan-main.jpg';
+
+// The rest go into the gallery block
+$gallery_media = count($media_urls) > 1 ? array_slice($media_urls, 1) : [
+    $theme_uri . '/assets/media/floor-plans/04-floor-plan-combined.jpg',
     $theme_uri . '/assets/media/staged/03-15-living-room-5-of-6-virtually-staged.jpeg',
     $theme_uri . '/assets/media/floor-plans/03-floor-plan-main-alt.jpg',
     $theme_uri . '/assets/media/staged/05-32-primary-bedroom-1-of-4-virtually-staged.jpeg',
@@ -44,7 +62,6 @@ get_template_part('template-parts/blocks/service-detail', null, [
     'title' => 'Zillow Showcase',
     'subtitle' => 'Interactive 3D tours and professional floorplans bundled for maximum Zillow visibility and buyer engagement.',
     'hero_image' => $hero_media,
-    'description_image' => $description_media,
     'gallery' => $gallery_media,
     'description' => $description,
     'benefits' => $benefits,

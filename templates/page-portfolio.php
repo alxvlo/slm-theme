@@ -71,21 +71,7 @@ foreach ($gallery_ids as $att_id) {
     $selected_photo_urls[] = $full;
   }
 }
-
-$seed_photo_paths = [
-  '/assets/media/photos/01-0-front-exterior.jpg',
-  '/assets/media/photos/08-1-front-exterior.jpg',
-  '/assets/media/photos/13-2-front-exterior-3.jpg',
-  '/assets/media/photos/16-5-front-exterior-4.jpg',
-  '/assets/media/drone-photos/05-3-aerial-overview.jpg',
-  '/assets/media/drone-photos/08-52-aerial-front-exterior-1.jpg',
-  '/assets/media/photos/03-17-dining-room-1-of-4.jpg',
-  '/assets/media/photos/09-20-dining-room-4-of-4.jpg',
-];
-$seed_photo_urls = array_map(static function ($path) use ($theme_uri) {
-  return $theme_uri . $path;
-}, $seed_photo_paths);
-$photo_urls = $dedupe_urls(array_merge($selected_photo_urls, $seed_photo_urls));
+$photo_urls = $dedupe_urls($selected_photo_urls);
 
 $selected_video_urls = [];
 foreach ($video_ids as $att_id) {
@@ -94,21 +80,34 @@ foreach ($video_ids as $att_id) {
     $selected_video_urls[] = $video_url;
   }
 }
+$video_urls = $dedupe_urls($selected_video_urls);
 
-$seed_video_paths = [
-  '/assets/media/horizontal-videos/02-inside-this-stunning-north-florida-home-real-tours-north-florida.mp4',
-  '/assets/media/horizontal-videos/03-thank-you-aubrey-wessolowski.mp4',
-  '/assets/media/horizontal-videos/04-drone-video.mp4',
-];
-$seed_video_urls = array_map(static function ($path) use ($theme_uri) {
-  return $theme_uri . $path;
-}, $seed_video_paths);
-$video_urls = $dedupe_urls(array_merge($selected_video_urls, $seed_video_urls));
+// Build mixed media array: interleave videos among photos
+$media_items = []; // Each item: ['type' => 'image'|'video', 'url' => '...']
+$video_queue = $video_urls;
+$video_interval = count($photo_urls) > 0 && count($video_urls) > 0
+  ? max(2, (int) floor(count($photo_urls) / (count($video_urls) + 1)))
+  : 0;
+$video_index = 0;
+foreach ($photo_urls as $i => $url) {
+  $media_items[] = ['type' => 'image', 'url' => $url];
+  if ($video_interval > 0 && ($i + 1) % $video_interval === 0 && $video_index < count($video_queue)) {
+    $media_items[] = ['type' => 'video', 'url' => $video_queue[$video_index]];
+    $video_index++;
+  }
+}
+// Append any remaining videos at the end
+while ($video_index < count($video_queue)) {
+  $media_items[] = ['type' => 'video', 'url' => $video_queue[$video_index]];
+  $video_index++;
+}
 ?>
 
 <main>
   <?php if (current_user_can('edit_page', $pid)): ?>
-    <a href="<?php echo get_edit_post_link($pid); ?>" class="btn" style="position:fixed; bottom:24px; right:24px; z-index:1100; padding:12px 20px; font-size:14px; box-shadow:0 4px 20px rgba(0,0,0,0.25); border-radius:999px;">&#9998; Edit Page &amp; Gallery</a>
+    <a href="<?php echo get_edit_post_link($pid); ?>" class="btn"
+      style="position:fixed; bottom:24px; right:24px; z-index:1100; padding:12px 20px; font-size:14px; box-shadow:0 4px 20px rgba(0,0,0,0.25); border-radius:999px;">&#9998;
+      Edit Page &amp; Gallery</a>
   <?php endif; ?>
 
   <section class="page-hero <?php echo esc_attr($hero_class); ?>" <?php echo $hero_has_image ? 'style="background-image:url(\'' . esc_url($hero_img) . '\');"' : ''; ?>>
@@ -126,47 +125,38 @@ $video_urls = $dedupe_urls(array_merge($selected_video_urls, $seed_video_urls));
 
   <section class="page-section page-section--compact">
     <div class="container">
-      <h2 class="center" style="margin-top:0;">Photo Portfolio</h2>
-      <?php if (!empty($photo_urls)): ?>
-        <p class="center sub" style="margin-bottom:10px;">Swipe or scroll to explore our full photo portfolio.</p>
-        <div class="portfolio-carousel">
-          <?php foreach ($photo_urls as $index => $url): ?>
-            <div class="portfolio-carousel__item" data-full="<?php echo esc_url($url); ?>" data-index="<?php echo esc_attr((string) $index); ?>">
-              <img src="<?php echo esc_url($url); ?>" alt="Portfolio photo <?php echo esc_attr((string) ($index + 1)); ?>" loading="lazy" decoding="async">
-              <div class="portfolio-carousel__overlay">
-                <span>Enlarge Picture</span>
+      <?php if (!empty($media_items)): ?>
+
+        <div class="pMasonry">
+          <?php foreach ($media_items as $index => $item): ?>
+            <?php if ($item['type'] === 'image'): ?>
+              <div class="pMasonry__item" data-type="image" data-full="<?php echo esc_url($item['url']); ?>"
+                data-index="<?php echo esc_attr((string) $index); ?>">
+                <img class="pMasonry__img" src="<?php echo esc_url($item['url']); ?>"
+                  alt="Portfolio photo <?php echo esc_attr((string) ($index + 1)); ?>" loading="lazy" decoding="async">
               </div>
-            </div>
+            <?php else: ?>
+              <div class="pMasonry__item pMasonry__item--video" data-type="video"
+                data-full="<?php echo esc_url($item['url']); ?>" data-index="<?php echo esc_attr((string) $index); ?>">
+                <video class="pMasonry__video" autoplay loop muted playsinline preload="metadata"
+                  src="<?php echo esc_url($item['url']); ?>"></video>
+              </div>
+            <?php endif; ?>
           <?php endforeach; ?>
         </div>
       <?php else: ?>
         <div class="center" style="padding:60px 20px;">
-          <p>No portfolio images available yet. Add them using "Edit Page &amp; Gallery".</p>
+          <p>No portfolio media available yet. Add them using "Edit Page &amp; Gallery".</p>
         </div>
       <?php endif; ?>
     </div>
   </section>
-
-  <?php if (!empty($video_urls)): ?>
-    <section class="page-section page-section--secondary">
-      <div class="container">
-        <h2 class="center" style="margin-top:0;">Video Portfolio</h2>
-        <p class="center sub" style="margin-bottom:24px; max-width:860px;">A selection of listing and brand videos showcasing cinematic walkthroughs, social-ready edits, and aerial coverage.</p>
-        <div class="portfolio-videoGrid">
-          <?php foreach ($video_urls as $video_url): ?>
-            <article class="portfolio-videoCard">
-              <video controls playsinline preload="metadata" src="<?php echo esc_url($video_url); ?>"></video>
-            </article>
-          <?php endforeach; ?>
-        </div>
-      </div>
-    </section>
-  <?php endif; ?>
 </main>
 
 <div class="slm-lightbox" id="slmLightbox" aria-hidden="true">
-  <button class="slm-lightbox__close" id="lbClose" aria-label="Close image viewer">&times;</button>
+  <button class="slm-lightbox__close" id="lbClose" aria-label="Close media viewer">&times;</button>
   <img src="" alt="Enlarged portfolio image" class="slm-lightbox__img" id="lbImg">
+  <video class="slm-lightbox__video" id="lbVideo" controls playsinline preload="none" style="display:none;"></video>
   <div class="slm-lightbox__controls">
     <button class="slm-lightbox__btn" id="lbPrev" type="button">&larr; Previous</button>
     <button class="slm-lightbox__btn" id="lbNext" type="button">Next &rarr;</button>
@@ -176,51 +166,76 @@ $video_urls = $dedupe_urls(array_merge($selected_video_urls, $seed_video_urls));
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    var items = document.querySelectorAll('.portfolio-carousel__item');
+    var items = document.querySelectorAll('.pMasonry__item');
     var lightbox = document.getElementById('slmLightbox');
     var lbImg = document.getElementById('lbImg');
+    var lbVideo = document.getElementById('lbVideo');
     var lbClose = document.getElementById('lbClose');
     var lbPrev = document.getElementById('lbPrev');
     var lbNext = document.getElementById('lbNext');
     var lbIndicator = document.getElementById('lbIndicator');
     var currentIndex = 0;
-    var images = Array.prototype.map.call(items, function (item) {
-      return item.getAttribute('data-full');
+
+    var mediaList = Array.prototype.map.call(items, function (item) {
+      return {
+        type: item.getAttribute('data-type') || 'image',
+        url: item.getAttribute('data-full')
+      };
     });
 
-    if (!images.length || !lightbox || !lbImg || !lbClose || !lbPrev || !lbNext || !lbIndicator) {
+    if (!mediaList.length || !lightbox || !lbImg || !lbVideo || !lbClose || !lbPrev || !lbNext || !lbIndicator) {
       return;
     }
 
     function updateIndicator() {
-      lbIndicator.textContent = (currentIndex + 1) + ' / ' + images.length;
+      var label = mediaList[currentIndex].type === 'video' ? 'Video' : 'Photo';
+      lbIndicator.textContent = label + ' ' + (currentIndex + 1) + ' / ' + mediaList.length;
+    }
+
+    function showMedia(index) {
+      var item = mediaList[index];
+      if (item.type === 'video') {
+        lbImg.style.display = 'none';
+        lbVideo.style.display = 'block';
+        lbVideo.src = item.url;
+        lbVideo.currentTime = 0;
+        lbVideo.play();
+      } else {
+        lbVideo.pause();
+        lbVideo.removeAttribute('src');
+        lbVideo.style.display = 'none';
+        lbImg.style.display = 'block';
+        lbImg.src = item.url;
+      }
+      updateIndicator();
     }
 
     function openLightbox(index) {
       currentIndex = index;
-      lbImg.src = images[currentIndex];
-      updateIndicator();
+      showMedia(currentIndex);
       lightbox.classList.add('is-open');
       lightbox.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
     }
 
     function closeLightbox() {
+      lbVideo.pause();
+      lbVideo.removeAttribute('src');
       lightbox.classList.remove('is-open');
       lightbox.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
     }
 
     function showNext() {
-      currentIndex = (currentIndex + 1) % images.length;
-      lbImg.src = images[currentIndex];
-      updateIndicator();
+      lbVideo.pause();
+      currentIndex = (currentIndex + 1) % mediaList.length;
+      showMedia(currentIndex);
     }
 
     function showPrev() {
-      currentIndex = (currentIndex - 1 + images.length) % images.length;
-      lbImg.src = images[currentIndex];
-      updateIndicator();
+      lbVideo.pause();
+      currentIndex = (currentIndex - 1 + mediaList.length) % mediaList.length;
+      showMedia(currentIndex);
     }
 
     items.forEach(function (item, index) {

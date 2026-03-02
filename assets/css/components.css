@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 11px 18px;
+  padding: 12px 20px;
   border: 1px solid transparent;
   border-radius: 999px;
   background: linear-gradient(140deg, var(--primary) 0%, #214e84 100%);
@@ -16,7 +16,7 @@
   font-size: 0.95rem;
   font-weight: 650;
   letter-spacing: 0.01em;
-  line-height: 1;
+  line-height: 1.15;
   text-decoration: none;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
@@ -198,6 +198,7 @@
 }
 
 @media (max-width: 860px) {
+
   .grid--2,
   .grid--3 {
     grid-template-columns: 1fr;

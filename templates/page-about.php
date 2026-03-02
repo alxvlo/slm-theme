@@ -28,6 +28,9 @@ $hero_sub = $meta_get('slm_about_hero_sub');
 $intro_h2 = $meta_get('slm_about_intro_h2');
 $intro_p1 = $meta_get('slm_about_intro_p1');
 $intro_p2 = $meta_get('slm_about_intro_p2');
+$intro_p3 = $meta_get('slm_about_intro_p3');
+$intro_p4 = $meta_get('slm_about_intro_p4');
+$intro_p5 = $meta_get('slm_about_intro_p5');
 $values_h2 = $meta_get('slm_about_values_h2');
 $values_sub = $meta_get('slm_about_values_sub');
 $outcomes_h2 = $meta_get('slm_about_outcomes_h2');
@@ -54,8 +57,7 @@ foreach ($values_raw as $l) {
   $parts = explode('|', $l, 2);
   if (count($parts) === 2) {
     $core_values[] = ['title' => trim($parts[0]), 'description' => trim($parts[1])];
-  }
-  else {
+  } else {
     $core_values[] = ['title' => trim($parts[0]), 'description' => ''];
   }
 }
@@ -67,27 +69,22 @@ $has_owner_content = trim((string) $owner_name) !== ''
   || trim((string) $owner_bio) !== ''
   || $owner_photo_url !== '';
 
-$intro_h2_html = esc_html((string) $intro_h2);
-$intro_h2_html = str_replace(
-  ['Showcase-Worthy.', 'Showcase-Worthy'],
-  ['<span class="slm-noWrap">Showcase-Worthy.</span>', '<span class="slm-noWrap">Showcase-Worthy</span>'],
-  $intro_h2_html
-);
-
 $page_content = '';
 if (have_posts()) {
   while (have_posts()) {
     the_post();
-    $page_content = trim((string)get_the_content());
+    $page_content = trim((string) get_the_content());
   }
 }
 ?>
 
 <main>
   <?php if (current_user_can('edit_page', $pid)): ?>
-    <a href="<?php echo get_edit_post_link($pid); ?>" class="btn" style="position:fixed; bottom:24px; right:24px; z-index:1100; padding:12px 20px; font-size:14px; box-shadow:0 4px 20px rgba(0,0,0,0.25); border-radius:999px;">&#9998; Edit Page Text</a>
-  <?php
-endif; ?>
+    <a href="<?php echo get_edit_post_link($pid); ?>" class="btn"
+      style="position:fixed; bottom:24px; right:24px; z-index:1100; padding:12px 20px; font-size:14px; box-shadow:0 4px 20px rgba(0,0,0,0.25); border-radius:999px;">&#9998;
+      Edit Page Text</a>
+    <?php
+  endif; ?>
 
   <section class="page-hero page-hero--solid">
     <div class="container page-hero__content">
@@ -101,12 +98,32 @@ endif; ?>
 
   <section class="page-section page-section--secondary">
     <div class="container about-wrap">
-      <div class="about-intro card">
-        <h2><?php echo wp_kses($intro_h2_html, ['span' => ['class' => []]]); ?></h2>
-        <?php if ($intro_p1): ?><p><?php echo esc_html($intro_p1); ?></p><?php
-endif; ?>
-        <?php if ($intro_p2): ?><p><?php echo esc_html($intro_p2); ?></p><?php
-endif; ?>
+      <div class="about-intro about-intro--premium">
+        <h2><?php echo esc_html($intro_h2); ?></h2>
+
+        <?php if ($intro_p1): ?>
+          <p><?php echo esc_html($intro_p1); ?></p>
+        <?php endif; ?>
+
+        <?php if ($intro_p2): ?>
+          <p><?php echo esc_html($intro_p2); ?></p>
+        <?php endif; ?>
+
+        <?php if ($intro_p3): ?>
+          <p><?php echo esc_html($intro_p3); ?></p>
+        <?php endif; ?>
+
+        <?php if ($intro_p4): ?>
+          <p><?php echo esc_html($intro_p4); ?></p>
+        <?php endif; ?>
+
+        <?php if ($intro_p5): ?>
+          <p><?php echo esc_html($intro_p5); ?></p>
+        <?php endif; ?>
+
+        <p class="about-intro__closing-line">
+          <mark class="about-intro__highlight">Your success is our success.</mark>
+        </p>
       </div>
     </div>
   </section>
@@ -122,8 +139,8 @@ endif; ?>
             <h3><?php echo esc_html($value['title']); ?></h3>
             <p><?php echo esc_html($value['description']); ?></p>
           </article>
-        <?php
-endforeach; ?>
+          <?php
+        endforeach; ?>
       </div>
     </div>
   </section>
@@ -138,8 +155,8 @@ endforeach; ?>
           <article class="about-outcomeCard">
             <p><?php echo esc_html($item); ?></p>
           </article>
-        <?php
-endforeach; ?>
+          <?php
+        endforeach; ?>
       </div>
     </div>
   </section>
@@ -155,8 +172,8 @@ endforeach; ?>
           <ul>
             <?php foreach ($traditional as $item): ?>
               <li><?php echo esc_html($item); ?></li>
-            <?php
-endforeach; ?>
+              <?php
+            endforeach; ?>
           </ul>
         </article>
 
@@ -165,8 +182,8 @@ endforeach; ?>
           <ul>
             <?php foreach ($showcase as $item): ?>
               <li><?php echo esc_html($item); ?></li>
-            <?php
-endforeach; ?>
+              <?php
+            endforeach; ?>
           </ul>
         </article>
       </div>
@@ -179,8 +196,8 @@ endforeach; ?>
         <?php echo wp_kses_post(apply_filters('the_content', $page_content)); ?>
       </div>
     </section>
-  <?php
-endif; ?>
+    <?php
+  endif; ?>
 
   <?php if ($has_owner_content): ?>
     <section class="page-section page-section--secondary">
@@ -188,7 +205,9 @@ endif; ?>
         <article class="about-owner card">
           <?php if ($owner_photo_url !== ''): ?>
             <div class="about-owner__media">
-              <img src="<?php echo esc_url($owner_photo_url); ?>" alt="<?php echo esc_attr($owner_name !== '' ? $owner_name : 'Owner photo'); ?>" loading="lazy" decoding="async">
+              <img src="<?php echo esc_url($owner_photo_url); ?>"
+                alt="<?php echo esc_attr($owner_name !== '' ? $owner_name : 'Owner photo'); ?>" loading="lazy"
+                decoding="async">
             </div>
           <?php endif; ?>
           <div class="about-owner__body">
