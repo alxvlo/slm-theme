@@ -1081,6 +1081,145 @@
   }
 }
 
+/* Partners */
+.about-partners-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.about-partnerCard {
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.09);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: center;
+}
+
+.about-partnerCard__avatarAndPerk {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 0 16px;
+}
+
+.about-partnerCard__avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 1px #d4b484;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.about-partnerCard__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 12%;
+}
+
+.about-partnerCard__content {
+  display: flex;
+  flex-direction: column;
+  padding: 0 24px 24px;
+  flex-grow: 1;
+}
+
+.about-partnerCard__info {
+  margin-bottom: 12px;
+}
+
+.about-partnerCard__info h3 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+}
+
+.about-partnerCard__role {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  margin: 0 0 3px;
+  line-height: 1.4;
+}
+
+.about-partnerCard__company {
+  font-weight: 600;
+  color: #2e4f76;
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.about-partnerCard__body {
+  font-size: 0.82rem;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  flex-grow: 1;
+  text-align: left;
+}
+
+.about-partnerCard__footer {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: center;
+}
+
+.about-partnerCard__link {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1e3a5f;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.about-partnerContact {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 32px 24px;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 14px;
+  background: rgba(30, 58, 95, 0.02);
+  grid-column: 1 / -1;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.about-partnerContact h3 {
+  margin: 0 0 10px;
+  font-size: 1.25rem;
+}
+
+.about-partnerContact p {
+  color: var(--muted-foreground);
+  margin: 0 0 20px;
+  max-width: 360px;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 680px) {
+  .about-partners-grid {
+    grid-template-columns: 1fr;
+    max-width: 320px;
+  }
+}
+
 /* =========================
    Contact Layout
 ========================= */

@@ -7,13 +7,13 @@ function slm_get_editable_fields_for_template(string $template): array
   if ($template === 'templates/page-about.php') {
     return [
       'slm_about_hero_title' => ['label' => 'Hero Title', 'type' => 'text', 'default' => 'About Showcase Listings Media'],
-      'slm_about_hero_sub' => ['label' => 'Hero Subtitle', 'type' => 'text', 'default' => 'Break the standard. Showcase the difference.'],
-      'slm_about_intro_h2' => ['label' => 'Intro H2', 'type' => 'text', 'default' => 'Built from the Inside Out'],
-      'slm_about_intro_p1' => ['label' => 'Intro Paragraph 1', 'type' => 'textarea', 'default' => 'Before launching Showcase Listings Media, our founder worked in the industry — alongside agents, inside the deadlines, the pressure, the expectations, and the constant need to stay visible online while still doing the job. She saw the same pattern over and over: marketing mattered, but the way it was offered didn\'t fit real life. Everything was priced per add-on, per minute, per revision — or treated like a luxury instead of a business tool.'],
-      'slm_about_intro_p2' => ['label' => 'Intro Paragraph 2', 'type' => 'textarea', 'default' => 'So agents either overspent… or stopped marketing consistently. Showcase Listings Media exists to fix that.'],
-      'slm_about_intro_p3' => ['label' => 'Intro Paragraph 3', 'type' => 'textarea', 'default' => 'We don\'t believe marketing should feel like a special occasion. It should feel like part of your workflow — while still delivering a luxury experience.'],
-      'slm_about_intro_p4' => ['label' => 'Intro Paragraph 4', 'type' => 'textarea', 'default' => 'Our services are structured to help you stay present, build authority, and show personality — without needing a production day every time you want to post. Sometimes that means full listing media. Sometimes it means turning your phone videos into professional content. Sometimes it means helping you educate your audience without even stepping on camera.'],
-      'slm_about_intro_p5' => ['label' => 'Intro Paragraph 5', 'type' => 'textarea', 'default' => 'The goal isn\'t just better photos or videos. The goal is consistency, confidence, and visibility you can actually maintain.'],
+      'slm_about_hero_sub' => ['label' => 'Hero Subtitle', 'type' => 'text', 'default' => 'Marketing Every Listing Like It’s the Only One.'],
+      'slm_about_intro_h2' => ['label' => 'Intro H2', 'type' => 'text', 'default' => 'Every Listing Is Different. Every Agent Is Different.'],
+      'slm_about_intro_p1' => ['label' => 'Intro Paragraph 1', 'type' => 'textarea', 'default' => 'We are more than just a media company; we are Real Estate Agents and Business Advocates. Having worked natively inside the industry — navigating the deadlines, the pressure, and the constant need to stay visible — we saw a clear pattern. Marketing mattered, but the way it was traditionally offered didn\'t fit real life.'],
+      'slm_about_intro_p2' => ['label' => 'Intro Paragraph 2', 'type' => 'textarea', 'default' => 'Showcase Listings Media exists to change that. We don\'t believe marketing should feel like a disjointed series of costly add-ons or a one-off special occasion. It should be a consistent, integrated component of your workflow that continuously elevates your brand.'],
+      'slm_about_intro_p3' => ['label' => 'Intro Paragraph 3', 'type' => 'textarea', 'default' => 'Our services are structured to help you build authority and showcase your unique personality. By acting as your true business advocates, we focus on delivering luxury-level quality while ensuring your content systems are stress-free and easily sustainable.'],
+      'slm_about_intro_p4' => ['label' => 'Intro Paragraph 4', 'type' => 'textarea', 'default' => 'No two homes — or marketing strategies — should be the same. If you don’t see a package that fits your needs, reach out. We’re always happy to customize services to match the property, your brand, and your marketing goals.'],
+      'slm_about_intro_p5' => ['label' => 'Intro Paragraph 5', 'type' => 'textarea', 'default' => 'The ultimate goal isn\'t just taking better photos or videos. It\'s about securing market visibility, winning more listings, and having a dedicated partner deeply invested in your long-term success.'],
       'slm_about_values_h2' => ['label' => 'Values Section Title', 'type' => 'text', 'default' => 'Core Values'],
       'slm_about_values_sub' => ['label' => 'Values Section Subtitle', 'type' => 'textarea', 'default' => 'We focus on practical, repeatable marketing systems, clear pricing, and flexible execution that supports how agents actually work.'],
       'slm_about_values_list' => [
@@ -74,6 +74,8 @@ function slm_get_editable_fields_for_template(string $template): array
       'slm_about_owner_photo_id' => ['label' => 'Owner Photo', 'type' => 'image', 'default' => ''],
       'slm_about_cta_h2' => ['label' => 'CTA Title', 'type' => 'text', 'default' => 'Ready to Build Marketing Momentum?'],
       'slm_about_cta_p' => ['label' => 'CTA Text', 'type' => 'textarea', 'default' => 'Create your account and start ordering media designed to help you win listings, improve perception, and scale with confidence, professionally and sustainably. Your success is our success.'],
+      'slm_about_partner1_photo_id' => ['label' => 'Partner 1 Photo (Reesa Storely)', 'type' => 'image', 'default' => ''],
+      'slm_about_partner2_photo_id' => ['label' => 'Partner 2 Photo (Danielle Ramos)', 'type' => 'image', 'default' => ''],
     ];
   }
 

@@ -46,6 +46,11 @@ $owner_photo_url = $owner_photo_id > 0 ? wp_get_attachment_image_url($owner_phot
 $cta_h2 = $meta_get('slm_about_cta_h2');
 $cta_p = $meta_get('slm_about_cta_p');
 
+$partner1_photo_id = absint((string) $meta_get('slm_about_partner1_photo_id'));
+$partner1_photo_url = $partner1_photo_id > 0 ? wp_get_attachment_image_url($partner1_photo_id, 'medium') : '';
+$partner2_photo_id = absint((string) $meta_get('slm_about_partner2_photo_id'));
+$partner2_photo_url = $partner2_photo_id > 0 ? wp_get_attachment_image_url($partner2_photo_id, 'medium') : '';
+
 $parse_list = function ($key) use ($meta_get) {
   $v = $meta_get($key);
   return array_filter(array_map('trim', explode("\n", $v)));
@@ -230,6 +235,63 @@ if (have_posts()) {
   <?php endif; ?>
 
   <section class="page-section">
+    <div class="container about-wrap">
+      <h2 class="center">Our Partners</h2>
+      <p class="center sub u-mb-24">We collaborate with industry leaders to maximize our clients' benefits.</p>
+      
+      <div class="about-partners-grid">
+        <article class="about-partnerCard">
+          <div class="about-partnerCard__avatarAndPerk">
+            <div class="about-partnerCard__avatar">
+              <img src="<?php echo esc_url($partner1_photo_url ? $partner1_photo_url : 'https://ui-avatars.com/api/?name=Reesa+Storely&background=c89a5f&color=fff&size=150'); ?>" alt="Reesa Storely">
+            </div>
+          </div>
+          <div class="about-partnerCard__content">
+            <div class="about-partnerCard__info">
+              <h3>Reesa Storely</h3>
+              <p class="about-partnerCard__role">Managing Member &amp; Certified Staging Expert</p>
+              <p class="about-partnerCard__company">Modern Florida Home Staging</p>
+            </div>
+            <div class="about-partnerCard__body">
+              <p>Reesa Storely is a Managing Member of Modern Florida Home Staging LLC and a certified staging expert. With years of experience in interior design and a refined eye for detail, she brings sophistication and elegance to every project — transforming spaces to captivate buyers and maximize property value.</p>
+            </div>
+            <div class="about-partnerCard__footer">
+              <a href="https://www.modernfloridahomestaging.com/" class="about-partnerCard__link" target="_blank" rel="noopener noreferrer">Visit Website &rarr;</a>
+            </div>
+          </div>
+        </article>
+        
+        <article class="about-partnerCard">
+          <div class="about-partnerCard__avatarAndPerk">
+            <div class="about-partnerCard__avatar">
+              <img src="<?php echo esc_url($partner2_photo_url ? $partner2_photo_url : 'https://ui-avatars.com/api/?name=Danielle+Ramos&background=c89a5f&color=fff&size=150'); ?>" alt="Danielle Ramos">
+            </div>
+          </div>
+          <div class="about-partnerCard__content">
+            <div class="about-partnerCard__info">
+              <h3>Danielle Ramos</h3>
+              <p class="about-partnerCard__role">Managing Member &amp; Social Media Manager</p>
+              <p class="about-partnerCard__company">Modern Florida Home Staging</p>
+            </div>
+            <div class="about-partnerCard__body">
+              <p>Danielle Ramos is a Managing Member of Modern Florida Home Staging LLC, serving as the team's social media content creator and lead stager. She brings a fresh, modern perspective to every staging project and plays a key role in sharing the company's work with the broader community — connecting clients with inspired design.</p>
+            </div>
+            <div class="about-partnerCard__footer">
+              <a href="https://www.modernfloridahomestaging.com/" class="about-partnerCard__link" target="_blank" rel="noopener noreferrer">Visit Website &rarr;</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="about-partnerContact">
+          <h3>Become a Partner</h3>
+          <p>Interested in partnering with us to maximize your clients' benefits and content by working together?</p>
+          <a href="<?php echo esc_url(site_url('/contact')); ?>" class="btn btn--secondary" style="border: 2px solid var(--primary); color: var(--primary);">Become a Partner Now</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-section page-section--secondary">
     <div class="container about-wrap">
       <div class="about-cta">
         <h2><?php echo esc_html($cta_h2); ?></h2>

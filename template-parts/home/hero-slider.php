@@ -5,12 +5,12 @@ $theme_uri = get_template_directory_uri();
 
 // Replace each image path below with your real hero photos when ready.
 $slides = [
-  $theme_uri . '/assets/img/Homepage1.jpg',
+  $theme_uri . '/assets/img/Homepage1.jpeg',
   $theme_uri . '/assets/img/Homepage2.jpg',
   $theme_uri . '/assets/img/Homepage3.jpg',
-  $theme_uri . '/assets/media/drone-photos/08-52-aerial-front-exterior-1.jpg',
-  $theme_uri . '/assets/media/photos/08-1-front-exterior.jpg',
-  $theme_uri . '/assets/media/twilight/01-99-twilight-aerial-front-exterior-3.jpg',
+  $theme_uri . '/assets/img/Homepage4.jpg',
+  $theme_uri . '/assets/img/Homepage5.jpg',
+  $theme_uri . '/assets/img/Homepage6.jpg',
 ];
 
 $is_logged_in = is_user_logged_in();
