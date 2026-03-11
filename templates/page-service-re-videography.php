@@ -7,7 +7,6 @@ if (!defined('ABSPATH'))
 
 get_header();
 
-$theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
 // Retrieve videos specifically assigned via this page's Portfolio Admin Settings
 $page_id = get_queried_object_id();
@@ -22,13 +21,8 @@ foreach ($video_ids_array as $vid_id) {
   }
 }
 
-// Fallbacks if no videos are configured in the portfolio settings
-$hero_media = !empty($video_urls) ? $video_urls[0] : $theme_uri . '/assets/media/horizontal-videos/02-inside-this-stunning-north-florida-home-real-tours-north-florida.mp4';
-
-// The rest go into the gallery block
-$gallery_media = count($video_urls) > 1 ? array_slice($video_urls, 1) : [
-  $theme_uri . '/assets/media/staged/03-15-living-room-5-of-6-virtually-staged.jpeg'
-];
+$hero_media = !empty($video_urls) ? $video_urls[0] : '';
+$gallery_media = count($video_urls) > 1 ? array_slice($video_urls, 1) : [];
 
 $description = [
   'Video is one of the strongest tools for helping buyers feel a property before they ever step inside. Our real estate videography is built to create emotional connection while communicating the practical flow of the home.',

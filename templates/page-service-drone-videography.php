@@ -7,7 +7,6 @@ if (!defined('ABSPATH'))
 
 get_header();
 
-$theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
 // Retrieve videos specifically assigned via this page's Portfolio Admin Settings
 $page_id = get_queried_object_id();
@@ -22,13 +21,8 @@ foreach ($video_ids_array as $vid_id) {
   }
 }
 
-// Fallbacks if no videos are configured in the portfolio settings
-$hero_media = !empty($video_urls) ? $video_urls[0] : $theme_uri . '/assets/media/horizontal-videos/02-inside-this-stunning-north-florida-home-real-tours-north-florida.mp4';
-
-// The rest go into the gallery block
-$gallery_media = count($video_urls) > 1 ? array_slice($video_urls, 1) : [
-  $theme_uri . '/assets/media/drone-photos/05-3-aerial-overview.jpg'
-];
+$hero_media = !empty($video_urls) ? $video_urls[0] : '';
+$gallery_media = count($video_urls) > 1 ? array_slice($video_urls, 1) : [];
 
 $description = [
   'Drone videography delivers cinematic context and movement that helps your listing marketing feel premium, modern, and memorable.',

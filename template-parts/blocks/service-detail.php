@@ -21,6 +21,20 @@ $is_logged_in = is_user_logged_in();
 $place_order_url = add_query_arg('view', 'place-order', slm_portal_url());
 $primary_url = $is_logged_in ? $place_order_url : (string) $args['book_url'];
 $primary_label = $is_logged_in ? 'Place Order' : (string) $args['book_label'];
+$admin_gallery_url = '';
+if (current_user_can('manage_options')) {
+  $current_page_id = get_queried_object_id();
+  if (
+    $current_page_id > 0
+    && function_exists('slm_portfolio_is_gallery_supported_page')
+    && slm_portfolio_is_gallery_supported_page((int) $current_page_id)
+  ) {
+    $admin_gallery_url = add_query_arg(
+      ['post' => (int) $current_page_id, 'action' => 'edit'],
+      admin_url('post.php')
+    ) . '#slm_portfolio_gallery';
+  }
+}
 $has_hero_media = !empty($args['hero_image']);
 $has_description_media = !empty($args['description_image']);
 $gallery_items = array_values(array_filter((array) $args['gallery'], static function ($item): bool {
@@ -56,6 +70,10 @@ $render_media = static function (string $src): void {
           <p class="service-hero__actions">
             <a class="btn btn--accent"
               href="<?php echo esc_url($primary_url); ?>"><?php echo esc_html($primary_label); ?></a>
+            <?php if ($admin_gallery_url !== ''): ?>
+              <a class="btn btn--secondary"
+                href="<?php echo esc_url($admin_gallery_url); ?>">Edit This Service Gallery</a>
+            <?php endif; ?>
           </p>
         </div>
 

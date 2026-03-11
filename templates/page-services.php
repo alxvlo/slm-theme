@@ -7,9 +7,24 @@ if (!defined('ABSPATH'))
 
 get_header();
 
+$service_page_button_label = 'View Service Page';
+
+$re_photography_page_url = slm_service_page_url('re-photography');
+$re_videography_page_url = slm_service_page_url('re-videography');
+$drone_photography_page_url = slm_service_page_url('drone-photography');
+$virtual_tours_page_url = slm_service_page_url('virtual-tours');
+$zillow_showcase_page_url = slm_page_url_by_template('templates/page-service-zillow-showcase.php', '/service-zillow-showcase/');
+
+$social_media_packages_page_url = slm_page_url_by_template('templates/page-social-media-packages.php', '/social-media-packages/');
+$social_media_assistance_page_url = slm_page_url_by_template('templates/page-social-media-assistance.php', '/social-media-assistance/');
+$memberships_page_url = slm_memberships_url();
+$monthly_memberships_page_url = $memberships_page_url . '#monthly-content-memberships';
+$agent_memberships_page_url = $memberships_page_url . '#listings-agent-memberships';
+
 $listing_packages = [
   [
     'name' => 'Key Package',
+    'service_url' => $re_photography_page_url,
     'features' => [
       'Magazine-quality photography',
       'Up to 7 aerial photos',
@@ -19,6 +34,7 @@ $listing_packages = [
   ],
   [
     'name' => 'Zillow Showcase Delight',
+    'service_url' => $zillow_showcase_page_url,
     'features' => [
       'Magazine-quality photos',
       'Zillow 3D virtual tour',
@@ -29,6 +45,7 @@ $listing_packages = [
   ],
   [
     'name' => 'Spotlight Package',
+    'service_url' => $re_videography_page_url,
     'features' => [
       'Magazine-quality photos and drone photos',
       '60-120 second premium video (drone included)',
@@ -38,6 +55,7 @@ $listing_packages = [
   ],
   [
     'name' => 'Virtual Package',
+    'service_url' => $virtual_tours_page_url,
     'features' => [
       'Magazine-quality photos',
       'Up to 7 aerial photos',
@@ -48,6 +66,7 @@ $listing_packages = [
   ],
   [
     'name' => 'Lot and Land Package',
+    'service_url' => $drone_photography_page_url,
     'features' => [
       'Up to 10-12 magazine-quality drone photos',
       'Lot lines added to photos',
@@ -57,6 +76,7 @@ $listing_packages = [
   ],
   [
     'name' => 'Simply Photos',
+    'service_url' => $re_photography_page_url,
     'features' => [
       'Magazine-quality photography',
       'Blue sky guarantee',
@@ -119,6 +139,37 @@ $social_packages = [
   ],
 ];
 
+$social_assistance_products = [
+  [
+    'name' => 'Local Talk Reel',
+    'description' => 'Cinematic drone footage of the area you serve + your 30–90 second voice memo. We craft a fully branded reel that positions you as the local authority—no on-camera filming required.',
+    'inputs' => [
+      'Voice memo (30–90 sec)',
+      'Topic + address/area',
+    ],
+    'deliverables' => [
+      '1 vertical reel',
+      'Captions + retention pacing',
+      'Branded text overlays',
+      'Licensed music',
+      'Delivery ready to post',
+    ],
+  ],
+  [
+    'name' => 'Brand Presence Reel',
+    'description' => 'Send phone videos (client moments, walkthroughs, open houses, day-in-the-life, tips). We turn them into a polished branded reel so your feed stays active and professional.',
+    'inputs' => [
+      'Any raw clips (selfie, walkthrough, open house, tips)',
+    ],
+    'deliverables' => [
+      'Structured storytelling',
+      'Hook + retention editing',
+      'Branding overlays',
+      'Music + captions',
+    ],
+  ],
+];
+
 $monthly_memberships = [
   [
     'slug' => 'monthly-momentum',
@@ -132,6 +183,7 @@ $monthly_memberships = [
   [
     'slug' => 'growth-engine',
     'name' => 'Growth Engine',
+    'popular' => true,
     'features' => [
       '1.5 hour session',
       '10 edited reels',
@@ -192,6 +244,7 @@ $agent_memberships = [
   [
     'slug' => 'agent-growing',
     'name' => 'Growing',
+    'popular' => true,
     'features' => [
       '3 listing shoots',
       '1 AI video for 1 listing',
@@ -305,55 +358,7 @@ $addons = [
   ],
 ];
 
-$portal_membership_url = add_query_arg('view', 'membership-shop', slm_portal_url());
-$portal_place_order_url = add_query_arg('view', 'place-order', slm_portal_url());
-$membership_auth_url = add_query_arg([
-  'redirect_to' => $portal_membership_url,
-], slm_login_url());
-$package_auth_url = add_query_arg([
-  'mode' => 'login',
-  'redirect_to' => $portal_place_order_url,
-], slm_login_url());
-$is_logged_in = is_user_logged_in();
-$is_admin = $is_logged_in && slm_user_is_admin();
-$subscriptions_enabled = function_exists('slm_subscriptions_can_accept_checkout') && slm_subscriptions_can_accept_checkout();
-$package_cta = static function () use ($is_logged_in, $is_admin, $portal_place_order_url, $package_auth_url): array {
-  if ($is_admin) {
-    return ['url' => slm_admin_portal_url(), 'label' => 'Open Admin Portal'];
-  }
-  if ($is_logged_in) {
-    return ['url' => $portal_place_order_url, 'label' => 'Order in Portal'];
-  }
-  return ['url' => $package_auth_url, 'label' => 'Log In to Order'];
-};
-$membership_cta = static function (array $pkg) use ($is_logged_in, $is_admin, $subscriptions_enabled, $portal_membership_url, $membership_auth_url): array {
-  if ($is_admin) {
-    return [
-      'url' => slm_admin_portal_url(),
-      'label' => 'Admin Dashboard',
-    ];
-  }
-
-  if ($is_logged_in && $subscriptions_enabled) {
-    return [
-      'url' => $portal_membership_url,
-      'label' => 'Open Membership Shop',
-    ];
-  }
-
-  if ($is_logged_in) {
-    return [
-      'url' => $portal_membership_url,
-      'label' => 'Open Membership Shop',
-    ];
-  }
-
-  return [
-    'url' => $membership_auth_url,
-    'label' => 'Log In / Create Account',
-  ];
-};
-$package_cta_data = $package_cta();?>
+?>
 
 <main>
   <section class="page-hero page-hero--solid">
@@ -393,21 +398,95 @@ $package_cta_data = $package_cta();?>
                 </li>
               <?php endforeach; ?>
             </ul>
-            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url((string) $package_cta_data['url']); ?>"><?php echo esc_html((string) $package_cta_data['label']); ?></a>
+            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url((string) ($pkg['service_url'] ?? home_url('/services/'))); ?>"><?php echo esc_html($service_page_button_label); ?></a>
           </div>
         <?php endforeach; ?>
       </div>
     </div>
   </section>
 
-  <section class="page-section page-section--secondary" id="social-content-packages">
+  <section class="page-section page-section--secondary" id="social-media-packages">
     <div class="container">
-      <h2 class="center" style="margin-top:0;">Social Packages</h2>
-      <p class="center sub" style="margin-bottom:34px; max-width:820px;">One-time social production packages for reels,
-        talking head clips, and branded post content.</p>
+      <h2 class="center" style="margin-top:0;">Social Media Packages</h2>
+      <p class="center sub" style="margin-bottom:34px; max-width:820px;">One-time social production packages for reels, talking head clips, and branded post content.</p>
 
       <div class="pkg-grid">
         <?php foreach ($social_packages as $pkg): ?>
+          <article class="pkg-card<?php echo !empty($pkg['popular']) ? ' pkg-card--popular' : ''; ?>">
+            <?php if (!empty($pkg['popular'])): ?>
+              <div class="pkg-badge">Most Popular</div>
+            <?php endif; ?>
+            <h3 class="pkg-title"><?php echo esc_html($pkg['name']); ?></h3>
+            <ul class="pkg-features">
+              <?php foreach ($pkg['features'] as $feature): ?>
+                <li>
+                  <svg class="pkg-check" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" />
+                  </svg>
+                  <span><?php echo esc_html($feature); ?></span>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url($social_media_packages_page_url); ?>"><?php echo esc_html($service_page_button_label); ?></a>
+          </article>
+        <?php endforeach; ?>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-section" id="social-content-packages">
+    <div class="container">
+      <h2 class="center" style="margin-top:0;">Social Media Assistance</h2>
+      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Done-for-you reel products built from your clips, voice memos, and local market insights.</p>
+
+      <div class="pkg-grid">
+        <?php foreach ($social_assistance_products as $product): ?>
+          <article class="pkg-card">
+            <h3 class="pkg-title"><?php echo esc_html((string) $product['name']); ?></h3>
+            <p class="sub" style="margin:0 0 16px;"><?php echo esc_html((string) ($product['description'] ?? '')); ?></p>
+
+            <h4 style="margin:0 0 8px; font-size:1rem;">Inputs</h4>
+            <ul class="pkg-features" aria-label="<?php echo esc_attr((string) $product['name']); ?> inputs">
+              <?php foreach ((array) ($product['inputs'] ?? []) as $input): ?>
+                <li>
+                  <svg class="pkg-check" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" />
+                  </svg>
+                  <span><?php echo esc_html((string) $input); ?></span>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+
+            <h4 style="margin:8px 0 8px; font-size:1rem;">Deliverables</h4>
+            <ul class="pkg-features" aria-label="<?php echo esc_attr((string) $product['name']); ?> deliverables">
+              <?php foreach ((array) ($product['deliverables'] ?? []) as $deliverable): ?>
+                <li>
+                  <svg class="pkg-check" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round" />
+                  </svg>
+                  <span><?php echo esc_html((string) $deliverable); ?></span>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+
+            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url($social_media_assistance_page_url); ?>" aria-label="View Social Media Assistance service page"><?php echo esc_html($service_page_button_label); ?></a>
+          </article>
+        <?php endforeach; ?>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-section" id="monthly-content-memberships">
+    <div class="container">
+      <h2 class="center" style="margin-top:0;">Monthly Memberships</h2>
+      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Recurring monthly plans for creators, teams,
+        and brands that need consistent media output.</p>
+
+      <div class="pkg-grid">
+        <?php foreach ($monthly_memberships as $pkg): ?>
           <div class="pkg-card<?php echo !empty($pkg['popular']) ? ' pkg-card--popular' : ''; ?>">
             <?php if (!empty($pkg['popular'])): ?>
               <div class="pkg-badge">Most Popular</div>
@@ -424,37 +503,8 @@ $package_cta_data = $package_cta();?>
                 </li>
               <?php endforeach; ?>
             </ul>
-            <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url((string) $package_cta_data['url']); ?>"><?php echo esc_html((string) $package_cta_data['label']); ?></a>
-          </div>
-        <?php endforeach; ?>
-      </div>
-    </div>
-  </section>
-
-  <section class="page-section" id="monthly-content-memberships">
-    <div class="container">
-      <h2 class="center" style="margin-top:0;">Monthly Memberships</h2>
-      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Recurring monthly plans for creators, teams,
-        and brands that need consistent media output.</p>
-
-      <div class="pkg-grid">
-        <?php foreach ($monthly_memberships as $pkg): ?>
-          <?php $cta = $membership_cta($pkg); ?>
-          <div class="pkg-card">
-            <h3 class="pkg-title"><?php echo esc_html($pkg['name']); ?></h3>
-            <ul class="pkg-features">
-              <?php foreach ($pkg['features'] as $feature): ?>
-                <li>
-                  <svg class="pkg-check" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                      stroke-linejoin="round" />
-                  </svg>
-                  <span><?php echo esc_html($feature); ?></span>
-                </li>
-              <?php endforeach; ?>
-            </ul>
             <a class="btn btn--secondary pkg-cta"
-              href="<?php echo esc_url((string) $cta['url']); ?>"><?php echo esc_html((string) $cta['label']); ?></a>
+              href="<?php echo esc_url($monthly_memberships_page_url); ?>"><?php echo esc_html($service_page_button_label); ?></a>
           </div>
         <?php endforeach; ?>
       </div>
@@ -470,8 +520,10 @@ $package_cta_data = $package_cta();?>
 
       <div class="pkg-grid">
         <?php foreach ($agent_memberships as $pkg): ?>
-          <?php $cta = $membership_cta($pkg); ?>
-          <div class="pkg-card">
+          <div class="pkg-card<?php echo !empty($pkg['popular']) ? ' pkg-card--popular' : ''; ?>">
+            <?php if (!empty($pkg['popular'])): ?>
+              <div class="pkg-badge">Most Popular</div>
+            <?php endif; ?>
             <h3 class="pkg-title"><?php echo esc_html($pkg['name']); ?></h3>
             <ul class="pkg-features">
               <?php foreach ($pkg['features'] as $feature): ?>
@@ -485,7 +537,7 @@ $package_cta_data = $package_cta();?>
               <?php endforeach; ?>
             </ul>
             <a class="btn btn--secondary pkg-cta"
-              href="<?php echo esc_url((string) $cta['url']); ?>"><?php echo esc_html((string) $cta['label']); ?></a>
+              href="<?php echo esc_url($agent_memberships_page_url); ?>"><?php echo esc_html($service_page_button_label); ?></a>
           </div>
         <?php endforeach; ?>
       </div>

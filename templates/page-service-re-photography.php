@@ -7,7 +7,6 @@ if (!defined('ABSPATH'))
 
 get_header();
 
-$theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
 // Retrieve media specifically assigned via this page's Portfolio Admin Settings
 $page_id = get_queried_object_id();
@@ -24,16 +23,8 @@ foreach ($media_ids_array as $m_id) {
   }
 }
 
-// Fallbacks if no media is configured in the portfolio settings
-$hero_media = !empty($media_urls) ? $media_urls[0] : $theme_uri . '/assets/media/photos/08-1-front-exterior.jpg';
-
-// The rest go into the gallery block
-$gallery_media = count($media_urls) > 1 ? array_slice($media_urls, 1) : [
-  $theme_uri . '/assets/media/photos/02-12-living-room-5-of-6.jpg',
-  $theme_uri . '/assets/media/photos/10-28-dining-room-1-of-3.jpg',
-  $theme_uri . '/assets/media/photos/14-35-primary-bedroom-4-of-4.jpg',
-  $theme_uri . '/assets/media/photos/03-17-dining-room-1-of-4.jpg',
-];
+$hero_media = !empty($media_urls) ? $media_urls[0] : '';
+$gallery_media = count($media_urls) > 1 ? array_slice($media_urls, 1) : [];
 
 $description = [
   'Real estate photography is not just a deliverable. It is the first layer of your listing strategy and a major driver of perception. We capture each property with intention so buyers and sellers immediately see quality, professionalism, and value.',

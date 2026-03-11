@@ -7,7 +7,6 @@ if (!defined('ABSPATH'))
 
 get_header();
 
-$theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
 // Retrieve media specifically assigned via this page's Portfolio Admin Settings
 $page_id = get_queried_object_id();
@@ -24,16 +23,8 @@ foreach ($media_ids_array as $m_id) {
     }
 }
 
-// Fallbacks if no media is configured in the portfolio settings
-$hero_media = !empty($media_urls) ? $media_urls[0] : $theme_uri . '/assets/media/floor-plans/02-floor-plan-main.jpg';
-
-// The rest go into the gallery block
-$gallery_media = count($media_urls) > 1 ? array_slice($media_urls, 1) : [
-    $theme_uri . '/assets/media/floor-plans/04-floor-plan-combined.jpg',
-    $theme_uri . '/assets/media/staged/03-15-living-room-5-of-6-virtually-staged.jpeg',
-    $theme_uri . '/assets/media/floor-plans/03-floor-plan-main-alt.jpg',
-    $theme_uri . '/assets/media/staged/05-32-primary-bedroom-1-of-4-virtually-staged.jpeg',
-];
+$hero_media = !empty($media_urls) ? $media_urls[0] : '';
+$gallery_media = count($media_urls) > 1 ? array_slice($media_urls, 1) : [];
 
 $description = [
     'Zillow Showcase combines an interactive 3D tour with a professional floorplan to create a comprehensive, buyer-ready listing experience. Together, these assets increase Zillow visibility and keep buyers engaged longer.',

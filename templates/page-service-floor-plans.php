@@ -7,7 +7,6 @@ if (!defined('ABSPATH'))
 
 get_header();
 
-$theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
 // Retrieve media specifically assigned via this page's Portfolio Admin Settings
 $page_id = get_queried_object_id();
@@ -24,14 +23,8 @@ foreach ($media_ids_array as $m_id) {
   }
 }
 
-// Fallbacks if no media is configured in the portfolio settings
-$hero_media = !empty($media_urls) ? $media_urls[0] : $theme_uri . '/assets/media/floor-plans/02-floor-plan-main.jpg';
-
-// The rest go into the gallery block
-$gallery_media = count($media_urls) > 1 ? array_slice($media_urls, 1) : [
-  $theme_uri . '/assets/media/floor-plans/04-floor-plan-combined.jpg',
-  $theme_uri . '/assets/media/floor-plans/03-floor-plan-main-alt.jpg',
-];
+$hero_media = !empty($media_urls) ? $media_urls[0] : '';
+$gallery_media = count($media_urls) > 1 ? array_slice($media_urls, 1) : [];
 
 $description = [
   'Floor plans provide structural clarity that photos and video alone cannot. They help buyers understand layout, flow, and room relationships quickly.',

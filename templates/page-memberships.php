@@ -14,6 +14,14 @@ $portal_membership_auth_url = add_query_arg([
 ], slm_login_url());
 $admin_dashboard_url = slm_admin_portal_url();
 $services_url = home_url('/services/');
+$aryeo_public_order_form_url = function_exists('slm_aryeo_public_order_form_url')
+  ? slm_aryeo_public_order_form_url()
+  : '';
+$membership_order_cta_url = $aryeo_public_order_form_url !== ''
+  ? $aryeo_public_order_form_url
+  : (function_exists('slm_aryeo_start_order_url')
+    ? slm_aryeo_start_order_url()
+    : $services_url);
 
 $monthly_memberships = [
   [
@@ -236,12 +244,14 @@ $membership_cta = static function (array $pkg) use ($is_logged_in, $is_admin, $p
     </div>
   </section>
 
-  <section class="page-section page-section--secondary" id="membership-application">
-    <div class="container memberships-applyWrap">
-      <div class="portal-card memberships-applyCard">
+  <section class="service-section" id="membership-application">
+    <div class="container">
+      <div class="service-finalCta">
         <h2>Need Help Choosing a Membership?</h2>
         <p class="sub">Use the plan cards above to sign in and open the client portal membership shop for checkout. If you need one-time work or a custom recommendation, review services first.</p>
-        <a class="btn btn--accent" href="<?php echo esc_url($services_url); ?>">View Services</a>
+        <div class="service-finalCta__actions">
+          <a class="btn btn--accent" href="<?php echo esc_url($membership_order_cta_url); ?>">View Services</a>
+        </div>
         <p class="sub memberships-applyCard__note"><a href="<?php echo esc_url($portal_membership_auth_url); ?>">Already a client? Open the membership shop and billing tools in your portal.</a></p>
       </div>
     </div>

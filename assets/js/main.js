@@ -110,6 +110,17 @@
 })();
 
 (function () {
+  const bgTargets = Array.from(document.querySelectorAll('[data-bg-image]'));
+  if (!bgTargets.length) return;
+
+  bgTargets.forEach((el) => {
+    const bgImage = (el.getAttribute('data-bg-image') || '').trim();
+    if (!bgImage) return;
+    el.style.backgroundImage = `url("${bgImage}")`;
+  });
+})();
+
+(function () {
   const slider = document.querySelector('[data-home-slider]');
   if (!slider) return;
 

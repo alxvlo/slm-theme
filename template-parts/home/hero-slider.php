@@ -30,7 +30,7 @@ $trust_points = [
     <?php foreach ($slides as $i => $img): ?>
       <div
         class="home-heroSlider__slide <?php echo $i === 0 ? 'is-active' : ''; ?>"
-        style="background-image: url('<?php echo esc_url($img); ?>');"
+        data-bg-image="<?php echo esc_url($img); ?>"
         aria-hidden="<?php echo $i === 0 ? 'false' : 'true'; ?>"
       ></div>
     <?php endforeach; ?>

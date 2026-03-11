@@ -7,7 +7,6 @@ if (!defined('ABSPATH'))
 
 get_header();
 
-$theme_uri = get_template_directory_uri();
 $create_account_url = add_query_arg('mode', 'signup', slm_login_url());
 // Retrieve media specifically assigned via this page's Portfolio Admin Settings
 $page_id = get_queried_object_id();
@@ -24,10 +23,7 @@ foreach ($media_ids_array as $m_id) {
   }
 }
 
-// Fallbacks if no media is configured in the portfolio settings
-$hero_media = !empty($media_urls) ? $media_urls[0] : $theme_uri . '/assets/media/twilight/01-99-twilight-aerial-front-exterior-3.jpg';
-
-// The rest go into the gallery block
+$hero_media = !empty($media_urls) ? $media_urls[0] : '';
 $gallery_media = count($media_urls) > 1 ? array_slice($media_urls, 1) : [];
 
 $description = [

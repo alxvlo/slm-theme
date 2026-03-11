@@ -27,9 +27,11 @@ $admin_portal_url = slm_admin_portal_url();
 $normalize_status = static function ($status): string {
   $s = is_string($status) ? strtolower(trim($status)) : '';
   if ($s === '') return 'pending';
-  if (in_array($s, ['completed', 'complete', 'delivered'], true)) return 'completed';
+  if (in_array($s, ['completed', 'complete', 'delivered', 'fulfilled'], true)) return 'completed';
   if (in_array($s, ['in-progress', 'in_progress', 'processing'], true)) return 'in-progress';
   if (in_array($s, ['scheduled', 'scheduled_for'], true)) return 'scheduled';
+  if (in_array($s, ['cancelled', 'canceled', 'refunded'], true)) return 'cancelled';
+  if (in_array($s, ['open', 'active', 'confirmed', 'ghost'], true)) return 'active';
   return 'pending';
 };
 
@@ -37,6 +39,8 @@ $status_class = static function (string $status): string {
   if ($status === 'completed') return 'is-completed';
   if ($status === 'in-progress') return 'is-progress';
   if ($status === 'scheduled') return 'is-scheduled';
+  if ($status === 'cancelled') return 'is-cancelled';
+  if ($status === 'active') return 'is-active-order';
   return 'is-pending';
 };
 
@@ -54,7 +58,7 @@ $orders_per_page = 50;
 $selected_order_id = sanitize_text_field(wp_unslash((string) ($_GET['order_id'] ?? '')));
 $order_notice = sanitize_key((string) ($_GET['order_notice'] ?? ''));
 $selected_order = null;
-$allowed_status_filters = ['all', 'pending', 'scheduled', 'in-progress', 'completed', 'needs-payment'];
+$allowed_status_filters = ['all', 'pending', 'active', 'scheduled', 'in-progress', 'completed', 'cancelled', 'needs-payment'];
 if (!in_array($orders_status, $allowed_status_filters, true)) {
   $orders_status = 'all';
 }
@@ -167,6 +171,17 @@ $map_order = static function (array $order) use ($normalize_status, $to_amount):
   $address = trim((string) $address_raw);
 
   $status = $normalize_status($order['status'] ?? $order['order_status'] ?? '');
+
+  // When the primary status is generic, check fulfillment for a more accurate status.
+  if (in_array($status, ['active', 'pending'], true)) {
+    $fulfillment = strtolower(trim((string) ($order['fulfillment_status'] ?? $order['fulfillmentStatus'] ?? '')));
+    if (in_array($fulfillment, ['fulfilled', 'completed', 'delivered'], true)) {
+      $status = 'completed';
+    } elseif (in_array($fulfillment, ['cancelled', 'canceled'], true)) {
+      $status = 'cancelled';
+    }
+  }
+
   $created_at = (string) ($order['created_at'] ?? '');
   $updated_at = (string) ($order['updated_at'] ?? '');
 
@@ -862,7 +877,9 @@ get_header();
               <select id="orders_status" name="orders_status">
                 <option value="all" <?php selected($orders_status, 'all'); ?>>All statuses</option>
                 <option value="completed" <?php selected($orders_status, 'completed'); ?>>Completed</option>
+                <option value="cancelled" <?php selected($orders_status, 'cancelled'); ?>>Cancelled</option>
                 <option value="in-progress" <?php selected($orders_status, 'in-progress'); ?>>In Progress</option>
+                <option value="active" <?php selected($orders_status, 'active'); ?>>Active</option>
                 <option value="scheduled" <?php selected($orders_status, 'scheduled'); ?>>Scheduled</option>
                 <option value="pending" <?php selected($orders_status, 'pending'); ?>>Pending</option>
                 <option value="needs-payment" <?php selected($orders_status, 'needs-payment'); ?>>Needs Payment</option>

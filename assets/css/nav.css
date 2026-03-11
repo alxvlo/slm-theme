@@ -134,8 +134,13 @@ body.has-mobile-menu {
 }
 
 .nav__menu > li:last-child > .sub-menu {
-  left: auto;
-  right: 0;
+  left: 0;
+  right: auto;
+}
+
+.nav__menu > li.menu-item-has-children:last-of-type > .sub-menu {
+  left: 0;
+  right: auto;
 }
 
 .nav__menu .sub-menu::before {

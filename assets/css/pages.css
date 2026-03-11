@@ -2238,6 +2238,16 @@ body.page-template-admin-portal .site-footer {
   color: #92400e;
 }
 
+.status-pill.is-cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-pill.is-active-order {
+  background: #ccfbf1;
+  color: #115e59;
+}
+
 .service-select {
   margin-top: 18px;
   display: grid;

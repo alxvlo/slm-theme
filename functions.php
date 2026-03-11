@@ -231,6 +231,16 @@ function slm_service_pages(): array
       'fallback' => '/service-twilight-photography/',
       'label' => 'Twilight Photography',
     ],
+    'social-media-packages' => [
+      'template' => 'templates/page-social-media-packages.php',
+      'fallback' => '/social-media-packages/',
+      'label' => 'Social Media Packages',
+    ],
+    'social-media-assistance' => [
+      'template' => 'templates/page-social-media-assistance.php',
+      'fallback' => '/social-media-assistance/',
+      'label' => 'Social Media Assistance',
+    ],
   ];
 }
 

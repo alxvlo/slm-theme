@@ -237,6 +237,8 @@ $status_class = static function (string $status): string {
   if ($status === 'completed') return 'is-completed';
   if ($status === 'in-progress') return 'is-progress';
   if ($status === 'scheduled') return 'is-scheduled';
+  if ($status === 'cancelled') return 'is-cancelled';
+  if ($status === 'active') return 'is-active-order';
   return 'is-pending';
 };
 
@@ -248,9 +250,11 @@ $display_status = static function ($status): string {
   $s = is_string($status) ? $status : '';
   if ($s === '') return 'pending';
   $s = strtolower(trim($s));
-  if (in_array($s, ['completed', 'complete', 'delivered'], true)) return 'completed';
+  if (in_array($s, ['completed', 'complete', 'delivered', 'fulfilled'], true)) return 'completed';
   if (in_array($s, ['in-progress', 'in_progress', 'processing'], true)) return 'in-progress';
   if (in_array($s, ['scheduled', 'scheduled_for'], true)) return 'scheduled';
+  if (in_array($s, ['cancelled', 'canceled', 'refunded'], true)) return 'cancelled';
+  if (in_array($s, ['open', 'active', 'confirmed', 'ghost'], true)) return 'active';
   return $s;
 };
 
