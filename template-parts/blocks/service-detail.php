@@ -11,6 +11,8 @@ $args = wp_parse_args($args ?? [], [
   'description' => [],   // array of paragraphs
   'benefits' => [],      // array of ['title' => '', 'description' => '']
   'why_choose' => [],    // array of strings
+  'tour_embed' => '',    // URL for 3D tour iframe embed
+  'tour_title' => 'Experience the 3D Tour',
   'book_url' => add_query_arg('mode', 'signup', slm_login_url()),
   'book_label' => 'Create Account to Order',
   'cta_title' => 'Ready to Break the Standard?',
@@ -85,6 +87,32 @@ $render_media = static function (string $src): void {
       </div>
     </div>
   </section>
+
+  <?php if (!empty($args['tour_embed'])): ?>
+    <section class="service-tourShowcase">
+      <div class="container">
+        <div class="service-tourShowcase__header">
+          <span class="service-tourShowcase__badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+            Interactive 3D Tour
+          </span>
+          <h2><?php echo esc_html($args['tour_title']); ?></h2>
+          <p>Walk through the property from any angle. Click, drag, and explore every room as if you were there in person.</p>
+        </div>
+        <div class="service-tourShowcase__frame">
+          <iframe
+            src="<?php echo esc_url($args['tour_embed']); ?>"
+            title="<?php echo esc_attr($args['tour_title']); ?>"
+            width="100%"
+            height="100%"
+            frameborder="0"
+            allowfullscreen="allowfullscreen"
+            loading="lazy"
+          ></iframe>
+        </div>
+      </div>
+    </section>
+  <?php endif; ?>
 
   <section class="service-section service-section--alt">
     <div class="container">

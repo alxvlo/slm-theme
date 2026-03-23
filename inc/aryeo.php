@@ -787,6 +787,14 @@ function slm_ops_send_notification_email(string $subject, array $lines, array $m
 }
 
 function slm_ops_number_from_value($value): float {
+  if (is_array($value)) {
+    if (isset($value['amount_cents']) && is_numeric($value['amount_cents'])) return ((float) $value['amount_cents']) / 100.0;
+    if (isset($value['cents']) && is_numeric($value['cents'])) return ((float) $value['cents']) / 100.0;
+    if (isset($value['amount'])) { $value = $value['amount']; }
+    elseif (isset($value['value'])) { $value = $value['value']; }
+    else { return 0.0; }
+  }
+
   if (is_int($value)) {
     return ((float) $value) / 100.0;
   }
@@ -820,9 +828,11 @@ function slm_ops_number_from_value($value): float {
 function slm_aryeo_order_status_normalized($status): string {
   $s = is_string($status) ? strtolower(trim($status)) : '';
   if ($s === '') return 'pending';
-  if (in_array($s, ['completed', 'complete', 'delivered'], true)) return 'completed';
+  if (in_array($s, ['completed', 'complete', 'delivered', 'fulfilled'], true)) return 'completed';
   if (in_array($s, ['in-progress', 'in_progress', 'processing'], true)) return 'in-progress';
   if (in_array($s, ['scheduled', 'scheduled_for'], true)) return 'scheduled';
+  if (in_array($s, ['cancelled', 'canceled', 'refunded'], true)) return 'cancelled';
+  if (in_array($s, ['open', 'active', 'confirmed', 'ghost'], true)) return 'active';
   return 'pending';
 }
 
@@ -840,13 +850,15 @@ function slm_aryeo_order_payment_summary(array $order): array {
       ?? $payment['paid_amount']
       ?? 0
   );
-  $due_amount = slm_ops_number_from_value(
-    $order['amount_due']
+  $due_raw = $order['amount_due']
       ?? $order['balance_due']
       ?? $payment['amount_due']
       ?? $payment['balance_due']
-      ?? max($total_amount - $paid_amount, 0)
-  );
+      ?? null;
+
+  $due_amount = $due_raw !== null 
+      ? slm_ops_number_from_value($due_raw) 
+      : max($total_amount - $paid_amount, 0);
   if ($due_amount <= 0 && $total_amount > 0) {
     $due_amount = max($total_amount - $paid_amount, 0);
   }
@@ -956,6 +968,15 @@ function slm_aryeo_normalize_order(array $order): array {
   $address = trim((string) $address_raw);
 
   $status = slm_aryeo_order_status_normalized($order['status'] ?? $order['order_status'] ?? '');
+  
+  if (in_array($status, ['active', 'pending'], true)) {
+    $fulfillment = strtolower(trim((string) ($order['fulfillment_status'] ?? $order['fulfillmentStatus'] ?? '')));
+    if (in_array($fulfillment, ['fulfilled', 'completed', 'delivered'], true)) {
+      $status = 'completed';
+    } elseif (in_array($fulfillment, ['cancelled', 'canceled'], true)) {
+      $status = 'cancelled';
+    }
+  }
   $created_at = (string) ($order['created_at'] ?? '');
   $updated_at = (string) ($order['updated_at'] ?? '');
 

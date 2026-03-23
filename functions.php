@@ -342,63 +342,252 @@ function slm_asset_ver(string $rel_path): string
 }
 
 /**
+ * Canonical Privacy Policy copy rendered by the dedicated privacy template.
+ */
+function slm_privacy_policy_content_html(): string
+{
+  return trim(<<<'HTML'
+<h2>1. Overview</h2>
+<p>This Privacy Policy explains how Showcase Listings Media ("Company") collects, uses, stores, and shares information when you visit our website, contact us, create an account, or book services.</p>
+<p>By using this website or submitting information through our forms, portal, or booking flows, you consent to the practices described here.</p>
+
+<h2>2. Information We Collect</h2>
+<p>We may collect the following categories of information:</p>
+<ul>
+  <li>Contact information such as name, email address, phone number, brokerage, and company details.</li>
+  <li>Account information submitted when you register for a client portal or log in to an existing account.</li>
+  <li>Order and property details related to real estate media bookings, including listing address, scheduling preferences, service selections, and delivery notes.</li>
+  <li>Communications you send to us through forms, email, text, or support requests.</li>
+  <li>Technical and usage data such as browser type, device information, pages visited, referral data, and log information used for security and performance.</li>
+  <li>Payment-related details required to complete transactions through third-party processors. We do not store full payment card numbers on this website.</li>
+</ul>
+
+<h2>3. How We Use Information</h2>
+<p>We use collected information to operate and improve our business, including to:</p>
+<ul>
+  <li>respond to inquiries and provide customer support;</li>
+  <li>schedule, manage, and deliver photography, video, drone, and related media services;</li>
+  <li>create and manage portal accounts and service history;</li>
+  <li>process payments, invoices, subscriptions, and related operational records;</li>
+  <li>send confirmations, service updates, order notifications, and important account communications;</li>
+  <li>monitor website security, prevent abuse, and troubleshoot technical issues;</li>
+  <li>improve our website, workflows, and customer experience;</li>
+  <li>comply with legal, tax, accounting, and recordkeeping obligations.</li>
+</ul>
+
+<h2>4. Sharing and Service Providers</h2>
+<p>We may share information only as needed to operate our services and business. This may include trusted providers that support:</p>
+<ul>
+  <li>website hosting and infrastructure;</li>
+  <li>email and communication delivery;</li>
+  <li>order, scheduling, or media workflow tools;</li>
+  <li>payment and billing processing;</li>
+  <li>customer account, portal, or subscription management;</li>
+  <li>analytics, security, and fraud prevention.</li>
+</ul>
+<p>We do not sell personal information. We may also disclose information when necessary to protect our rights, enforce our policies, respond to lawful requests, or comply with legal obligations.</p>
+
+<h2>5. Cookies and Similar Technologies</h2>
+<p>This website may use cookies and similar technologies to support essential functionality, remember session preferences, maintain secure logins, and understand site usage.</p>
+<ul>
+  <li>Essential cookies help the site function properly, including authentication and portal access.</li>
+  <li>Preference or performance cookies may help improve usability and reliability.</li>
+  <li>Third-party tools may set their own cookies when embedded services or integrations are used.</li>
+</ul>
+<p>You can manage cookies through your browser settings, but disabling certain cookies may affect website functionality.</p>
+
+<h2>6. Marketing and Communications</h2>
+<p>We may send service-related emails or messages such as booking confirmations, delivery notifications, billing notices, and account updates.</p>
+<p>If we send optional promotional or marketing communications, you may opt out using the unsubscribe method included in those communications or by contacting us directly.</p>
+
+<h2>7. Data Retention</h2>
+<p>We retain information only for as long as reasonably necessary to provide services, maintain business records, resolve disputes, enforce agreements, and satisfy legal, tax, or accounting obligations.</p>
+<p>Retention periods may vary depending on the type of information, the services provided, and whether an account, transaction, or support issue remains active.</p>
+
+<h2>8. Data Security</h2>
+<p>We use reasonable administrative, technical, and organizational safeguards designed to protect personal information from unauthorized access, misuse, alteration, or disclosure.</p>
+<p>No method of transmission or storage is completely secure, so we cannot guarantee absolute security.</p>
+
+<h2>9. Your Choices</h2>
+<p>You may contact us to request updates to your account or contact information, ask questions about your data, or request deletion where applicable and legally permitted.</p>
+<ul>
+  <li>You may choose not to submit certain information, though that may limit our ability to provide services.</li>
+  <li>You may disable cookies in your browser, subject to the functionality limits noted above.</li>
+  <li>You may opt out of non-essential marketing communications.</li>
+</ul>
+
+<h2>10. Third-Party Links and Platforms</h2>
+<p>This website may link to third-party services, galleries, payment tools, or external platforms. We are not responsible for the privacy practices, content, or security of third-party websites or services.</p>
+<p>You should review the privacy policies of those third parties before submitting information to them.</p>
+
+<h2>11. Children's Privacy</h2>
+<p>This website and our services are not directed to children under 13, and we do not knowingly collect personal information from children under 13 through this site.</p>
+
+<h2>12. Updates and Contact</h2>
+<p>We may update this Privacy Policy from time to time by posting a revised version on this page. Continued use of the site after updates means the revised policy will apply going forward.</p>
+<p>If you have questions about this Privacy Policy or how your information is handled, please contact us using the information provided on our Contact page.</p>
+HTML
+  );
+}
+
+/**
+ * Canonical Terms of Service copy rendered by the dedicated terms template.
+ */
+function slm_terms_of_service_content_html(): string
+{
+  return trim(<<<'HTML'
+<h2>1. Booking &amp; Acceptance</h2>
+<p>By scheduling a service with Showcase Listings Media ("Company"), the client agrees to all terms outlined below.</p>
+<p>The person scheduling the appointment is responsible for communicating these terms to the homeowner, occupants, and any third parties.</p>
+
+<h2>2. Deliverables</h2>
+<p>The Company provides media services including but not limited to photography, videography, drone, and marketing media.</p>
+<p>Final deliverables include only the edited media files delivered via online gallery.</p>
+<p>RAW files are not included and are not delivered under any circumstance.</p>
+<p>The Company maintains creative discretion in:</p>
+<ul>
+  <li>composition</li>
+  <li>editing style</li>
+  <li>retouching level</li>
+  <li>music selection (video)</li>
+  <li>shot selection</li>
+</ul>
+<p>Requests for specific shots must be made prior to the shoot and are not guaranteed.</p>
+
+<h2>3. Turnaround Times</h2>
+<p>We strive to meet the following delivery timelines:</p>
+<ul>
+  <li>Photography: 24 hours</li>
+  <li>Video/Reels: 48 hours</li>
+</ul>
+<p>Turnaround times begin after the shoot is completed.</p>
+<p>Turnaround may be delayed due to:</p>
+<ul>
+  <li>major revisions requested</li>
+  <li>incomplete property readiness</li>
+  <li>weather return visits (exteriors/drone)</li>
+  <li>technical issues beyond control</li>
+</ul>
+<p>While we strive to always meet turnaround times, they are not guaranteed and do not constitute grounds for refunds.</p>
+
+<h2>4. Property Readiness</h2>
+<p>The property must be fully ready at the scheduled time.</p>
+<p>The photographer will not:</p>
+<ul>
+  <li>move large furniture</li>
+  <li>clean</li>
+  <li>stage</li>
+  <li>remove clutter</li>
+  <li>wait for cleaners/contractors</li>
+</ul>
+<p>If the property is not ready, the Company may:</p>
+<ul>
+  <li>shoot as-is OR</li>
+  <li>reschedule at client request (rescheduling policy applies)</li>
+</ul>
+
+<h2>5. Rescheduling &amp; Cancellation</h2>
+<p>Appointments may be rescheduled with at least 24 hours notice.</p>
+<p>Day-of cancellations or reschedules incur a $75 fee.</p>
+<p>No-shows or inability to access the property are treated as day-of cancellations.</p>
+
+<h2>6. Weather Policy &amp; Drone Restrictions</h2>
+<p>Drone operations are regulated and cannot be performed in:</p>
+<ul>
+  <li>rain</li>
+  <li>unsafe wind</li>
+  <li>restricted flight conditions</li>
+</ul>
+<p>If weather affects the shoot:</p>
+<p><strong>Light rain / sprinkle</strong></p>
+<ul>
+  <li>Interior photos may proceed</li>
+  <li>Exterior &amp; drone rescheduled</li>
+  <li>When drone return visit occurs, exterior photos will also be re-shot</li>
+</ul>
+<p><strong>Heavy rain / storming</strong></p>
+<ul>
+  <li>Entire shoot rescheduled</li>
+</ul>
+<p><strong>Drone return visits</strong></p>
+<ul>
+  <li>Only drone and exterior coverage will be completed unless otherwise requested.</li>
+</ul>
+<p>Blue sky replacement may be used at the Company's discretion.</p>
+
+<h2>7. Access &amp; Safety</h2>
+<p>Client is responsible for:</p>
+<ul>
+  <li>property access</li>
+  <li>pets secured</li>
+  <li>occupants notified</li>
+  <li>safe environment</li>
+</ul>
+<p>The Company reserves the right to leave a location if conditions are unsafe. This is treated as a completed appointment.</p>
+
+<h2>8. Revisions</h2>
+<p>One reasonable revision round is included for videos and photos (minor adjustments).</p>
+<p>Examples:</p>
+<ul>
+  <li>brightness</li>
+  <li>color tone</li>
+  <li>clip swap if available</li>
+</ul>
+<p>Not included:</p>
+<ul>
+  <li>full re-edits</li>
+  <li>different music styles after approval</li>
+  <li>reshooting due to property condition</li>
+</ul>
+<p>Additional revisions may incur editing fees.</p>
+
+<h2>9. Payment</h2>
+<p>Payment terms are due per invoice agreement.</p>
+<p>Media usage rights are granted after payment is received.</p>
+<p>Failure to pay may result in:</p>
+<ul>
+  <li>removal of access</li>
+  <li>late fees</li>
+  <li>collection action</li>
+</ul>
+
+<h2>10. Usage License</h2>
+<p>Client receives a marketing license for real estate promotion of the specific listing.</p>
+<p>Media may not be:</p>
+<ul>
+  <li>sold</li>
+  <li>transferred to another listing</li>
+  <li>used by builders/third parties without permission</li>
+</ul>
+<p>The Company retains copyright and may use media for portfolio, marketing, and advertising.</p>
+
+<h2>11. Liability</h2>
+<p>The Company is not responsible for:</p>
+<ul>
+  <li>listing performance</li>
+  <li>MLS rejection</li>
+  <li>weather appearance changes</li>
+  <li>staging outcomes</li>
+  <li>homeowner dissatisfaction</li>
+</ul>
+<p>Maximum liability is limited to the cost of the service performed.</p>
+
+<h2>12. Agreement</h2>
+<p>Booking a service constitutes agreement to all terms listed above.</p>
+HTML
+  );
+}
+
+/**
  * Canonical fallback legal copy used only when the legal pages are empty.
  */
 function slm_legal_default_content(): array
 {
   $last_updated = '<p><em>Last updated: ' . esc_html(date('F j, Y')) . '</em></p>';
 
-  $privacy_content = implode("\n", [
-    $last_updated,
-    '<h2>Overview</h2>',
-    '<p>This Privacy Policy explains what information we collect, how we use it, and how we protect it when you use this website or book services with us.</p>',
-    '<h2>Information We Collect</h2>',
-    '<ul>',
-    '<li>Contact details you submit (name, email, phone).</li>',
-    '<li>Account information (if you register).</li>',
-    '<li>Order details entered through our portal.</li>',
-    '<li>Basic technical usage data (for example browser/device information) for security and functionality.</li>',
-    '</ul>',
-    '<h2>How We Use Information</h2>',
-    '<ul>',
-    '<li>To respond to inquiries and provide customer support.</li>',
-    '<li>To schedule, deliver, and manage services.</li>',
-    '<li>To communicate order updates and service notices.</li>',
-    '<li>To maintain website security and improve user experience.</li>',
-    '</ul>',
-    '<h2>Sharing</h2>',
-    '<p>We may share information with trusted providers used to operate our website and service delivery (for example hosting, email, and scheduling/order integrations). We do not sell personal information.</p>',
-    '<h2>Cookies</h2>',
-    '<p>We use essential cookies for login sessions, security, and core website functionality. If optional analytics cookies are enabled, they are used only to improve site performance and user experience.</p>',
-    '<h2>Data Retention</h2>',
-    '<p>We keep data only as long as needed for service delivery, recordkeeping, and legal requirements.</p>',
-    '<h2>Contact</h2>',
-    '<p>Questions about this policy can be sent to the email listed on our Contact page.</p>',
-  ]);
+  $privacy_content = slm_privacy_policy_content_html();
 
-  $terms_content = implode("\n", [
-    $last_updated,
-    '<h2>Booking and Acceptance</h2>',
-    '<p>By scheduling a service with us, you agree to these Terms and Conditions. The person scheduling the appointment is responsible for communicating these terms to homeowners, occupants, and any third parties involved with the property.</p>',
-    '<h2>Scheduling, Access, and Property Readiness</h2>',
-    '<p>Clients are responsible for ensuring safe property access at the scheduled time and confirming the property is photo-ready before arrival.</p>',
-    '<h2>Rescheduling, Cancellations, and No-Shows</h2>',
-    '<p>Rescheduling and cancellation requests should be submitted as early as possible. Late changes, denied access, or no-shows may result in a fee.</p>',
-    '<h2>Weather and Drone/Flight Restrictions</h2>',
-    '<p>Outdoor and drone services depend on weather, safety, and FAA/airspace restrictions. If conditions are unsafe or legally restricted, we may reschedule or adjust the scope of service.</p>',
-    '<h2>Deliverables and Turnaround</h2>',
-    '<p>Typical turnaround windows are shared at booking. Delivery timing may vary based on scope, revisions, weather delays, and peak volume.</p>',
-    '<h2>Add-Ons and Package Compatibility</h2>',
-    '<p>Some add-ons are not available with packages that already include similar services. Ineligible combinations may be restricted at checkout or adjusted by our team.</p>',
-    '<h2>Payment and Pricing</h2>',
-    '<p>Pricing and payment terms are shown at booking. Orders may be subject to confirmation and scheduling availability.</p>',
-    '<h2>Usage and Intellectual Property</h2>',
-    '<p>Delivered media is licensed to the client for agreed marketing use. Website content and brand assets remain our property unless otherwise stated in writing.</p>',
-    '<h2>Limitation of Liability</h2>',
-    '<p>To the fullest extent permitted by law, services and website access are provided as-is. We are not liable for indirect, incidental, or consequential damages.</p>',
-    '<h2>Updates and Contact</h2>',
-    '<p>We may update these terms by posting revisions on this page. Questions can be sent to the email listed on our Contact page.</p>',
-  ]);
+  $terms_content = slm_terms_of_service_content_html();
 
   return [
     'privacy' => $privacy_content,

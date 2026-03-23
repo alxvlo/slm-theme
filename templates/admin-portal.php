@@ -64,6 +64,14 @@ if (!in_array($orders_status, $allowed_status_filters, true)) {
 }
 
 $to_amount = static function ($value): float {
+  if (is_array($value)) {
+    if (isset($value['amount_cents']) && is_numeric($value['amount_cents'])) return ((float) $value['amount_cents']) / 100.0;
+    if (isset($value['cents']) && is_numeric($value['cents'])) return ((float) $value['cents']) / 100.0;
+    if (isset($value['amount'])) { $value = $value['amount']; }
+    elseif (isset($value['value'])) { $value = $value['value']; }
+    else { return 0.0; }
+  }
+
   if (is_int($value)) {
     return ((float) $value) / 100.0;
   }
@@ -193,13 +201,15 @@ $map_order = static function (array $order) use ($normalize_status, $to_amount):
       ?? $payment['paid_amount']
       ?? 0
   );
-  $due_amount = $to_amount(
-    $order['amount_due']
+  $due_raw = $order['amount_due']
       ?? $order['balance_due']
       ?? $payment['amount_due']
       ?? $payment['balance_due']
-      ?? max($total_amount - $paid_amount, 0)
-  );
+      ?? null;
+
+  $due_amount = $due_raw !== null 
+      ? $to_amount($due_raw) 
+      : max($total_amount - $paid_amount, 0);
   if ($due_amount <= 0 && $total_amount > 0) {
     $due_amount = max($total_amount - $paid_amount, 0);
   }

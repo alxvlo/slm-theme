@@ -57,6 +57,8 @@ get_template_part('template-parts/blocks/service-detail', null, [
     'description' => $description,
     'benefits' => $benefits,
     'why_choose' => $why_choose,
+    'tour_embed' => 'https://youriguide.com/138_palm_island_way_nocatee_fl?page=tour',
+    'tour_title' => 'Experience the 3D Tour',
     'book_url' => $create_account_url,
     'book_label' => 'Create Account to Order',
     'cta_title' => 'Maximize Your Zillow Listing Impact',
