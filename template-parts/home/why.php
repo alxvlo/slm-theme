@@ -1,39 +1,39 @@
 <?php
 if (!defined('ABSPATH')) exit;
-$contact_url = home_url('/contact/');
+$order_url = add_query_arg('view', 'place-order', slm_portal_url());
 ?>
 
 <section class="home-why home-section--alt" aria-labelledby="home-why-title">
   <div class="container">
     <header class="home-why__header">
       <h2 id="home-why-title">Why Showcase Listings Media</h2>
-      <p>The difference between generic media and a tailored approach.</p>
+      <p>We do things differently because you need different results.</p>
     </header>
 
     <div class="home-why__grid">
       <article class="home-why__card">
-        <h3>Locally Based</h3>
-        <p>We are based right here in Jacksonville, FL, understanding the local market better than anyone.</p>
+        <h3>Treating Every Listing Differently</h3>
+        <p>Your listings shouldn't look like an assembly line. We adapt to the property and the brand.</p>
       </article>
 
       <article class="home-why__card">
-        <h3>Fast Turnaround</h3>
-        <p>Speed is critical. We deliver most assets within 24–48 hours to get your listings live fast.</p>
+        <h3>Focusing on Your Brand</h3>
+        <p>It's not just about the house; it's about making you the trusted authority in your market.</p>
       </article>
 
       <article class="home-why__card">
-        <h3>Tailored Approach</h3>
-        <p>No cookie-cutter templates here. We design specifically for the agent’s or business's brand.</p>
+        <h3>A Personalized Partnership</h3>
+        <p>We get to know agents and businesses, building custom strategies instead of cookie-cutter packages.</p>
       </article>
 
       <article class="home-why__card">
-        <h3>Focus on Conversions</h3>
-        <p>Our media isn't just pretty; it's strategically designed to capture attention and convert leads.</p>
+        <h3>Content That Converts</h3>
+        <p>Our media isn't just pretty; it's strategically designed to capture attention and win deals.</p>
       </article>
     </div>
 
     <div class="home-why__cta">
-      <a href="<?php echo esc_url($contact_url); ?>" class="btn btn--accent">Schedule a consultation</a>
+      <a href="<?php echo esc_url($order_url); ?>" class="btn btn--accent">Book a Shoot</a>
     </div>
   </div>
 </section>

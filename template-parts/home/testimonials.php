@@ -1,96 +1,107 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-$q = new WP_Query([
+$t_query = new WP_Query([
   'post_type' => 'testimonial',
+  'posts_per_page' => 3,
+  'orderby' => 'menu_order',
+  'order' => 'ASC',
   'post_status' => 'publish',
-  'posts_per_page' => 6,
   'no_found_rows' => true,
 ]);
 
-if (!$q->have_posts()) return;
+if (!$t_query->have_posts()) {
+  return;
+}
 
-$star_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3 5.8 20.8l1.2-7.1L1.8 8.7l7.2-1L12 1.2l3 6.5 7.2 1-5.2 5 1.2 7.1L12 17.3Z" fill="currentColor"/></svg>';
+$theme_uri = get_template_directory_uri();
 ?>
 
 <section class="home-testimonials" aria-labelledby="home-testimonials-title">
   <div class="container">
-    <header class="home-testimonials__header">
-      <h2 id="home-testimonials-title">Proof &amp; Testimonials</h2>
-      <p>Real feedback from agents and teams who trust us with their listing media. See the results for yourself.</p>
-      <p style="font-size: 13px; opacity: 0.7; margin-top: 4px;">* Admins: Add testimonials in the WP Dashboard under Testimonials. Include metrics like "Sold in 4 days" in the content.</p>
+    <header class="home-testimonials__header reveal">
+      <h2 id="home-testimonials-title">Trusted by Top Agents &amp; Brands</h2>
+      <p>Hear from the professionals who rely on us to scale their marketing, win more deals, and build authority in their markets.</p>
     </header>
 
-    <div class="home-testimonials__grid">
-      <?php while ($q->have_posts()): $q->the_post(); ?>
-        <?php
-          $id = get_the_ID();
-          $rating = (int) get_post_meta($id, 'slm_testimonial_rating', true);
-          $rating = max(1, min(5, $rating ?: 5));
-          $source = (string) get_post_meta($id, 'slm_testimonial_source', true);
-          $role = (string) get_post_meta($id, 'slm_testimonial_role', true);
-          $location = (string) get_post_meta($id, 'slm_testimonial_location', true);
+    <div class="home-testimonials__grid reveal">
+      <?php while ($t_query->have_posts()):
+        $t_query->the_post();
+        $pid = get_the_ID();
 
-          $name = get_the_title() ?: 'Client';
+        $title = get_post_meta($pid, 'slm_testimonial_role', true);
+        $company = get_post_meta($pid, 'slm_testimonial_location', true);
+        $source = get_post_meta($pid, 'slm_testimonial_source', true);
+        $rating = (int) get_post_meta($pid, 'slm_testimonial_rating', true);
+        if ($rating === 0) $rating = 5;
 
-          $meta_parts = [];
-          if ($role !== '') $meta_parts[] = $role;
-          if ($location !== '') $meta_parts[] = $location;
-          $meta_line = implode(' • ', $meta_parts);
-
-          $time_label = get_the_date();
+        $img = get_the_post_thumbnail_url($pid, 'thumbnail');
+        $initials = '';
+        if (!$img) {
+          $name = get_the_title();
+          $parts = array_filter(explode(' ', $name));
+          if (!empty($parts)) {
+            $initials .= mb_substr(reset($parts), 0, 1);
+            if (count($parts) > 1) {
+              $initials .= mb_substr(end($parts), 0, 1);
+            }
+          }
+          $initials = mb_strtoupper($initials);
+        }
         ?>
-
         <article class="tCard">
           <header class="tCard__head">
             <div class="tCard__who">
-              <div class="tCard__avatar" aria-hidden="true">
-                <?php if (has_post_thumbnail()): ?>
-                  <?php the_post_thumbnail('thumbnail', ['loading' => 'lazy']); ?>
+              <div class="tCard__avatar">
+                <?php if ($img): ?>
+                  <img src="<?php echo esc_url($img); ?>" alt="Photo of <?php echo esc_attr(get_the_title()); ?>" loading="lazy" decoding="async" />
                 <?php else: ?>
-                  <span><?php echo esc_html(strtoupper(substr($name, 0, 1))); ?></span>
+                  <?php echo esc_html($initials); ?>
                 <?php endif; ?>
               </div>
-
-              <div class="tCard__identity">
-                <strong class="tCard__name"><?php echo esc_html($name); ?></strong>
-                <?php if ($meta_line !== ''): ?>
-                  <div class="tCard__meta"><?php echo esc_html($meta_line); ?></div>
+              <div class="tCard__info">
+                <strong class="tCard__name"><?php the_title(); ?></strong>
+                <?php if ($title || $company): ?>
+                  <div class="tCard__meta">
+                    <?php if ($title)
+                      echo esc_html($title); ?>
+                    <?php if ($title && $company)
+                      echo ' • '; ?>
+                    <?php if ($company)
+                      echo esc_html($company); ?>
+                  </div>
                 <?php endif; ?>
               </div>
             </div>
 
-            <div class="tCard__rating">
-              <div class="tStars" aria-label="<?php echo esc_attr($rating . ' out of 5 stars'); ?>">
+            <div class="tCard__rating" aria-label="<?php echo esc_attr((string) $rating); ?> out of 5 stars">
+              <div class="tStars" aria-hidden="true">
                 <?php for ($i = 1; $i <= 5; $i++): ?>
-                  <span class="tStar <?php echo $i <= $rating ? 'is-on' : 'is-off'; ?>"><?php echo $star_svg; ?></span>
+                  <span class="tStar <?php echo $i <= $rating ? 'is-on' : 'is-off'; ?>">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                  </span>
                 <?php endfor; ?>
               </div>
-
-              <div class="tCard__source">
-                <?php if ($source !== ''): ?>
+              <?php if ($source): ?>
+                <div class="tCard__source">
                   <span><?php echo esc_html($source); ?></span>
-                <?php endif; ?>
-                <?php if ($time_label): ?>
-                  <span><?php echo esc_html($time_label); ?></span>
-                <?php endif; ?>
-              </div>
+                </div>
+              <?php endif; ?>
             </div>
           </header>
 
           <div class="tCard__body">
-            <?php
-              $content = get_the_content();
-              $content = wp_strip_all_tags($content);
-              echo '<p>' . esc_html(trim($content)) . '</p>';
-            ?>
+            <?php the_content(); ?>
           </div>
         </article>
-      <?php endwhile; wp_reset_postdata(); ?>
+      <?php endwhile;
+      wp_reset_postdata(); ?>
     </div>
 
-    <div style="text-align: center; margin-top: 48px;">
-      <a href="<?php echo esc_url(is_user_logged_in() ? add_query_arg('view', 'place-order', slm_portal_url()) : add_query_arg('mode', 'signup', slm_login_url())); ?>" class="btn btn--accent">Book your next shoot</a>
+    <div style="text-align: center; margin-top: 48px;" class="reveal">
+      <a href="<?php echo esc_url(add_query_arg('view', 'place-order', slm_portal_url())); ?>" class="btn btn--accent">Book a Shoot</a>
     </div>
   </div>
 </section>

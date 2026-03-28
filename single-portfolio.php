@@ -1,6 +1,7 @@
 <?php
-if (!defined('ABSPATH'))
-  exit;
+if (!defined('ABSPATH')) {
+  die();
+}
 
 get_header();
 
@@ -11,7 +12,7 @@ function slm_portfolio_gallery_ids_for_post(int $post_id): array
   $raw = (string) get_post_meta($post_id, 'slm_portfolio_gallery_ids', true);
   if ($raw === '')
     return [];
-  $parts = preg_split('/[\\s,]+/', $raw, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+  $parts = preg_split('/[\s,]+/', $raw, -1, PREG_SPLIT_NO_EMPTY) ?: [];
   $ids = [];
   foreach ($parts as $p) {
     $id = (int) $p;
@@ -110,10 +111,108 @@ function slm_portfolio_gallery_ids_for_post(int $post_id): array
         <div class="container post-wrap">
           <article class="post-content">
             <?php the_content(); ?>
+            <?php
+            $results_meta = get_post_meta(get_the_ID(), 'slm_portfolio_results', true);
+            if ($results_meta) {
+              echo '<div class="portfolio-results" style="margin-top: 24px; font-weight: bold; font-size: 1.1em; color: var(--primary);">';
+              echo '<strong>Results: </strong>' . esc_html($results_meta);
+              echo '</div>';
+            }
+            ?>
           </article>
         </div>
       </section>
     <?php endwhile; endif; ?>
 </main>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var items = document.querySelectorAll('.pMasonry__item');
+    var lightbox = document.querySelector('[data-masonry-lightbox]');
+    if (!lightbox) return;
+
+    var lbImg = lightbox.querySelector('[data-lb-img]');
+    var lbClose = lightbox.querySelector('[data-lb-close]');
+    var lbPrev = lightbox.querySelector('[data-lb-prev]');
+    var lbNext = lightbox.querySelector('[data-lb-next]');
+    var lbCounter = lightbox.querySelector('[data-lb-counter]');
+    var currentIndex = 0;
+
+    var mediaList = Array.prototype.map.call(items, function (item) {
+      return {
+        url: item.querySelector('.pMasonry__full').value
+      };
+    });
+
+    if (!mediaList.length) {
+      return;
+    }
+
+    function updateIndicator() {
+      if (lbCounter) lbCounter.textContent = (currentIndex + 1) + ' / ' + mediaList.length;
+    }
+
+    function showMedia(index) {
+      var item = mediaList[index];
+      lbImg.src = item.url;
+      updateIndicator();
+    }
+
+    function openLightbox(index) {
+      currentIndex = index;
+      showMedia(currentIndex);
+      lightbox.classList.add('is-open');
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      lightbox.style.display = 'flex';
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove('is-open');
+      lightbox.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      lightbox.style.display = 'none';
+    }
+
+    function showNext() {
+      currentIndex = (currentIndex + 1) % mediaList.length;
+      showMedia(currentIndex);
+    }
+
+    function showPrev() {
+      currentIndex = (currentIndex - 1 + mediaList.length) % mediaList.length;
+      showMedia(currentIndex);
+    }
+
+    items.forEach(function (item, index) {
+      item.addEventListener('click', function () {
+        openLightbox(index);
+      });
+    });
+
+    lbClose.addEventListener('click', closeLightbox);
+    lbNext.addEventListener('click', showNext);
+    lbPrev.addEventListener('click', showPrev);
+
+    lightbox.addEventListener('click', function (event) {
+      if (event.target === lightbox) {
+        closeLightbox();
+      }
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (lightbox.getAttribute('aria-hidden') === 'true') {
+        return;
+      }
+      if (event.key === 'Escape') {
+        closeLightbox();
+      } else if (event.key === 'ArrowRight') {
+        showNext();
+      } else if (event.key === 'ArrowLeft') {
+        showPrev();
+      }
+    });
+  });
+</script>
 
 <?php get_footer(); ?>

@@ -1173,3 +1173,31 @@ add_action('init', function () {
 });
 
 add_action('init', 'slm_seed_portfolio_content', 20);
+
+add_action('add_meta_boxes', function () {
+  add_meta_box(
+    'slm_portfolio_results_meta',
+    'Portfolio Results Data',
+    'slm_render_portfolio_results_meta_box',
+    'portfolio',
+    'normal',
+    'default'
+  );
+});
+
+function slm_render_portfolio_results_meta_box($post) {
+  wp_nonce_field('slm_portfolio_results_save', 'slm_portfolio_results_nonce');
+  $val = get_post_meta($post->ID, 'slm_portfolio_results', true);
+  echo '<p><label for="slm_portfolio_results">Results or Proof Metric (e.g. "Sold in 3 days", "Generated 10 referrals"):</label></p>';
+  echo '<input type="text" id="slm_portfolio_results" name="slm_portfolio_results" value="' . esc_attr($val) . '" style="width:100%;" />';
+}
+
+add_action('save_post_portfolio', function ($post_id) {
+  if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+  if (!current_user_can('edit_post', $post_id)) return;
+  if (!isset($_POST['slm_portfolio_results_nonce']) || !wp_verify_nonce($_POST['slm_portfolio_results_nonce'], 'slm_portfolio_results_save')) return;
+
+  if (isset($_POST['slm_portfolio_results'])) {
+    update_post_meta($post_id, 'slm_portfolio_results', sanitize_text_field($_POST['slm_portfolio_results']));
+  }
+});

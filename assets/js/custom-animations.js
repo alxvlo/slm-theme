@@ -5,78 +5,49 @@
 
   gsap.registerPlugin(ScrollTrigger);
 
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.addEventListener('DOMContentLoaded', () => {
+    // Hero Slide Animation Overrides
+    const heroElements = document.querySelectorAll('.page-hero__content > *');
+    if (heroElements.length) {
+      gsap.fromTo(heroElements,
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.8, stagger: 0.15, ease: "power3.out" }
+      );
+    }
 
-  if (prefersReducedMotion) {
-    return;
-  }
-
-  // Set up common fade in scroll animation
-  const fadeUpElements = document.querySelectorAll('.home-serviceCard, .home-howCard, .pkg-card, .tCard, .about-valueCard, .addon-card');
-
-  fadeUpElements.forEach((el, index) => {
-    gsap.fromTo(el,
-      { opacity: 0, y: 30 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: el,
-          start: 'top 85%',
-          toggleActions: 'play none none reverse',
+    // Fade up sections
+    const sections = gsap.utils.toArray('.page-section');
+    sections.forEach(sec => {
+      gsap.fromTo(sec,
+        { opacity: 0, y: 40 },
+        {
+          opacity: 1, y: 0, duration: 0.8, ease: "power2.out",
+          scrollTrigger: {
+            trigger: sec,
+            start: "top 85%",
+            toggleActions: "play none none none"
+          }
         }
-      }
-    );
-  });
+      );
+    });
 
-  // Hero Parallax effect
-  const heroSlide = document.querySelector('.home-heroSlider__slide.is-active');
-  if (heroSlide) {
-    gsap.to(heroSlide, {
-      yPercent: 15,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: '.home-heroSlider',
-        start: 'top top',
-        end: 'bottom top',
-        scrub: true
+    // Staggered grid cards
+    const grids = gsap.utils.toArray('.pkg-grid, .addon-grid, .home-how__grid, .home-who__grid, .home-why__grid, .portfolio-grid');
+    grids.forEach(grid => {
+      const cards = grid.querySelectorAll('.pkg-card, .addon-card, .home-howCard, .home-who__card, .home-why__card, .post-card');
+      if (cards.length) {
+         gsap.fromTo(cards,
+           { opacity: 0, y: 30 },
+           {
+             opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: "power2.out",
+             scrollTrigger: {
+               trigger: grid,
+               start: "top 85%",
+               toggleActions: "play none none none"
+             }
+           }
+         );
       }
     });
-  }
-
-  const innerHero = document.querySelector('.page-hero');
-  if (innerHero) {
-    gsap.to(innerHero, {
-      yPercent: 15,
-      ease: 'none',
-      scrollTrigger: {
-        trigger: '.page-hero',
-        start: 'top top',
-        end: 'bottom top',
-        scrub: true
-      }
-    });
-  }
-
-  // Section Headers Reveal
-  const sectionHeaders = document.querySelectorAll('.home-services__header, .home-how__header, .home-testimonials__header, .page-section h2');
-  sectionHeaders.forEach((header) => {
-    gsap.fromTo(header,
-      { opacity: 0, y: 20 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: header,
-          start: 'top 90%',
-          toggleActions: 'play none none reverse',
-        }
-      }
-    );
   });
-
 })();
