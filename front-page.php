@@ -6,9 +6,13 @@ get_header();
 
 <main id="main-content" class="home-main">
   <?php get_template_part('template-parts/home/hero-slider'); ?>
+  <?php get_template_part('template-parts/home/problem'); ?>
+  <?php get_template_part('template-parts/home/solution'); ?>
+  <?php get_template_part('template-parts/home/who'); ?>
   <?php get_template_part('template-parts/home/services-links'); ?>
-  <?php get_template_part('template-parts/home/how-it-works'); ?>
+  <?php get_template_part('template-parts/home/why'); ?>
   <?php get_template_part('template-parts/home/testimonials'); ?>
+  <?php get_template_part('template-parts/home/how-it-works'); ?>
   <?php get_template_part('template-parts/home/cta'); ?>
 </main>
 

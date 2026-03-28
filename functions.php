@@ -784,6 +784,14 @@ add_action('wp_enqueue_scripts', function () {
 
   $main = '/assets/js/main.js';
   wp_enqueue_script('slm-main', $uri . $main, [], slm_asset_ver($main), true);
+
+  // GSAP + ScrollTrigger
+  wp_enqueue_script('gsap', 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js', [], null, true);
+  wp_enqueue_script('scrolltrigger', 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js', ['gsap'], null, true);
+
+  // Custom Animations
+  $custom_anim = '/assets/js/custom-animations.js';
+  wp_enqueue_script('slm-custom-animations', $uri . $custom_anim, ['gsap', 'scrolltrigger'], slm_asset_ver($custom_anim), true);
 });
 
 /**

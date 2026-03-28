@@ -16,8 +16,9 @@ $star_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3 5.8 2
 <section class="home-testimonials" aria-labelledby="home-testimonials-title">
   <div class="container">
     <header class="home-testimonials__header">
-      <h2 id="home-testimonials-title">What Clients Say</h2>
-      <p>Real feedback from agents and teams who trust us with their listing media.</p>
+      <h2 id="home-testimonials-title">Proof &amp; Testimonials</h2>
+      <p>Real feedback from agents and teams who trust us with their listing media. See the results for yourself.</p>
+      <p style="font-size: 13px; opacity: 0.7; margin-top: 4px;">* Admins: Add testimonials in the WP Dashboard under Testimonials. Include metrics like "Sold in 4 days" in the content.</p>
     </header>
 
     <div class="home-testimonials__grid">
@@ -86,6 +87,10 @@ $star_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3 5.8 2
           </div>
         </article>
       <?php endwhile; wp_reset_postdata(); ?>
+    </div>
+
+    <div style="text-align: center; margin-top: 48px;">
+      <a href="<?php echo esc_url(is_user_logged_in() ? add_query_arg('view', 'place-order', slm_portal_url()) : add_query_arg('mode', 'signup', slm_login_url())); ?>" class="btn btn--accent">Book your next shoot</a>
     </div>
   </div>
 </section>
