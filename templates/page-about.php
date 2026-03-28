@@ -23,15 +23,15 @@ $meta_get = function ($key) use ($pid, $config) {
   return $v;
 };
 
-$hero_title = $meta_get('slm_about_hero_title');
-$hero_sub = $meta_get('slm_about_hero_sub');
-$intro_h2 = $meta_get('slm_about_intro_h2');
-$intro_p1 = $meta_get('slm_about_intro_p1');
-$intro_p2 = $meta_get('slm_about_intro_p2');
+$hero_title = $meta_get('slm_about_hero_title') ?: 'Real Estate & Brand Media in North Florida That Helps You Stand Out.';
+$hero_sub = $meta_get('slm_about_hero_sub') ?: 'We go beyond photos to intentionally create content that helps agents and businesses across Jacksonville and North Florida attract attention and grow.';
+$intro_h2 = $meta_get('slm_about_intro_h2') ?: 'Our Story';
+$intro_p1 = $meta_get('slm_about_intro_p1') ?: 'Showcase Listings Media was built after leaving the franchise model. We wanted to give clients more creativity, more strategy, and more care.';
+$intro_p2 = $meta_get('slm_about_intro_p2') ?: 'We believe that in today’s market, it’s not enough to have photos—you need content that stops people from scrolling, creates a strong first impression, and positions you above competitors.';
 $intro_p3 = $meta_get('slm_about_intro_p3');
 $intro_p4 = $meta_get('slm_about_intro_p4');
 $intro_p5 = $meta_get('slm_about_intro_p5');
-$values_h2 = $meta_get('slm_about_values_h2');
+$values_h2 = $meta_get('slm_about_values_h2') ?: 'Why Choose Us';
 $values_sub = $meta_get('slm_about_values_sub');
 $outcomes_h2 = $meta_get('slm_about_outcomes_h2');
 $outcomes_sub = $meta_get('slm_about_outcomes_sub');
@@ -43,8 +43,9 @@ $owner_role = $meta_get('slm_about_owner_role');
 $owner_bio = $meta_get('slm_about_owner_bio');
 $owner_photo_id = absint((string) $meta_get('slm_about_owner_photo_id'));
 $owner_photo_url = $owner_photo_id > 0 ? wp_get_attachment_image_url($owner_photo_id, 'large') : '';
-$cta_h2 = $meta_get('slm_about_cta_h2');
-$cta_p = $meta_get('slm_about_cta_p');
+$cta_h2 = $meta_get('slm_about_cta_h2') ?: 'Ready to stand out?';
+$cta_p = $meta_get('slm_about_cta_p') ?: 'Book your next shoot.';
+$cta_label = 'Book a shoot';
 
 $partner1_photo_id = absint((string) $meta_get('slm_about_partner1_photo_id'));
 $partner1_photo_url = $partner1_photo_id > 0 ? wp_get_attachment_image_url($partner1_photo_id, 'medium') : '';
@@ -150,6 +151,7 @@ if (have_posts()) {
     </div>
   </section>
 
+  <?php if ($outcomes_h2 && $outcomes): ?>
   <section class="page-section page-section--secondary">
     <div class="container about-wrap">
       <h2 class="center"><?php echo esc_html($outcomes_h2); ?></h2>
@@ -165,7 +167,9 @@ if (have_posts()) {
       </div>
     </div>
   </section>
+  <?php endif; ?>
 
+  <?php if ($compare_h2 && ($traditional || $showcase)): ?>
   <section class="page-section">
     <div class="container about-wrap">
       <h2 class="center"><?php echo esc_html($compare_h2); ?></h2>
@@ -194,6 +198,7 @@ if (have_posts()) {
       </div>
     </div>
   </section>
+  <?php endif; ?>
 
   <?php if ($page_content !== ''): ?>
     <section class="page-section page-section--secondary">

@@ -38,18 +38,15 @@ $trust_points = [
   </div>
 
   <div class="container home-heroSlider__content">
-    <h1>Elevate Your Listings with Premium Media</h1>
-    <p>Professional real estate photography, video, and aerial services that help your properties stand out and sell faster. We also help businesses with broader content needs through Google-ready 3D scan delivery, social video production, and promotional photography.</p>
+    <h1>Real Estate Media That Stops Scroll &amp; Sells Listings Faster</h1>
+    <p>Photo, video and content designed to make your listings stand out and get agents and businesses more deals.</p>
     <div class="home-heroSlider__actions">
-      <a class="btn btn--accent" href="<?php echo esc_url($order_url); ?>">Order Now</a>
-      <a class="btn btn--ghostLight" href="<?php echo esc_url(home_url('/services/')); ?>">View Services</a>
-      <a class="btn btn--outlineLight" href="<?php echo esc_url($contact_url); ?>">Talk to Us</a>
+      <a class="btn btn--accent" href="<?php echo esc_url($order_url); ?>">Book a Shoot</a>
+      <a class="btn btn--ghostLight" href="<?php echo esc_url(slm_page_url_by_template('templates/page-portfolio.php', '/portfolio/')); ?>">View Our Work</a>
     </div>
 
     <ul class="home-heroSlider__trust" aria-label="Why clients choose us">
-      <?php foreach ($trust_points as $point): ?>
-        <li><?php echo esc_html($point); ?></li>
-      <?php endforeach; ?>
+      <li>Trusted by agents and brands across North Florida.</li>
     </ul>
 
     <div class="home-heroSlider__dots" data-home-slider-dots>

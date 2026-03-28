@@ -26,6 +26,7 @@ $addons_url = $services_url . '#popular-add-ons';
         </span>
         <h2>Listing Packages</h2>
         <p>Media packages for active listings, Zillow workflows, and lot or land marketing.</p>
+        <div style="margin-top: 14px; font-weight: 600; color: var(--primary);">Starting at $145</div>
       </a>
 
       <a class="home-serviceCard" href="<?php echo esc_url($social_packages_url); ?>">

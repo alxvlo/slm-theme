@@ -23,6 +23,16 @@ $agent_memberships_page_url = $memberships_page_url . '#listings-agent-membershi
 
 $listing_packages = [
   [
+    'name' => 'Simply Photos',
+    'service_url' => $re_photography_page_url,
+    'price_cue' => 'Starting at $145',
+    'features' => [
+      'High-quality MLS-ready photos',
+      'Blue sky guarantee',
+      'Fast turnaround',
+    ],
+  ],
+  [
     'name' => 'Key Package',
     'service_url' => $re_photography_page_url,
     'features' => [
@@ -70,15 +80,6 @@ $listing_packages = [
     'features' => [
       'Up to 10-12 magazine-quality drone photos',
       'Lot lines added to photos',
-      'Blue sky guarantee',
-      'Fast turnaround',
-    ],
-  ],
-  [
-    'name' => 'Simply Photos',
-    'service_url' => $re_photography_page_url,
-    'features' => [
-      'Magazine-quality photography',
       'Blue sky guarantee',
       'Fast turnaround',
     ],
@@ -363,30 +364,26 @@ $addons = [
 <main>
   <section class="page-hero page-hero--solid">
     <div class="container page-hero__content">
-      <h1>Services and Memberships</h1>
-      <p class="page-hero__sub">Current package structure for listings, content, and recurring growth support.</p>
+      <h1>Real Estate Photography &amp; Video Services in Jacksonville &amp; North Florida</h1>
+      <p class="page-hero__sub">Professional photography, videography, and branding content tailored to help agents and businesses stand out.</p>
     </div>
     <svg class="page-hero__curve" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
       <path fill="#ffffff" d="M0,96L120,80C240,64,480,32,720,32C960,32,1200,64,1320,80L1440,96L1440,120L0,120Z"></path>
     </svg>
   </section>
 
-  <section class="page-section page-section--secondary page-section--compact">
-    <div class="container">
-      <p class="center sub" style="margin:0 auto; max-width:980px;">We also support businesses with broader content needs, including Google-ready 3D scan delivery, social video production, and promotional photography that helps you stay visible with a consistent brand presence.</p>
-    </div>
-  </section>
-
   <section class="page-section" id="listing-media-packages">
     <div class="container">
-      <h2 class="center" style="margin-top:0;">Listing Packages</h2>
-      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Property media packages built for listing
-        launch, Zillow visibility, and premium presentation.</p>
+      <h2 class="center" style="margin-top:0;">Real Estate Photography &amp; Video</h2>
+      <p class="center sub" style="margin-bottom:34px; max-width:820px;">High-quality, MLS-ready photos and cinematic video designed to showcase listings in their best light.</p>
 
       <div class="pkg-grid">
         <?php foreach ($listing_packages as $pkg): ?>
           <div class="pkg-card">
             <h3 class="pkg-title"><?php echo esc_html($pkg['name']); ?></h3>
+            <?php if (!empty($pkg['price_cue'])): ?>
+              <div style="text-align: center; color: var(--primary); font-weight: 600; margin-top: -10px; margin-bottom: 20px;"><?php echo esc_html($pkg['price_cue']); ?></div>
+            <?php endif; ?>
             <ul class="pkg-features">
               <?php foreach ($pkg['features'] as $feature): ?>
                 <li>
@@ -407,8 +404,8 @@ $addons = [
 
   <section class="page-section page-section--secondary" id="social-media-packages">
     <div class="container">
-      <h2 class="center" style="margin-top:0;">Social Media Packages</h2>
-      <p class="center sub" style="margin-bottom:34px; max-width:820px;">One-time social production packages for reels, talking head clips, and branded post content.</p>
+      <h2 class="center" style="margin-top:0;">Social Media Content</h2>
+      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Custom short-form videos to increase engagement and attract new clients.</p>
 
       <div class="pkg-grid">
         <?php foreach ($social_packages as $pkg): ?>
@@ -435,10 +432,39 @@ $addons = [
     </div>
   </section>
 
-  <section class="page-section" id="social-content-packages">
+  <section class="page-section" id="drone-services">
     <div class="container">
-      <h2 class="center" style="margin-top:0;">Social Media Assistance</h2>
-      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Done-for-you reel products built from your clips, voice memos, and local market insights.</p>
+      <h2 class="center" style="margin-top:0;">Drone Photography &amp; Video</h2>
+      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Aerial imagery to showcase properties and locations from a unique perspective.</p>
+
+      <div class="pkg-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 800px; margin: 0 auto;">
+        <article class="pkg-card">
+          <h3 class="pkg-title">Drone Photography</h3>
+          <ul class="pkg-features">
+            <li><svg class="pkg-check" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span>High-resolution aerial photos</span></li>
+            <li><svg class="pkg-check" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span>Showcase lot boundaries & location</span></li>
+            <li><svg class="pkg-check" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span>Perfect for land, estates, and waterfronts</span></li>
+          </ul>
+          <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url($drone_photography_page_url); ?>"><?php echo esc_html($service_page_button_label); ?></a>
+        </article>
+
+        <article class="pkg-card">
+          <h3 class="pkg-title">Drone Videography</h3>
+          <ul class="pkg-features">
+            <li><svg class="pkg-check" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span>Cinematic 4K aerial video</span></li>
+            <li><svg class="pkg-check" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span>Highlight neighborhood amenities</span></li>
+            <li><svg class="pkg-check" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> <span>Fully edited with licensed music</span></li>
+          </ul>
+          <a class="btn btn--secondary pkg-cta" href="<?php echo esc_url(slm_service_page_url('drone-videography')); ?>"><?php echo esc_html($service_page_button_label); ?></a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-section page-section--secondary" id="social-content-packages">
+    <div class="container">
+      <h2 class="center" style="margin-top:0;">Business Branding Content</h2>
+      <p class="center sub" style="margin-bottom:34px; max-width:820px;">Professional photo and video content for local businesses to attract new clients.</p>
 
       <div class="pkg-grid">
         <?php foreach ($social_assistance_products as $product): ?>
@@ -479,7 +505,7 @@ $addons = [
     </div>
   </section>
 
-  <section class="page-section" id="monthly-content-memberships">
+  <section class="page-section page-section--secondary" id="monthly-content-memberships">
     <div class="container">
       <h2 class="center" style="margin-top:0;">Monthly Memberships</h2>
       <p class="center sub" style="margin-bottom:34px; max-width:820px;">Recurring monthly plans for creators, teams,
@@ -512,7 +538,7 @@ $addons = [
     </div>
   </section>
 
-  <section class="page-section page-section--secondary" id="listings-agent-memberships">
+  <section class="page-section" id="listings-agent-memberships">
     <div class="container">
       <h2 class="center" style="margin-top:0;">Listings-Agent Memberships</h2>
       <p class="center sub" style="margin-bottom:34px; max-width:820px;">Membership tiers for agents combining shoots,
@@ -545,12 +571,11 @@ $addons = [
     </div>
   </section>
 
-  <section class="page-section" id="popular-add-ons">
+  <section class="page-section page-section--secondary" id="popular-add-ons">
     <div class="container">
-      <h2 class="center" style="margin-top:0;">Customize Your Package</h2>
-      <p class="center sub" style="margin-bottom:10px; max-width:820px;">Optional add-ons to tailor each order to the listing's specific needs.</p>
-      <p class="center sub" style="margin:-2px auto 38px; max-width:820px; font-size:13px; opacity:.75;">Add-on availability depends on the selected package. Incompatible combinations are intentionally restricted at checkout.</p>
-      <div class="addon-grid">
+      <h2 class="center" style="margin-top:0;">Add-ons &amp; Extras</h2>
+      <p class="center sub" style="margin-bottom:10px; max-width:820px;">Optional add-ons like Zillow walkthroughs, twilight photography, and heavy edits to tailor each order.</p>
+      <div class="addon-grid" style="margin-top: 32px;">
         <?php foreach ($addons as $addon): ?>
           <div class="addon-card">
             <div class="addon-card__icon" aria-hidden="true">

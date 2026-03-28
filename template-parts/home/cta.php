@@ -9,9 +9,9 @@ $cta_label = $is_logged_in ? 'Place Order' : 'Create Account';
 <section class="home-start">
   <div class="container">
     <div class="home-start__card">
-      <h2>Ready to Get Started?</h2>
-      <p>Join agents and brokers who trust us to showcase their listings.</p>
-      <a class="btn btn--accent" href="<?php echo esc_url($cta_url); ?>"><?php echo esc_html($cta_label); ?></a>
+      <h2>Ready to stand out?</h2>
+      <p>Content that works for you. Start winning more listings and attracting more clients.</p>
+      <a class="btn btn--accent" href="<?php echo esc_url($cta_url); ?>">Book a Shoot Today</a>
     </div>
   </div>
 </section>
