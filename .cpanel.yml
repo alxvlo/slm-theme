@@ -1,0 +1,12 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home2/xbxkhdmy/public_html/wp-content/themes/slm-theme
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/cp style.css $DEPLOYPATH/style.css
+    - /bin/cp functions.php $DEPLOYPATH/functions.php
+    - if [ -f screenshot.png ]; then /bin/cp screenshot.png $DEPLOYPATH/screenshot.png; fi
+    - if [ -d assets ]; then /bin/cp -R assets $DEPLOYPATH/; fi
+    - if [ -d templates ]; then /bin/cp -R templates $DEPLOYPATH/; fi
+    - if [ -d parts ]; then /bin/cp -R parts $DEPLOYPATH/; fi
+    - if [ -d inc ]; then /bin/cp -R inc $DEPLOYPATH/; fi

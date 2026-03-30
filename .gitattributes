@@ -1,0 +1,2 @@
+assets/media/horizontal-videos/04-drone-video.mp4 filter=lfs diff=lfs merge=lfs -text
+assets/media/virtual-tours/01-version-2-1.mov filter=lfs diff=lfs merge=lfs -text
