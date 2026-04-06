@@ -5,8 +5,18 @@
 if (!defined('ABSPATH'))
   exit;
 
+// SEO
+add_filter('pre_get_document_title', function () {
+  return 'Real Estate Photography North Florida | Showcase Listings Media';
+}, 99);
+add_action('wp_head', function () {
+  echo '<meta name="description" content="Professional real estate photography, videography, and branding content for agents and businesses in Jacksonville and North Florida.">' . "\n";
+  echo '<meta name="robots" content="index, follow">' . "\n";
+}, 1);
+
 get_header();
 
+$pid          = get_the_ID();
 $is_logged_in = is_user_logged_in();
 $cta_url      = $is_logged_in
   ? add_query_arg('view', 'place-order', slm_portal_url())
@@ -15,6 +25,7 @@ $contact_url  = home_url('/contact/');
 
 $re_photography_page_url    = slm_service_page_url('re-photography');
 $re_videography_page_url    = slm_service_page_url('re-videography');
+
 $drone_photography_page_url = slm_service_page_url('drone-photography');
 $virtual_tours_page_url     = slm_service_page_url('virtual-tours');
 $zillow_showcase_page_url   = slm_page_url_by_template('templates/page-service-zillow-showcase.php', '/service-zillow-showcase/');
@@ -374,7 +385,75 @@ $addons = [
       <div class="svc-hero__content">
         <p class="svc-hero__eyebrow">Jacksonville &amp; North Florida</p>
         <h1 class="svc-hero__title">Real Estate Photography &amp; Video Services in Jacksonville &amp; North Florida</h1>
-        <p class="svc-hero__sub">Everything you need to list, market, and grow — photography, video, social content, and memberships, all under one roof.</p>
+        <p class="svc-hero__sub">We offer professional real estate photography, videography, and branding content designed to help agents and businesses stand out in Jacksonville and throughout North Florida. Whether you&rsquo;re marketing a listing or building your brand, our services are built to deliver high-quality visuals that drive attention and results.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Service Cards — 5 Core Services (card grid, PDF Brief)
+       ============================================================ -->
+  <section class="svc-core-cards" id="our-services" aria-labelledby="svc-core-title">
+    <div class="container">
+      <header class="svc-section__header">
+        <h2 id="svc-core-title">Our Services</h2>
+        <p>Professional media services built for real estate agents and businesses across North Florida.</p>
+      </header>
+
+      <p style="text-align:center; font-family:'Plus Jakarta Sans',sans-serif; font-size:0.9rem; font-weight:600; color:#C9922A; margin-top:-12px; margin-bottom:40px; letter-spacing:0.02em;"><?php echo esc_html(get_post_meta($pid, 'svc_core_pricing_line', true) ?: 'Pricing starting as low as $145 — no membership required to book'); ?></p>
+
+      <div class="svc-cards-grid">
+
+        <!-- Card 1: Photography -->
+        <div class="svc-card">
+          <span class="svc-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </span>
+          <h3 class="svc-card__title">Professional Real Estate Photography in North Florida</h3>
+          <p class="svc-card__body">High-quality, MLS-ready photos that make your listings impossible to scroll past. Every shot is composed and lit to highlight the property&rsquo;s best features — ensuring your listing stands out online and attracts the right buyers.</p>
+          <a class="svc-card__btn" href="<?php echo esc_url($re_photography_page_url); ?>" aria-label="Learn more about Real Estate Photography">Learn More</a>
+        </div>
+
+        <!-- Card 2: Video -->
+        <div class="svc-card">
+          <span class="svc-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="15" height="13" rx="2"/><path d="m17 9 5-2v10l-5-2V9Z"/></svg>
+          </span>
+          <h3 class="svc-card__title">Cinematic Listing Videos &amp; Walkthroughs</h3>
+          <p class="svc-card__body">Smooth, modern video walkthroughs built for MLS and social media. Elevate your marketing, set yourself apart from other agents, and win more listings with cinematic content that showcases every room at its best.</p>
+          <a class="svc-card__btn" href="<?php echo esc_url($re_videography_page_url); ?>" aria-label="Learn more about Cinematic Listing Videos">Learn More</a>
+        </div>
+
+        <!-- Card 3: Reels -->
+        <div class="svc-card">
+          <span class="svc-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M10 9.5 15 12l-5 2.5V9.5Z"/></svg>
+          </span>
+          <h3 class="svc-card__title">Real Estate Reels &amp; Short-Form Content</h3>
+          <p class="svc-card__body">Custom Reels and Shorts designed specifically for real estate agents and businesses. Increase engagement, grow your presence online, and stay consistently visible to potential clients with content built to stop the scroll.</p>
+          <a class="svc-card__btn" href="<?php echo esc_url($social_media_packages_page_url); ?>" aria-label="Learn more about Social Media Content">Learn More</a>
+        </div>
+
+        <!-- Card 4: Brand Content -->
+        <div class="svc-card">
+          <span class="svc-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2.5"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M12 12v2M6 14h12" stroke-linecap="round"/></svg>
+          </span>
+          <h3 class="svc-card__title">Brand Content for Businesses in North Florida</h3>
+          <p class="svc-card__body">Professional photo and video content that highlights your brand, attracts new clients, and elevates your online presence. Whether you&rsquo;re a local business, service provider, or growing brand &mdash; we create content that makes people take notice.</p>
+          <a class="svc-card__btn" href="<?php echo esc_url($contact_url); ?>" aria-label="Learn more about Business Branding Content">Learn More</a>
+        </div>
+
+        <!-- Card 5: Aerial / Drone -->
+        <div class="svc-card">
+          <span class="svc-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M5 5.5 8.5 9M19 5.5 15.5 9M5 18.5 8.5 15M19 18.5 15.5 15"/><circle cx="4" cy="5" r="2"/><circle cx="20" cy="5" r="2"/><circle cx="4" cy="19" r="2"/><circle cx="20" cy="19" r="2"/></svg>
+          </span>
+          <h3 class="svc-card__title">Aerial Photography &amp; Video</h3>
+          <p class="svc-card__body">Gain a unique perspective with high-quality drone imagery that showcases land, views, and property surroundings. Perfect for listings with acreage, waterfront features, or location advantages that ground-level photos simply can&rsquo;t capture.</p>
+          <a class="svc-card__btn" href="<?php echo esc_url($drone_photography_page_url); ?>" aria-label="Learn more about Aerial Photography">Learn More</a>
+        </div>
+
       </div>
     </div>
   </section>
@@ -382,7 +461,7 @@ $addons = [
   <!-- ============================================================
        Section 1 — Listing Media Packages
        ============================================================ -->
-  <section class="svc-section" id="listing-media-packages" aria-labelledby="svc-listing-title">
+  <section class="svc-section svc-section--alt" id="listing-media-packages" aria-labelledby="svc-listing-title">
     <div class="container">
       <header class="svc-section__header">
         <h2 id="svc-listing-title">Listing Packages</h2>
@@ -403,7 +482,7 @@ $addons = [
                 </li>
               <?php endforeach; ?>
             </ul>
-            <a class="btn btn--secondary svc-card__cta" href="<?php echo esc_url((string) ($pkg['service_url'] ?? home_url('/services/'))); ?>">View Service Page</a>
+            <a class="btn btn--secondary svc-card__cta" href="<?php echo esc_url((string) ($pkg['service_url'] ?? home_url('/services/'))); ?>" aria-label="View <?php echo esc_attr($pkg['name']); ?> service page">View Service Page</a>
           </article>
         <?php endforeach; ?>
       </div>
@@ -413,7 +492,7 @@ $addons = [
   <!-- ============================================================
        Section 2 — Social Media Packages
        ============================================================ -->
-  <section class="svc-section svc-section--alt" id="social-media-packages" aria-labelledby="svc-social-title">
+  <section class="svc-section" id="social-media-packages" aria-labelledby="svc-social-title">
     <div class="container">
       <header class="svc-section__header">
         <h2 id="svc-social-title">Social Media Packages</h2>
@@ -567,8 +646,8 @@ $addons = [
   <section class="svc-section svc-section--alt" id="popular-add-ons" aria-labelledby="svc-addons-title">
     <div class="container">
       <header class="svc-section__header">
-        <h2 id="svc-addons-title">Enhance Your Package</h2>
-        <p>Optional add-ons to tailor each order to the listing's specific needs.</p>
+        <h2 id="svc-addons-title">Additional Services</h2>
+        <p>Customize your order with optional upgrades — including Zillow walkthrough videos, marketing add-ons, custom content packages, membership packages, and partnership-focused options.</p>
         <p class="svc-section__note" style="margin-top:10px;">Add-on availability depends on the selected package. Incompatible combinations are intentionally restricted at checkout.</p>
       </header>
 
@@ -589,14 +668,44 @@ $addons = [
   </section>
 
   <!-- ============================================================
+       Why Choose Us
+       ============================================================ -->
+  <section class="svc-section svc-section--alt" aria-labelledby="svc-why-title">
+    <div class="container">
+      <header class="svc-section__header">
+        <h2 id="svc-why-title">Why Choose Showcase Listings Media</h2>
+      </header>
+      <ul class="svc-why__list">
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+          <span>Locally based in Jacksonville, FL</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Fast turnaround (24&ndash;48 hours)</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <span>Tailored approach for every project</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Trusted by agents and businesses across North Florida</span>
+        </li>
+      </ul>
+      <p class="svc-why__location">Serving Jacksonville &amp; North Florida</p>
+    </div>
+  </section>
+
+  <!-- ============================================================
        Final CTA
        ============================================================ -->
   <section class="svc-final-cta" aria-label="Book a Service">
     <div class="container">
       <h2>Ready to Elevate Your Listings?</h2>
-      <p>Let's build content that gets attention, drives action, and helps you grow — starting with your next shoot.</p>
+      <p>Let&rsquo;s build content that gets attention, drives action, and helps you grow &mdash; starting with your next shoot.</p>
       <div class="svc-final-cta__btns">
-        <a class="btn svc-final-cta__primary" href="<?php echo esc_url($cta_url); ?>">Book a Shoot</a>
+        <a class="btn svc-final-cta__primary" href="<?php echo esc_url($cta_url); ?>">Book a Shoot Today</a>
         <a class="btn svc-final-cta__secondary" href="tel:+19042945809">Call (904) 294-5809</a>
         <a class="btn svc-final-cta__secondary" href="<?php echo esc_url($contact_url); ?>">Send a Message</a>
       </div>
@@ -604,5 +713,7 @@ $addons = [
   </section>
 
 </main>
+
+<?php slm_edit_page_button($pid); ?>
 
 <?php get_footer(); ?>

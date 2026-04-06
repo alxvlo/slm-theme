@@ -37,21 +37,22 @@ $trust_points = [
     <div class="home-heroSlider__overlay" aria-hidden="true"></div>
   </div>
 
+  <?php $pid = get_option('page_on_front'); ?>
   <div class="container home-heroSlider__content">
-    <h1 class="js-hero-title">Real Estate Media That Stops Scroll & Sells Listings Faster</h1>
-    <p class="js-hero-sub">Photo, video, and content designed to make your listings stand out and get agents and businesses more deals.</p>
+    <h1 class="js-hero-title"><?php echo esc_html(get_post_meta($pid, 'hp_hero_headline', true) ?: 'Real Estate Media That Stops Scroll & Sells Listings Faster'); ?></h1>
+    <p class="js-hero-sub"><?php echo esc_html(get_post_meta($pid, 'hp_hero_subheadline', true) ?: 'High-quality photo, video, and content designed to help real estate agents win more listings and businesses attract more clients.'); ?></p>
 
     <div class="home-heroSlider__actions js-hero-actions">
-      <a class="btn home-heroSlider__btn--primary" href="<?php echo esc_url($order_url); ?>">Book a Shoot</a>
-      <a class="btn home-heroSlider__btn--secondary" href="<?php echo esc_url($portfolio_url); ?>">View Our Work</a>
+      <a class="btn home-heroSlider__btn--primary" href="<?php echo esc_url($order_url); ?>"><?php echo esc_html(get_post_meta($pid, 'hp_hero_cta_primary', true) ?: 'Book a Shoot'); ?></a>
+      <a class="btn home-heroSlider__btn--secondary" href="<?php echo esc_url($portfolio_url); ?>"><?php echo esc_html(get_post_meta($pid, 'hp_hero_cta_secondary', true) ?: 'View Our Work'); ?></a>
     </div>
 
-    <p class="home-heroSlider__tagline js-hero-tagline">Trusted by agents and brands across North Florida</p>
+    <p class="home-heroSlider__tagline js-hero-tagline"><?php echo esc_html(get_post_meta($pid, 'hp_hero_trust_line', true) ?: 'Trusted by agents and brands across North Florida'); ?></p>
 
     <ul class="home-heroSlider__trust js-hero-trust" aria-label="Why clients choose us">
-      <?php foreach ($trust_points as $point): ?>
-        <li><?php echo esc_html($point); ?></li>
-      <?php endforeach; ?>
+      <li><?php echo esc_html(get_post_meta($pid, 'hp_hero_badge_1', true) ?: '24-hour standard delivery'); ?></li>
+      <li><?php echo esc_html(get_post_meta($pid, 'hp_hero_badge_2', true) ?: 'Dedicated client support'); ?></li>
+      <li><?php echo esc_html(get_post_meta($pid, 'hp_hero_badge_3', true) ?: 'Media quality built for conversion'); ?></li>
     </ul>
   </div>
 </section>

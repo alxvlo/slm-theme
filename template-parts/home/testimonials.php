@@ -1,6 +1,8 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
+$pid = get_option('page_on_front');
+
 $q = new WP_Query([
   'post_type' => 'testimonial',
   'post_status' => 'publish',
@@ -21,8 +23,8 @@ $star_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3 5.8 2
 <section class="home-testimonials" aria-labelledby="home-testimonials-title">
   <div class="container">
     <header class="home-testimonials__header">
-      <h2 id="home-testimonials-title">Real Results. Real Clients.</h2>
-      <p>Don't take our word for it — here's what agents and businesses across North Florida are saying.</p>
+      <h2 id="home-testimonials-title"><?php echo esc_html(get_post_meta($pid, 'hp_proof_headline', true) ?: "Real Results. Real Clients."); ?></h2>
+      <p><?php echo esc_html(get_post_meta($pid, 'hp_proof_subheadline', true) ?: "Don't take our word for it — here's what agents and businesses across North Florida are saying."); ?></p>
     </header>
 
     <div class="home-testimonials__grid">
@@ -92,10 +94,45 @@ $star_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3 5.8 2
           </div>
         </article>
       <?php endwhile; wp_reset_postdata(); ?>
-    </div>
+    </div> <!-- end .home-testimonials__grid -->
+  </div> <!-- end .container -->
+</section>
 
-    <div class="home-testimonials__cta">
-      <a class="btn home-testimonials__ctaBtn" href="<?php echo esc_url($cta_url); ?>">Book Your Next Shoot</a>
+<section style="background:#0D1B2A; padding:80px 20px; text-align:center;">
+  <div style="display:flex; justify-content:center; align-items:center; gap:80px; flex-wrap:wrap; max-width:600px; margin:0 auto;">
+    <div style="text-align:center;">
+      <div style="font-family:'Outfit',sans-serif; font-size:clamp(3rem,6vw,5rem); font-weight:800; color:#C9922A; line-height:1;"><?php echo esc_html(get_post_meta($pid, 'hp_stat_1_number', true) ?: "XX"); ?></div>
+      <div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:0.75rem; font-weight:600; color:#ffffff; text-transform:uppercase; letter-spacing:0.1em; margin-top:8px;"><?php echo esc_html(get_post_meta($pid, 'hp_stat_1_label', true) ?: "Days to Close"); ?></div>
     </div>
+    <div style="width:1px; height:60px; background:rgba(255,255,255,0.2);"></div>
+    <div style="text-align:center;">
+      <div style="font-family:'Outfit',sans-serif; font-size:clamp(3rem,6vw,5rem); font-weight:800; color:#C9922A; line-height:1;"><?php echo esc_html(get_post_meta($pid, 'hp_stat_2_number', true) ?: "XX%"); ?></div>
+      <div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:0.75rem; font-weight:600; color:#ffffff; text-transform:uppercase; letter-spacing:0.1em; margin-top:8px;"><?php echo esc_html(get_post_meta($pid, 'hp_stat_2_label', true) ?: "Above Asking"); ?></div>
+    </div>
+  </div>
+</section>
+
+<?php
+// Resolve image URLs accurately handling meta IDs
+$before_meta = get_post_meta(get_option('page_on_front') ?: get_the_ID(), 'before_image', true);
+$before = $before_meta ? (is_numeric($before_meta) ? wp_get_attachment_url($before_meta) : $before_meta) : get_template_directory_uri() . '/assets/img/Homepage4.jpg';
+
+$after_meta = get_post_meta(get_option('page_on_front') ?: get_the_ID(), 'after_image', true);
+$after  = $after_meta ? (is_numeric($after_meta) ? wp_get_attachment_url($after_meta) : $after_meta) : get_template_directory_uri() . '/assets/img/Homepage5.jpg';
+?>
+<section style="background:#EEF2F7; padding:80px 20px;">
+  <div style="max-width:900px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+    <div style="border:2px dashed #C9922A; border-radius:12px; overflow:hidden; background:#fff;">
+      <div style="padding:16px 20px 8px; font-family:'Plus Jakarta Sans',sans-serif; font-size:0.75rem; font-weight:700; color:#C9922A; text-transform:uppercase; letter-spacing:0.1em;">Before</div>
+      <img src="<?php echo esc_url($before); ?>" alt="Before" style="width:100%; aspect-ratio:4/3; object-fit:cover; display:block;">
+    </div>
+    <div style="border:2px dashed #C9922A; border-radius:12px; overflow:hidden; background:#fff;">
+      <div style="padding:16px 20px 8px; font-family:'Plus Jakarta Sans',sans-serif; font-size:0.75rem; font-weight:700; color:#C9922A; text-transform:uppercase; letter-spacing:0.1em;">After</div>
+      <img src="<?php echo esc_url($after); ?>" alt="After" style="width:100%; aspect-ratio:4/3; object-fit:cover; display:block;">
+    </div>
+  </div>
+
+  <div class="home-testimonials__cta js-reveal" style="text-align:center; margin-top: 60px;">
+    <a class="btn" href="<?php echo esc_url($cta_url); ?>"><?php echo esc_html(get_post_meta($pid, 'hp_proof_cta', true) ?: "Book Your Next Shoot"); ?></a>
   </div>
 </section>

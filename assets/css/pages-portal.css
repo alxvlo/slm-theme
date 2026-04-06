@@ -1,4 +1,4 @@
-﻿/* =========================
+/* =========================
    Portal UI Layer
 ========================= */
 
@@ -95,7 +95,7 @@
 
 .portal-section h1 {
   margin-bottom: 8px;
-  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-size: clamp(2.5rem, 5vw, 4.2rem);
 }
 
 .portal-stats {
@@ -502,7 +502,7 @@
   margin-top: 8px;
 }
 
-.membership-shop__summaryRows > div {
+.membership-shop__summaryRows>div {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -583,7 +583,7 @@
     grid-template-columns: 1fr;
   }
 
-  .membership-shop__summaryRows > div {
+  .membership-shop__summaryRows>div {
     align-items: flex-start;
   }
 
@@ -605,5 +605,189 @@
 
   .portal-toolbar__pill {
     font-size: 0.9rem;
+  }
+}
+
+/* ── Portfolio Manager ────────────────────────────────── */
+.pMgr-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(15, 39, 68, 0.09);
+  background: #fff;
+}
+
+.pMgr-search {
+  flex: 1;
+  max-width: 300px;
+  border: 1px solid rgba(15, 39, 68, 0.17);
+  border-radius: 8px;
+  background: #f8fbff;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.pMgr-filter {
+  border: 1px solid rgba(15, 39, 68, 0.17);
+  border-radius: 8px;
+  background: #f8fbff;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+/* Modal overlay — hidden by default via inline style="display:none" on the element.
+   JS sets style.display = 'flex' to open and 'none' to close.
+   !important is used on layout/positioning only — never on display, so JS can control it. */
+#portfolio-modal-overlay,
+.pMgr-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+  z-index: 9999 !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal card */
+#portfolio-modal-card,
+.pMgr-modal {
+  background: #ffffff !important;
+  border-radius: 16px !important;
+  padding: 2rem !important;
+  width: 100% !important;
+  max-width: 520px !important;
+  max-height: 88vh !important;
+  overflow-y: auto !important;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22) !important;
+  position: relative !important;
+  z-index: 10000 !important;
+}
+
+.pMgr-modal__close {
+  position: absolute !important;
+  top: 1rem !important;
+  right: 1rem !important;
+  font-size: 1.4rem;
+  color: #6b7280;
+  cursor: pointer;
+  background: none;
+  border: none;
+  line-height: 1;
+  padding: 0;
+}
+
+.pMgr-modal__close:hover {
+  color: #374151;
+}
+
+.pMgr-modal__title {
+  font-family: Outfit, sans-serif;
+  font-weight: 700;
+  color: #0d1b2a;
+  font-size: 1.25rem;
+  margin: 0 0 1.5rem;
+  padding-right: 2rem;
+}
+
+/* Fields */
+.pMgr-field {
+  margin-bottom: 1rem;
+}
+
+.pMgr-label {
+  display: block;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  color: #0d1b2a;
+  font-size: 0.82rem;
+  margin-bottom: 4px;
+}
+
+.pMgr-input {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  margin-bottom: 0;
+  border: 1.5px solid #e5e9f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #0d1b2a;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.pMgr-input:focus {
+  outline: none;
+  border-color: #c9922a;
+}
+
+.pMgr-helper {
+  display: block;
+  font-size: 0.78rem;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.pMgr-field--check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Modal footer */
+.pMgr-modal__footer {
+  margin-top: 0.5rem;
+}
+
+.pMgr-modal__save {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  background: #c9922a;
+  color: #0d1b2a;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.pMgr-modal__save:hover {
+  background: #b8841e;
+}
+
+.pMgr-modal__cancel {
+  display: block;
+  text-align: center;
+  margin-top: 0.75rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 100%;
+  padding: 6px;
+  text-decoration: none;
+}
+
+.pMgr-modal__cancel:hover {
+  color: #374151;
+}
+
+@media (max-width: 540px) {
+  #portfolio-modal-card,
+  .pMgr-modal {
+    margin: 0 12px;
+    max-width: calc(100vw - 24px);
   }
 }

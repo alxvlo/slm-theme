@@ -407,6 +407,7 @@
     const tbody = table ? table.querySelector('tbody') : null;
     if (!table || !tbody) return;
     if (card.querySelector('.table-controls')) return;
+    if (card.dataset.noFilter) return;
 
     const rows = Array.from(tbody.querySelectorAll('tr'));
     const dataRows = rows.filter((row) => !row.querySelector('td[colspan]'));

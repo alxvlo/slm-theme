@@ -2,9 +2,12 @@
 if (!defined('ABSPATH')) exit;
 
 get_header();
+$pid = get_option('page_on_front');
 ?>
 
 <main id="main-content" class="home-main">
+  <?php slm_edit_page_button($pid); ?>
+
   <?php get_template_part('template-parts/home/hero-slider'); ?>
   <?php get_template_part('template-parts/home/problem'); ?>
   <?php get_template_part('template-parts/home/solution'); ?>

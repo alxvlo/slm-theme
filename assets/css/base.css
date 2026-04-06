@@ -1,5 +1,5 @@
 :root {
-  --font-size: 16px;
+  --font-size: 18.5px;
   --font-sans: "Plus Jakarta Sans", "Manrope", "Avenir Next", "Segoe UI", sans-serif;
   --font-display: "Outfit", "Sora", "Manrope", "Avenir Next", sans-serif;
 
@@ -12,14 +12,14 @@
   --popover: #ffffff;
   --popover-foreground: #13223a;
 
-  --primary: #15345b;
-  --primary-strong: #0f2744;
+  --primary: #0D1B2A;
+  --primary-strong: #0a1521;
   --primary-foreground: #ffffff;
   --secondary: #ebf2ff;
-  --secondary-foreground: #15345b;
+  --secondary-foreground: #0D1B2A;
   --muted: #eef2f8;
   --muted-foreground: #60708a;
-  --accent: #c89a5f;
+  --accent: #C9922A;
   --accent-foreground: #ffffff;
   --destructive: #d4183d;
   --destructive-foreground: #ffffff;
@@ -89,9 +89,9 @@ h6 {
   color: var(--primary-strong);
 }
 
-h1 { font-weight: 800; }
-h2 { font-weight: 700; }
-h3 { font-weight: 600; }
+h1 { font-weight: 800; font-size: 3.5rem; }
+h2 { font-weight: 700; font-size: 2.75rem; }
+h3 { font-weight: 600; font-size: 1.8rem; }
 
 /* Ensure body text and form elements always use the sans font */
 input,
@@ -370,3 +370,38 @@ select:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Admin-only Edit Page button (global, all pages) ── */
+.slm-edit-page-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #0D1B2A;
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 9px 18px;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  border: 1.5px solid rgba(201, 146, 42, 0.35);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.slm-edit-page-btn:hover {
+  background: #1a3a5c;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.4);
+  transform: translateY(-1px);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+@media print {
+  .slm-edit-page-btn { display: none !important; }
+}

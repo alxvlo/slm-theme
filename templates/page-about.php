@@ -5,14 +5,26 @@
 if (!defined('ABSPATH'))
   exit;
 
+// SEO — register before get_header() fires wp_head
+add_filter('pre_get_document_title', function () {
+  return 'About Us | Showcase Listings Media | Jacksonville, FL';
+}, 99);
+add_action('wp_head', function () {
+  echo '<meta name="description" content="Learn about Showcase Listings Media — Jacksonville\'s trusted real estate photography and video company serving agents and businesses across North Florida.">' . "\n";
+}, 1);
+
 get_header();
 
 $is_logged_in = is_user_logged_in();
-$cta_url = $is_logged_in ? slm_dashboard_url() : add_query_arg('mode', 'signup', slm_login_url());
-$cta_label = $is_logged_in ? 'Go to Dashboard' : 'Create Account to Order';
+$cta_url      = $is_logged_in
+  ? add_query_arg('view', 'place-order', slm_portal_url())
+  : add_query_arg('mode', 'signup', slm_login_url());
+$contact_url  = home_url('/contact/');
 
-$pid = get_the_ID();
-$config = function_exists('slm_get_editable_fields_for_template') ? slm_get_editable_fields_for_template('templates/page-about.php') : [];
+$pid    = get_the_ID();
+$config = function_exists('slm_get_editable_fields_for_template')
+  ? slm_get_editable_fields_for_template('templates/page-about.php')
+  : [];
 
 $meta_get = function ($key) use ($pid, $config) {
   $v = get_post_meta($pid, $key, true);
@@ -23,283 +35,233 @@ $meta_get = function ($key) use ($pid, $config) {
   return $v;
 };
 
-$hero_title = $meta_get('slm_about_hero_title');
-$hero_sub = $meta_get('slm_about_hero_sub');
-$intro_h2 = $meta_get('slm_about_intro_h2');
-$intro_p1 = $meta_get('slm_about_intro_p1');
-$intro_p2 = $meta_get('slm_about_intro_p2');
-$intro_p3 = $meta_get('slm_about_intro_p3');
-$intro_p4 = $meta_get('slm_about_intro_p4');
-$intro_p5 = $meta_get('slm_about_intro_p5');
-$values_h2 = $meta_get('slm_about_values_h2');
-$values_sub = $meta_get('slm_about_values_sub');
-$outcomes_h2 = $meta_get('slm_about_outcomes_h2');
-$outcomes_sub = $meta_get('slm_about_outcomes_sub');
-$compare_h2 = $meta_get('slm_about_compare_h2');
-$compare_sub = $meta_get('slm_about_compare_sub');
-$owner_h2 = $meta_get('slm_about_owner_h2');
-$owner_name = $meta_get('slm_about_owner_name');
-$owner_role = $meta_get('slm_about_owner_role');
-$owner_bio = $meta_get('slm_about_owner_bio');
-$owner_photo_id = absint((string) $meta_get('slm_about_owner_photo_id'));
+// Owner
+$owner_name      = $meta_get('slm_about_owner_name');
+$owner_role      = $meta_get('slm_about_owner_role');
+$owner_bio       = $meta_get('slm_about_owner_bio');
+$owner_photo_id  = absint((string) $meta_get('slm_about_owner_photo_id'));
 $owner_photo_url = $owner_photo_id > 0 ? wp_get_attachment_image_url($owner_photo_id, 'large') : '';
-$cta_h2 = $meta_get('slm_about_cta_h2');
-$cta_p = $meta_get('slm_about_cta_p');
 
-$partner1_photo_id = absint((string) $meta_get('slm_about_partner1_photo_id'));
+// Partners
+$partner1_photo_id  = absint((string) $meta_get('slm_about_partner1_photo_id'));
 $partner1_photo_url = $partner1_photo_id > 0 ? wp_get_attachment_image_url($partner1_photo_id, 'medium') : '';
-$partner2_photo_id = absint((string) $meta_get('slm_about_partner2_photo_id'));
+$partner2_photo_id  = absint((string) $meta_get('slm_about_partner2_photo_id'));
 $partner2_photo_url = $partner2_photo_id > 0 ? wp_get_attachment_image_url($partner2_photo_id, 'medium') : '';
-
-$parse_list = function ($key) use ($meta_get) {
-  $v = $meta_get($key);
-  return array_filter(array_map('trim', explode("\n", $v)));
-};
-
-$values_raw = $parse_list('slm_about_values_list');
-$core_values = [];
-foreach ($values_raw as $l) {
-  $parts = explode('|', $l, 2);
-  if (count($parts) === 2) {
-    $core_values[] = ['title' => trim($parts[0]), 'description' => trim($parts[1])];
-  } else {
-    $core_values[] = ['title' => trim($parts[0]), 'description' => ''];
-  }
-}
-$outcomes = $parse_list('slm_about_outcomes_list');
-$traditional = $parse_list('slm_about_traditional_list');
-$showcase = $parse_list('slm_about_showcase_list');
-$has_owner_content = trim((string) $owner_name) !== ''
-  || trim((string) $owner_role) !== ''
-  || trim((string) $owner_bio) !== ''
-  || $owner_photo_url !== '';
-
-$page_content = '';
-if (have_posts()) {
-  while (have_posts()) {
-    the_post();
-    $page_content = trim((string) get_the_content());
-  }
-}
 ?>
 
-<main>
-  <?php if (current_user_can('edit_page', $pid)): ?>
-    <a href="<?php echo get_edit_post_link($pid); ?>" class="btn"
-      style="position:fixed; bottom:24px; right:24px; z-index:1100; padding:12px 20px; font-size:14px; box-shadow:0 4px 20px rgba(0,0,0,0.25); border-radius:999px;">&#9998;
-      Edit Page Text</a>
-    <?php
-  endif; ?>
+<main id="main-content">
 
-  <section class="page-hero page-hero--solid">
-    <div class="container page-hero__content">
-      <h1><?php echo esc_html($hero_title); ?></h1>
-      <p class="page-hero__sub"><?php echo esc_html($hero_sub); ?></p>
-    </div>
-    <svg class="page-hero__curve" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
-      <path fill="#ffffff" d="M0,96L120,80C240,64,480,32,720,32C960,32,1200,64,1320,80L1440,96L1440,120L0,120Z"></path>
-    </svg>
-  </section>
+  <?php slm_edit_page_button($pid); ?>
 
-  <section class="page-section page-section--secondary">
-    <div class="container about-wrap">
-      <div class="about-intro about-intro--premium">
-        <h2><?php echo esc_html($intro_h2); ?></h2>
-
-        <?php if ($intro_p1): ?>
-          <p><?php echo esc_html($intro_p1); ?></p>
-        <?php endif; ?>
-
-        <?php if ($intro_p2): ?>
-          <p><?php echo esc_html($intro_p2); ?></p>
-        <?php endif; ?>
-
-        <?php if ($intro_p3): ?>
-          <p><?php echo esc_html($intro_p3); ?></p>
-        <?php endif; ?>
-
-        <?php if ($intro_p4): ?>
-          <p><?php echo esc_html($intro_p4); ?></p>
-        <?php endif; ?>
-
-        <?php if ($intro_p5): ?>
-          <p><?php echo esc_html($intro_p5); ?></p>
-        <?php endif; ?>
-
-        <p class="about-intro__closing-line">
-          <mark class="about-intro__highlight">Your success is our success.</mark>
-        </p>
+  <!-- ============================================================
+       Section 1 — Hero (dark navy)
+       ============================================================ -->
+  <section class="about-hero" aria-label="About Showcase Listings Media">
+    <div class="container">
+      <div class="about-hero__content js-reveal">
+        <h1 class="about-hero__title">Real Estate &amp; Brand Media in North Florida That Helps You Stand Out</h1>
+        <p class="about-hero__sub">At Showcase Listings Media, we do more than capture photos — we create content that helps real estate agents and businesses across Jacksonville and North Florida stand out, attract attention, and grow.</p>
       </div>
     </div>
   </section>
 
-  <section class="page-section">
-    <div class="container about-wrap">
-      <h2 class="center"><?php echo esc_html($values_h2); ?></h2>
-      <p class="center sub"><?php echo esc_html($values_sub); ?></p>
-
-      <div class="about-values-grid">
-        <?php foreach ($core_values as $value): ?>
-          <article class="about-valueCard">
-            <h3><?php echo esc_html($value['title']); ?></h3>
-            <p><?php echo esc_html($value['description']); ?></p>
-          </article>
-          <?php
-        endforeach; ?>
+  <!-- ============================================================
+       Section 2 — Our Story (light grey-blue)
+       ============================================================ -->
+  <section class="about-story" aria-labelledby="about-story-title">
+    <div class="container">
+      <div class="about-story__inner js-reveal">
+        <h2 id="about-story-title" class="about-story__title">Built Different. On Purpose.</h2>
+        <p class="about-story__body">Founded on the belief that every listing and every brand is different, our approach is intentional. We don't rely on cookie-cutter templates or rushed edits. Every shoot is designed to highlight what makes your property or business unique.</p>
+        <p class="about-story__body">After stepping away from a franchise model, this company was built to give clients more —</p>
+        <ul class="about-story__accent-list" aria-label="Our commitments">
+          <li>More creativity</li>
+          <li>More strategy</li>
+          <li>More care in every project</li>
+        </ul>
       </div>
     </div>
   </section>
 
-  <section class="page-section page-section--secondary">
-    <div class="container about-wrap">
-      <h2 class="center"><?php echo esc_html($outcomes_h2); ?></h2>
-      <p class="center sub"><?php echo esc_html($outcomes_sub); ?></p>
+  <!-- ============================================================
+       Section 3 — What We Believe (dark navy)
+       ============================================================ -->
+  <section class="about-belief" aria-labelledby="about-belief-title">
+    <div class="container">
+      <h2 id="about-belief-title" class="about-belief__title js-reveal">In today's market, it's not enough to simply 'have photos.'</h2>
+      <p class="about-belief__sub js-reveal">You need content that:</p>
 
-      <div class="about-outcomes-grid">
-        <?php foreach ($outcomes as $item): ?>
-          <article class="about-outcomeCard">
-            <p><?php echo esc_html($item); ?></p>
-          </article>
-          <?php
-        endforeach; ?>
-      </div>
-    </div>
-  </section>
-
-  <section class="page-section">
-    <div class="container about-wrap">
-      <h2 class="center"><?php echo esc_html($compare_h2); ?></h2>
-      <p class="center sub"><?php echo esc_html($compare_sub); ?></p>
-
-      <div class="about-compare">
-        <article class="about-compareCard">
-          <h3>Traditional Media Providers</h3>
-          <ul>
-            <?php foreach ($traditional as $item): ?>
-              <li><?php echo esc_html($item); ?></li>
-              <?php
-            endforeach; ?>
-          </ul>
+      <div class="about-belief__cards">
+        <article class="about-belief__card js-reveal">
+          <div class="about-belief__card-icon" aria-hidden="true">
+            <!-- Icon: scroll-stop / lightning -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+          <p>Stops people from scrolling</p>
         </article>
 
-        <article class="about-compareCard about-compareCard--accent">
-          <h3>Showcase Listings Media</h3>
-          <ul>
-            <?php foreach ($showcase as $item): ?>
-              <li><?php echo esc_html($item); ?></li>
-              <?php
-            endforeach; ?>
-          </ul>
+        <article class="about-belief__card js-reveal">
+          <div class="about-belief__card-icon" aria-hidden="true">
+            <!-- Icon: eye / impression -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </div>
+          <p>Creates a strong first impression</p>
+        </article>
+
+        <article class="about-belief__card js-reveal">
+          <div class="about-belief__card-icon" aria-hidden="true">
+            <!-- Icon: trending up / compete -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+              <polyline points="17 6 23 6 23 12"/>
+            </svg>
+          </div>
+          <p>Positions you above your competition</p>
         </article>
       </div>
+
+      <p class="about-belief__closing js-reveal">Whether you're a real estate agent in Jacksonville, a growing brand in North Florida, or a business looking to elevate your presence, the goal is the same:</p>
+      <a class="about-belief__cta js-reveal" href="<?php echo esc_url($cta_url); ?>">Make Your Content Work for You</a>
     </div>
   </section>
 
-  <?php if ($page_content !== ''): ?>
-    <section class="page-section page-section--secondary">
-      <div class="container prose">
-        <?php echo wp_kses_post(apply_filters('the_content', $page_content)); ?>
-      </div>
-    </section>
-    <?php
-  endif; ?>
+  <!-- ============================================================
+       Section 4 — Meet the Founder (light grey-blue)
+       ============================================================ -->
+  <section class="about-founder" aria-labelledby="about-founder-name">
+    <div class="container">
+      <div class="about-founder__grid">
 
-  <?php if ($has_owner_content): ?>
-    <section class="page-section page-section--secondary">
-      <div class="container about-wrap">
-        <article class="about-owner card">
-          <?php if ($owner_photo_url !== ''): ?>
-            <div class="about-owner__media">
-              <img src="<?php echo esc_url($owner_photo_url); ?>"
-                alt="<?php echo esc_attr($owner_name !== '' ? $owner_name : 'Owner photo'); ?>" loading="lazy"
-                decoding="async">
-            </div>
+        <div class="about-founder__media js-reveal js-reveal-left">
+          <img
+            src="/wp-content/themes/slm-theme/assets/img/brittney.JPG"
+            alt="Brittney Tribble, founder of Showcase Listings Media Jacksonville FL"
+            loading="lazy"
+            decoding="async">
+        </div>
+
+        <div class="about-founder__content js-reveal js-reveal-right">
+          <span class="about-founder__eyebrow">Meet the Founder</span>
+          <h2 id="about-founder-name" class="about-founder__name">Brittney Tribble</h2>
+          <p class="about-founder__role"><?php echo esc_html(trim((string) $owner_role) !== '' ? $owner_role : 'Founder, Showcase Listings Media'); ?></p>
+          <?php if (trim((string) $owner_bio) !== ''): ?>
+            <p class="about-founder__bio"><?php echo esc_html($owner_bio); ?></p>
           <?php endif; ?>
-          <div class="about-owner__body">
-            <?php if (trim((string) $owner_h2) !== ''): ?>
-              <h2><?php echo esc_html($owner_h2); ?></h2>
-            <?php endif; ?>
-            <?php if (trim((string) $owner_name) !== ''): ?>
-              <h3><?php echo esc_html($owner_name); ?></h3>
-            <?php endif; ?>
-            <?php if (trim((string) $owner_role) !== ''): ?>
-              <p class="about-owner__role"><?php echo esc_html($owner_role); ?></p>
-            <?php endif; ?>
-            <?php if (trim((string) $owner_bio) !== ''): ?>
-              <p><?php echo esc_html($owner_bio); ?></p>
-            <?php endif; ?>
-          </div>
-        </article>
+        </div>
+
       </div>
-    </section>
-  <?php endif; ?>
+    </div>
+  </section>
 
-  <section class="page-section">
-    <div class="container about-wrap">
-      <h2 class="center">Our Partners</h2>
-      <p class="center sub u-mb-24">We collaborate with industry leaders to maximize our clients' benefits.</p>
-      
-      <div class="about-partners-grid">
-        <article class="about-partnerCard">
-          <div class="about-partnerCard__avatarAndPerk">
-            <div class="about-partnerCard__avatar">
-              <img src="<?php echo esc_url($partner1_photo_url ? $partner1_photo_url : 'https://ui-avatars.com/api/?name=Reesa+Storely&background=c89a5f&color=fff&size=150'); ?>" alt="Reesa Storely">
-            </div>
-          </div>
-          <div class="about-partnerCard__content">
-            <div class="about-partnerCard__info">
-              <h3>Reesa Storely</h3>
-              <p class="about-partnerCard__role">Managing Member &amp; Certified Staging Expert</p>
-              <p class="about-partnerCard__company">Modern Florida Home Staging</p>
-            </div>
-            <div class="about-partnerCard__body">
-              <p>Reesa Storely is a Managing Member of Modern Florida Home Staging LLC and a certified staging expert. With years of experience in interior design and a refined eye for detail, she brings sophistication and elegance to every project — transforming spaces to captivate buyers and maximize property value.</p>
-            </div>
-            <div class="about-partnerCard__footer">
-              <a href="https://www.modernfloridahomestaging.com/" class="about-partnerCard__link" target="_blank" rel="noopener noreferrer">Visit Website &rarr;</a>
-            </div>
-          </div>
+  <!-- ============================================================
+       Section 5 — Our Approach (dark navy)
+       ============================================================ -->
+  <section class="about-approach" aria-labelledby="about-approach-title">
+    <div class="container">
+      <h2 id="about-approach-title" class="about-approach__title js-reveal">Our Approach</h2>
+      <div class="about-approach__cards">
+        <article class="about-approach__card js-reveal">
+          <span class="about-approach__card-num" aria-hidden="true">01</span>
+          <p>Every project is tailored — no one-size-fits-all</p>
         </article>
-        
-        <article class="about-partnerCard">
-          <div class="about-partnerCard__avatarAndPerk">
-            <div class="about-partnerCard__avatar">
-              <img src="<?php echo esc_url($partner2_photo_url ? $partner2_photo_url : 'https://ui-avatars.com/api/?name=Danielle+Ramos&background=c89a5f&color=fff&size=150'); ?>" alt="Danielle Ramos">
-            </div>
-          </div>
-          <div class="about-partnerCard__content">
-            <div class="about-partnerCard__info">
-              <h3>Danielle Ramos</h3>
-              <p class="about-partnerCard__role">Managing Member &amp; Social Media Manager</p>
-              <p class="about-partnerCard__company">Modern Florida Home Staging</p>
-            </div>
-            <div class="about-partnerCard__body">
-              <p>Danielle Ramos is a Managing Member of Modern Florida Home Staging LLC, serving as the team's social media content creator and lead stager. She brings a fresh, modern perspective to every staging project and plays a key role in sharing the company's work with the broader community — connecting clients with inspired design.</p>
-            </div>
-            <div class="about-partnerCard__footer">
-              <a href="https://www.modernfloridahomestaging.com/" class="about-partnerCard__link" target="_blank" rel="noopener noreferrer">Visit Website &rarr;</a>
-            </div>
-          </div>
+        <article class="about-approach__card js-reveal">
+          <span class="about-approach__card-num" aria-hidden="true">02</span>
+          <p>Fast, reliable turnaround times</p>
         </article>
-
-        <article class="about-partnerContact">
-          <h3>Become a Partner</h3>
-          <p>Interested in partnering with us to maximize your clients' benefits and content by working together?</p>
-          <a href="<?php echo esc_url(site_url('/contact')); ?>" class="btn btn--secondary" style="border: 2px solid var(--primary); color: var(--primary);">Become a Partner Now</a>
+        <article class="about-approach__card js-reveal">
+          <span class="about-approach__card-num" aria-hidden="true">03</span>
+          <p>Clear communication from start to finish</p>
+        </article>
+        <article class="about-approach__card js-reveal">
+          <span class="about-approach__card-num" aria-hidden="true">04</span>
+          <p>A focus on both aesthetic and performance</p>
         </article>
       </div>
     </div>
   </section>
 
-  <section class="page-section page-section--secondary">
-    <div class="container about-wrap">
-      <div class="about-cta">
-        <h2><?php echo esc_html($cta_h2); ?></h2>
-        <p><?php echo esc_html($cta_p); ?></p>
-        <a class="btn btn--accent" href="<?php echo esc_url($cta_url); ?>"><?php echo esc_html($cta_label); ?></a>
+  <!-- ============================================================
+       Section 6 — Our Partners (light grey-blue)
+       ============================================================ -->
+  <section class="about-partners" aria-labelledby="about-partners-title">
+    <div class="container">
+
+      <header class="about-partners__header js-reveal">
+        <h2 id="about-partners-title">Our Partners</h2>
+        <p>We collaborate with industry leaders to maximize our clients' benefits.</p>
+      </header>
+
+      <div class="about-partners__grid">
+
+        <article class="about-partner-card js-reveal" aria-label="Partner: Reesa Storely">
+          <div class="about-partner-card__header">
+            <div class="about-partner-card__avatar">
+              <img
+                src="<?php echo esc_url($partner1_photo_url ?: get_template_directory_uri() . '/assets/img/reesa.jpg'); ?>"
+                alt="Reesa Storely, Managing Member and Certified Staging Expert at Modern Florida Home Staging"
+                class="partner-avatar--reesa"
+                loading="lazy">
+            </div>
+            <div class="about-partner-card__info">
+              <h3 class="about-partner-card__name">Reesa Storely</h3>
+              <p class="about-partner-card__role">Managing Member &amp; Certified Staging Expert</p>
+              <p class="about-partner-card__company">Modern Florida Home Staging</p>
+            </div>
+          </div>
+          <p class="about-partner-card__desc">Reesa Storely is a Managing Member of Modern Florida Home Staging LLC and a certified staging expert. With years of experience in interior design and a refined eye for detail, she brings sophistication and elegance to every project — transforming spaces to captivate buyers and maximize property value.</p>
+          <a href="https://www.modernfloridahomestaging.com/" class="about-partner-card__link" target="_blank" rel="noopener noreferrer">Visit Website &rarr;</a>
+        </article>
+
+        <article class="about-partner-card js-reveal" aria-label="Partner: Danielle Ramos">
+          <div class="about-partner-card__header">
+            <div class="about-partner-card__avatar">
+              <img
+                src="<?php echo esc_url($partner2_photo_url ?: get_template_directory_uri() . '/assets/img/danielle.jpg'); ?>"
+                alt="Danielle Ramos, Managing Member and Social Media Manager at Modern Florida Home Staging"
+                class="partner-avatar--danielle"
+                loading="lazy">
+            </div>
+            <div class="about-partner-card__info">
+              <h3 class="about-partner-card__name">Danielle Ramos</h3>
+              <p class="about-partner-card__role">Managing Member &amp; Social Media Manager</p>
+              <p class="about-partner-card__company">Modern Florida Home Staging</p>
+            </div>
+          </div>
+          <p class="about-partner-card__desc">Danielle Ramos is a Managing Member of Modern Florida Home Staging LLC, serving as the team's social media content creator and lead stager. She brings a fresh, modern perspective to every staging project and plays a key role in sharing the company's work with the broader community — connecting clients with inspired design.</p>
+          <a href="https://www.modernfloridahomestaging.com/" class="about-partner-card__link" target="_blank" rel="noopener noreferrer">Visit Website &rarr;</a>
+        </article>
+
+      </div>
+
+      <div class="about-partners__cta js-reveal">
+        <h3>Become a Partner</h3>
+        <p>Interested in partnering with us to maximize your clients' benefits and content by working together?</p>
+        <a href="<?php echo esc_url($contact_url); ?>" class="about-partners__cta-btn">Become a Partner Now</a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Section 7 — Final CTA (dark navy, matches Services page)
+       ============================================================ -->
+  <section class="svc-final-cta" aria-label="Book a service with Showcase Listings Media">
+    <div class="container">
+      <h2>Ready to Elevate Your Listings or Your Brand?</h2>
+      <p>If you're ready to stand out with high-quality real estate photography and video in Jacksonville, FL — we'd love to work with you.</p>
+      <div class="svc-final-cta__btns">
+        <a class="btn svc-final-cta__primary" href="<?php echo esc_url($cta_url); ?>">Book Your Next Shoot</a>
+        <a class="btn svc-final-cta__secondary" href="tel:+19042945809">Call (904) 294-5809</a>
+        <a class="btn svc-final-cta__secondary" href="<?php echo esc_url($contact_url); ?>">Send a Message</a>
       </div>
     </div>
   </section>
+
 </main>
 
 <?php get_footer(); ?>

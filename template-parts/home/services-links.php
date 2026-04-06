@@ -8,13 +8,13 @@ $social_url           = $services_url . '#social-content-packages';
 $branding_url         = $services_url . '#business-branding';
 $drone_url            = $services_url . '#drone-services';
 $addons_url           = $services_url . '#popular-add-ons';
-?>
+$pid = get_option('page_on_front');?>
 
-<section id="services" class="home-services" aria-label="Real Estate Media Services">
+<section id="services" class="home-services page-section--secondary" aria-label="Real Estate Media Services">
   <div class="container">
     <header class="home-services__header">
-      <h1 id="home-services-title">What We Offer</h1>
-      <p>Professional photo, video, and content services — built for agents and businesses who want to stand out.</p>
+      <h1 id="home-services-title"><?php echo esc_html(get_post_meta($pid, 'hp_services_headline', true) ?: "What We Offer"); ?></h1>
+      <p><?php echo esc_html(get_post_meta($pid, 'hp_services_subheadline', true) ?: "Professional photo, video, and content services — built for agents and businesses who want to stand out."); ?></p>
     </header>
 
     <div class="home-services__grid">
@@ -27,8 +27,8 @@ $addons_url           = $services_url . '#popular-add-ons';
             <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="1.8"/>
           </svg>
         </span>
-        <h2>Real Estate Photography</h2>
-        <p>MLS-ready photos that make listings stop the scroll and attract buyers.</p>
+        <h2><?php echo esc_html(get_post_meta($pid, 'hp_service_1_title', true) ?: "Real Estate Photography"); ?></h2>
+        <p><?php echo esc_html(get_post_meta($pid, 'hp_service_1_body', true) ?: "MLS-ready photos that make listings stop the scroll and attract buyers."); ?></p>
       </a>
 
       <!-- Icon: Cinematic Listing Videos -->
@@ -39,8 +39,8 @@ $addons_url           = $services_url . '#popular-add-ons';
             <path d="m17 9 5-2v10l-5-2V9Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
           </svg>
         </span>
-        <h2>Cinematic Listing Videos</h2>
-        <p>Smooth, modern walkthroughs built for MLS and social media.</p>
+        <h2><?php echo esc_html(get_post_meta($pid, 'hp_service_2_title', true) ?: "Cinematic Listing Videos"); ?></h2>
+        <p><?php echo esc_html(get_post_meta($pid, 'hp_service_2_body', true) ?: "Smooth, modern walkthroughs built for MLS and social media."); ?></p>
       </a>
 
       <!-- Icon: Social Media Content -->
@@ -51,8 +51,8 @@ $addons_url           = $services_url . '#popular-add-ons';
             <path d="M10 9.5 15 12l-5 2.5V9.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
           </svg>
         </span>
-        <h2>Social Media Content</h2>
-        <p>Custom Reels and Shorts designed to grow your presence and drive engagement.</p>
+        <h2><?php echo esc_html(get_post_meta($pid, 'hp_service_3_title', true) ?: "Social Media Content"); ?></h2>
+        <p><?php echo esc_html(get_post_meta($pid, 'hp_service_3_body', true) ?: "Custom Reels and Shorts designed to grow your presence and drive engagement."); ?></p>
       </a>
 
       <!-- Icon: Business Branding Content -->
@@ -64,8 +64,8 @@ $addons_url           = $services_url . '#popular-add-ons';
             <path d="M12 12v2M6 14h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
           </svg>
         </span>
-        <h2>Business Branding Content</h2>
-        <p>Professional photo and video that attracts clients and elevates your brand.</p>
+        <h2><?php echo esc_html(get_post_meta($pid, 'hp_service_4_title', true) ?: "Business Branding Content"); ?></h2>
+        <p><?php echo esc_html(get_post_meta($pid, 'hp_service_4_body', true) ?: "Professional photo and video that attracts clients and elevates your brand."); ?></p>
       </a>
 
       <!-- Icon: Drone Photography & Video -->
@@ -80,8 +80,8 @@ $addons_url           = $services_url . '#popular-add-ons';
             <circle cx="20" cy="19" r="2" stroke="currentColor" stroke-width="1.8"/>
           </svg>
         </span>
-        <h2>Drone Photography & Video</h2>
-        <p>Aerial imagery that showcases land, views, and property surroundings.</p>
+        <h2><?php echo esc_html(get_post_meta($pid, 'hp_service_5_title', true) ?: "Drone Photography & Video"); ?></h2>
+        <p><?php echo esc_html(get_post_meta($pid, 'hp_service_5_body', true) ?: "Aerial imagery that showcases land, views, and property surroundings."); ?></p>
       </a>
 
       <!-- Icon: Add-Ons & Memberships -->
@@ -93,14 +93,14 @@ $addons_url           = $services_url . '#popular-add-ons';
             <path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
-        <h2>Add-Ons & Memberships</h2>
-        <p>Zillow walkthroughs, marketing add-ons, and partnership packages available.</p>
+        <h2><?php echo esc_html(get_post_meta($pid, 'hp_service_6_title', true) ?: "Zillow / Marketing Add-Ons"); ?></h2>
+        <p><?php echo esc_html(get_post_meta($pid, 'hp_service_6_body', true) ?: "Zillow walkthroughs, marketing add-ons, and partnership packages available."); ?></p>
       </a>
 
     </div>
 
     <div class="home-services__footer">
-      <p class="home-services__pricing">Pricing starting as low as $145 — no membership required to book.</p>
+      <p class="home-services__pricing"><?php echo esc_html(get_post_meta($pid, 'hp_services_pricing_line', true) ?: "Pricing starting as low as $145 — no membership required to book."); ?></p>
       <a class="btn btn--outline home-services__viewAll" href="<?php echo esc_url($services_url); ?>">View All Services</a>
     </div>
   </div>
