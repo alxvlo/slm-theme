@@ -52,7 +52,6 @@ node --check path/to/file.js
 # Common JS checks
 node --check assets/js/main.js
 node --check assets/js/admin-portfolio-gallery.js
-node --check assets/js/admin-order-delivery.js
 
 # Generic diff hygiene
 git diff --check

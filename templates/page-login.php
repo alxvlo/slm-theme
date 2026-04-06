@@ -163,7 +163,7 @@ if (
 $logo_src = get_template_directory_uri() . '/assets/img/logo-icon.png';
 $logo_abs = get_template_directory() . '/assets/img/logo-icon.png';
 $has_logo = file_exists($logo_abs);
-$side_image_url = get_template_directory_uri() . '/assets/media/photos/05-1-front-exterior-1-3.jpg';
+$side_image_url = get_template_directory_uri() . '/assets/img/login-bg.jpg';
 
 get_header();
 ?>
