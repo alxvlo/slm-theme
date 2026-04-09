@@ -11,6 +11,7 @@ require_once __DIR__ . '/inc/footer-customizer.php';
 require_once __DIR__ . '/inc/page-editable-text.php';
 require_once __DIR__ . '/inc/homepage-meta.php';
 require_once __DIR__ . '/inc/services-meta.php';
+require_once __DIR__ . '/inc/acf-fields.php';
 
 /**
  * Hint compatible cache layers to bypass full-page cache for signed-in users.

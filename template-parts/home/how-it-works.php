@@ -8,41 +8,42 @@ $book_url = $is_logged_in
 $pid = get_option('page_on_front');
 ?>
 
-<section class="home-how page-section--secondary" aria-labelledby="home-how-title">
+<section class="home-how" aria-labelledby="home-how-title">
   <div class="container">
-    <header class="home-how__header">
-      <h2 id="home-how-title"><?php echo esc_html(get_post_meta($pid, 'hp_process_headline', true) ?: "How It Works"); ?></h2>
-      <p><?php echo esc_html(get_post_meta($pid, 'hp_process_subheadline', true) ?: "From booking to delivery — here's exactly what to expect."); ?></p>
+
+    <header class="home-how__header js-reveal">
+      <span class="section-eyebrow"><?php echo esc_html(get_post_meta($pid, 'hp_process_eyebrow', true) ?: 'Simple Process'); ?></span>
+      <h2 id="home-how-title"><?php echo esc_html(get_post_meta($pid, 'hp_process_headline', true) ?: 'How It Works'); ?></h2>
+      <p><?php echo esc_html(get_post_meta($pid, 'hp_process_subheadline', true) ?: 'From booking to delivery — here\'s exactly what to expect.'); ?></p>
     </header>
 
-    <div class="home-how__grid">
-      <article class="home-howCard">
-        <span class="home-howCard__step">1</span>
-        <h3><?php echo esc_html(get_post_meta($pid, 'hp_step_1_title', true) ?: "Book your shoot"); ?></h3>
-        <p><?php echo esc_html(get_post_meta($pid, 'hp_step_1_body', true) ?: "Choose your service, pick a date, and schedule online in minutes."); ?></p>
-      </article>
+    <div class="home-how__steps">
 
-      <article class="home-howCard">
-        <span class="home-howCard__step">2</span>
-        <h3><?php echo esc_html(get_post_meta($pid, 'hp_step_2_title', true) ?: "We capture your content"); ?></h3>
-        <p><?php echo esc_html(get_post_meta($pid, 'hp_step_2_body', true) ?: "Our team arrives prepared to capture your property or brand at its best."); ?></p>
-      </article>
+      <div class="home-how__connector" aria-hidden="true"></div>
 
-      <article class="home-howCard">
-        <span class="home-howCard__step">3</span>
-        <h3><?php echo esc_html(get_post_meta($pid, 'hp_step_3_title', true) ?: "Edits delivered within 24–48 hours"); ?></h3>
-        <p><?php echo esc_html(get_post_meta($pid, 'hp_step_3_body', true) ?: "Your finished assets land in your inbox, ready for MLS, social, and marketing."); ?></p>
-      </article>
+      <?php
+      $steps = [
+        ['num' => '01', 'title_key' => 'hp_step_1_title', 'body_key' => 'hp_step_1_body', 'default_title' => 'Book your shoot',              'default_body' => 'Choose your service, pick a date, and schedule online in minutes.'],
+        ['num' => '02', 'title_key' => 'hp_step_2_title', 'body_key' => 'hp_step_2_body', 'default_title' => 'We capture your content',      'default_body' => 'Our team arrives prepared to capture your property or brand at its best.'],
+        ['num' => '03', 'title_key' => 'hp_step_3_title', 'body_key' => 'hp_step_3_body', 'default_title' => 'Delivered within 24–48 hours',  'default_body' => 'Your finished assets land in your inbox, ready for MLS, social, and marketing.'],
+        ['num' => '04', 'title_key' => 'hp_step_4_title', 'body_key' => 'hp_step_4_body', 'default_title' => 'You post, market, and stand out','default_body' => 'Go live with content that stops the scroll and gets your listing or brand noticed.'],
+      ];
+      foreach ($steps as $step):
+      ?>
+        <article class="home-howStep js-reveal">
+          <div class="home-howStep__num" aria-hidden="true"><?php echo esc_html($step['num']); ?></div>
+          <h3><?php echo esc_html(get_post_meta($pid, $step['title_key'], true) ?: $step['default_title']); ?></h3>
+          <p><?php echo esc_html(get_post_meta($pid, $step['body_key'], true) ?: $step['default_body']); ?></p>
+        </article>
+      <?php endforeach; ?>
 
-      <article class="home-howCard">
-        <span class="home-howCard__step">4</span>
-        <h3><?php echo esc_html(get_post_meta($pid, 'hp_step_4_title', true) ?: "You post, market, and stand out"); ?></h3>
-        <p><?php echo esc_html(get_post_meta($pid, 'hp_step_4_body', true) ?: "Go live with content that stops the scroll and gets your listing or brand noticed."); ?></p>
-      </article>
     </div>
 
-    <div class="home-how__cta">
-      <a class="btn home-heroSlider__btn--primary" href="<?php echo esc_url($book_url); ?>"><?php echo esc_html(get_post_meta($pid, 'hp_process_cta', true) ?: "Book Your Shoot Now"); ?></a>
+    <div class="home-how__cta js-reveal">
+      <a class="btn" href="<?php echo esc_url($book_url); ?>">
+        <?php echo esc_html(get_post_meta($pid, 'hp_process_cta', true) ?: 'Book Your Shoot Now'); ?>
+      </a>
     </div>
+
   </div>
 </section>

@@ -1,0 +1,5 @@
+# MCP configuration with sensitive credentials
+.mcp.json
+
+# Node modules
+node_modules/

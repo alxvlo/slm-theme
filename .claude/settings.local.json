@@ -1,8 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Read",
-      "WebFetch"
+      "Bash(gh api:*)"
     ]
+  },
+  "enabledPlugins": {
+    "superpowers-ecc@superpowers-ecc": true,
+    "code-review@claude-plugins-official": true
   }
 }
