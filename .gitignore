@@ -14,3 +14,6 @@ desktop.ini
 
 # Scratch
 _to_delete/
+
+# Live-site backups (large, not for version control)
+.backups/

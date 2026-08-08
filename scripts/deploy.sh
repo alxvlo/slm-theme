@@ -21,6 +21,7 @@ EXCLUDES=(
   ".agent"
   ".tmp"
   "scripts"
+  "shared"
   "tests"
   "docs"
   "memory-bank"

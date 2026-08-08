@@ -1,8 +1,19 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home2/xbxkhdmy/public_html/wp-content/themes/slm-theme/
+    - export DEPLOYPATH=/home2/xbxkhdmy/public_html/wp-content/themes/slm-theme
     - /bin/mkdir -p $DEPLOYPATH
-    - /bin/cp style.css $DEPLOYPATH/style.css
-    - /bin/cp functions.php $DEPLOYPATH/functions.php
-    - if [ -d assets ]; then /bin/cp -R assets $DEPLOYPATH/; fi
+
+    # Theme root: every template plus the stylesheet header.
+    - /bin/cp -f *.php $DEPLOYPATH/
+    - /bin/cp -f style.css $DEPLOYPATH/
+
+    # Theme directories.
+    - /bin/cp -Rf assets $DEPLOYPATH/
+    - /bin/cp -Rf inc $DEPLOYPATH/
+    - /bin/cp -Rf template-parts $DEPLOYPATH/
+    - /bin/cp -Rf templates $DEPLOYPATH/
+
+    # Strip dev-only files that the globs above pull in. `shared/`, `tests/`,
+    # `docs/`, `memory-bank/` and `scripts/` are never copied in the first place.
+    - /bin/rm -f $DEPLOYPATH/run-tests.php
