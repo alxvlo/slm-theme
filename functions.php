@@ -12,6 +12,10 @@ require_once __DIR__ . '/inc/page-editable-text.php';
 require_once __DIR__ . '/inc/homepage-meta.php';
 require_once __DIR__ . '/inc/services-meta.php';
 require_once __DIR__ . '/inc/acf-fields.php';
+require_once __DIR__ . '/inc/portfolio-items.php';
+require_once __DIR__ . '/inc/maintenance.php';
+require_once __DIR__ . '/inc/customizer-maintenance.php';
+require_once __DIR__ . '/inc/seo.php';
 
 /**
  * Hint compatible cache layers to bypass full-page cache for signed-in users.
@@ -159,6 +163,32 @@ function slm_login_url(): string
 function slm_memberships_url(): string
 {
   return slm_page_url_by_template('page-memberships.php', '/memberships/');
+}
+
+function slm_for_businesses_url(): string
+{
+  return slm_page_url_by_template('page-for-businesses.php', '/for-businesses/');
+}
+
+function slm_social_media_management_url(): string
+{
+  return slm_page_url_by_template('page-social-media-management.php', '/social-media-management/');
+}
+
+function slm_service_area_url(): string
+{
+  return slm_page_url_by_template('page-service-area.php', '/service-area/');
+}
+
+/**
+ * Destination for consult / strategy-call CTAs.
+ *
+ * Distinct from slm_book_url(): a consult is a conversation, a booking is a
+ * shoot. Keep them apart so the two funnels stay measurable.
+ */
+function slm_consult_cta_url(): string
+{
+  return slm_page_url_by_template('page-contact.php', '/contact/');
 }
 
 /**
