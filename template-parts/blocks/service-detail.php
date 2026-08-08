@@ -13,15 +13,14 @@ $args = wp_parse_args($args ?? [], [
   'why_choose' => [],    // array of strings
   'tour_embed' => '',    // URL for 3D tour iframe embed
   'tour_title' => 'Experience the 3D Tour',
-  'book_url' => add_query_arg('mode', 'signup', slm_login_url()),
   'book_label' => 'Create Account to Order',
   'cta_title' => 'Ready to Break the Standard?',
   'cta_text' => 'Build stronger listing presentations, elevate your brand perception, and create marketing momentum with a partner invested in your long-term success.',
 ]);
 
 $is_logged_in = is_user_logged_in();
-$place_order_url = add_query_arg('view', 'place-order', slm_portal_url());
-$primary_url = $is_logged_in ? $place_order_url : (string) $args['book_url'];
+// Review item 2: one canonical booking destination for every service page.
+$primary_url = slm_book_url();
 $primary_label = $is_logged_in ? 'Place Order' : (string) $args['book_label'];
 $admin_gallery_url = '';
 if (current_user_can('manage_options')) {

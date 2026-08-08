@@ -1,0 +1,16 @@
+# MCP configuration with sensitive credentials
+.mcp.json
+
+# Generated / local artifacts
+__pycache__/
+*.py[cod]
+node_modules/
+*.bak
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Scratch
+_to_delete/

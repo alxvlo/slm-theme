@@ -1,8 +1,18 @@
 {
   "permissions": {
     "allow": [
+      "Bash(gh api:*)",
       "Read",
-      "WebFetch"
+      "WebFetch",
+      "Bash(npm ls *)",
+      "Bash(php run-tests.php)",
+      "Bash(echo \"RUNNER_EXIT=$?\")",
+      "Bash(git config *)",
+      "Bash(git diff *)"
     ]
+  },
+  "enabledPlugins": {
+    "superpowers-ecc@superpowers-ecc": true,
+    "code-review@claude-plugins-official": true
   }
 }

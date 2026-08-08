@@ -144,6 +144,31 @@ wp eval 'echo slm_login_url();'
 - Maintain visible `:focus-visible` states and semantic HTML.
 - Avoid new inline CSS/JS unless the file already uses inline blocks and extraction would increase risk.
 
+## Content Consistency Rules
+
+The 2026-08-06 site review found the same copy and URLs duplicated with drift
+across templates. Treat the values below as canonical; do not introduce a
+variant. Full context in `memory-bank/website-review-2026-08-06.md`.
+
+- **Turnaround time:** always "24–48 hours". Never "24-hour standard delivery".
+- **Footer description:** the agents-AND-businesses wording. The business half of
+  the sentence is deliberate — do not trim it back to agents-only.
+- **Portfolio URL:** `/our-portfolio/` is canonical; it matches the page
+  `functions.php` creates. Resolve it with
+  `slm_page_url_by_template('templates/page-portfolio.php', ...)` — never
+  hardcode `home_url('/portfolio/')`.
+- **Booking CTA:** every "Book a Shoot" button must resolve through one shared
+  helper. Do not add another per-template `$cta_url` / `$order_url` / `$book_url`
+  definition; there are already too many and they disagree.
+- **Headings:** exactly one `<h1>` per page. The homepage hero owns it.
+- **SEO metadata:** any new page template must register both
+  `pre_get_document_title` and a `<meta name="description">`. Without them
+  WordPress falls back to the raw slug, which is what put
+  `service-re-photography` into Google's results.
+
+When you touch copy that exists in more than one template, grep for the other
+occurrences and update them in the same change.
+
 ## Editing Strategy for Large Files
 - Make surgical diffs in `inc/aryeo.php`, `inc/subscriptions.php`, and portal templates.
 - Extract a helper before adding another deep conditional branch.

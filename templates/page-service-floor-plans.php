@@ -5,9 +5,13 @@
 if (!defined('ABSPATH'))
   exit;
 
+slm_page_seo(
+  'Real Estate Floor Plans in Jacksonville, FL | Showcase Listings Media',
+  'Measured floor plans for North Florida listings — give buyers layout clarity at a glance. Delivered in 24–48 hours.'
+);
+
 get_header();
 
-$create_account_url = add_query_arg('mode', 'signup', slm_login_url());
 // Retrieve media specifically assigned via this page's Portfolio Admin Settings
 $page_id = get_queried_object_id();
 $photo_ids = $page_id > 0 ? get_post_meta($page_id, 'slm_portfolio_gallery_ids', true) : '';
@@ -56,7 +60,6 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,
-  'book_url' => $create_account_url,
   'book_label' => 'Create Account to Order',
   'cta_title' => 'Add Structure and Clarity to Every Listing',
   'cta_text' => 'Break the standard. Showcase the difference. Use floor plans to deliver complete, confidence-building marketing assets.',

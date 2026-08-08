@@ -124,10 +124,15 @@
   const slider = document.querySelector('[data-home-slider]');
   if (!slider) return;
 
-  const slides = Array.from(slider.querySelectorAll('.home-heroSlider__slide'));
-  const dotsWrap = document.querySelector('[data-home-slider-dots]');
-  const dots = dotsWrap ? Array.from(dotsWrap.querySelectorAll('[data-slide-index]')) : [];
+  // Support both old and new class names
+  const slides = Array.from(slider.querySelectorAll('.home-hero__slide, .home-heroSlider__slide'));
   if (!slides.length) return;
+
+  // Dot nav: supports both old [data-home-slider-dots] and new .home-hero__dots
+  const dotsContainerOld = document.querySelector('[data-home-slider-dots]');
+  const dotsContainerNew = document.querySelector('.home-hero__dots');
+  const oldDots = dotsContainerOld ? Array.from(dotsContainerOld.querySelectorAll('[data-slide-index]')) : [];
+  const newDots = dotsContainerNew ? Array.from(dotsContainerNew.querySelectorAll('[data-slide]')) : [];
 
   let activeIndex = slides.findIndex((slide) => slide.classList.contains('is-active'));
   if (activeIndex < 0) activeIndex = 0;
@@ -138,14 +143,25 @@
 
     slides.forEach((slide, i) => {
       const active = i === next;
+      // Set background image on first show if not yet set
+      const bg = slide.getAttribute('data-bg-image');
+      if (bg && !slide.style.backgroundImage) {
+        slide.style.backgroundImage = `url("${bg}")`;
+      }
       slide.classList.toggle('is-active', active);
       slide.setAttribute('aria-hidden', active ? 'false' : 'true');
     });
 
-    dots.forEach((dot, i) => {
+    oldDots.forEach((dot, i) => {
       const active = i === next;
       dot.classList.toggle('is-active', active);
       dot.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+
+    newDots.forEach((dot, i) => {
+      const active = i === next;
+      dot.classList.toggle('is-active', active);
+      dot.setAttribute('aria-selected', active ? 'true' : 'false');
     });
   }
 
@@ -154,7 +170,7 @@
 
   function start() {
     if (timer || slides.length < 2 || prefersReducedMotion.matches) return;
-    timer = window.setInterval(() => show(activeIndex + 1), 5000);
+    timer = window.setInterval(() => show(activeIndex + 1), 5500);
   }
 
   function stop() {
@@ -163,9 +179,18 @@
     timer = null;
   }
 
-  dots.forEach((dot) => {
+  oldDots.forEach((dot) => {
     dot.addEventListener('click', () => {
       const index = Number(dot.getAttribute('data-slide-index') || '0');
+      show(index);
+      stop();
+      start();
+    });
+  });
+
+  newDots.forEach((dot) => {
+    dot.addEventListener('click', () => {
+      const index = Number(dot.getAttribute('data-slide') || '0');
       show(index);
       stop();
       start();
@@ -688,3 +713,48 @@
       });
   });
 })();
+
+/* ── Scroll-aware sticky header ── */
+(function () {
+  const header = document.querySelector('.site-header');
+  if (!header) return;
+
+  let ticking = false;
+
+  function update() {
+    header.classList.toggle('is-scrolled', window.scrollY > 20);
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', function () {
+    if (!ticking) {
+      window.requestAnimationFrame(update);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  update();
+})();
+
+/* ── Hero scroll-dot animation ── */
+(function () {
+  const dot = document.querySelector('.home-hero__scroll-dot');
+  if (!dot || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  let y = 8;
+  let dir = 1;
+  const bottom = 20;
+  const top = 8;
+  const speed = 0.25;
+
+  let frame;
+  function animate() {
+    y += speed * dir;
+    if (y >= bottom) { y = bottom; dir = -1; }
+    if (y <= top) { y = top; dir = 1; }
+    dot.setAttribute('cy', String(y));
+    frame = requestAnimationFrame(animate);
+  }
+  animate();
+})();
+

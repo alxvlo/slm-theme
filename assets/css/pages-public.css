@@ -199,7 +199,7 @@ main {
   min-height: min(76vh, 720px);
   display: grid;
   align-items: center;
-  background-image: url("../img/Homepage1.jpg");
+  background-image: url("../img/Homepage6.jpg");
   background-size: cover;
   background-position: center;
   color: #ffffff;
@@ -351,7 +351,7 @@ main {
   padding-bottom: clamp(52px, 7vw, 84px);
 }
 
-.home-services__header h1,
+.home-services__header h2,
 .home-how__header h2,
 .home-testimonials__header h2 {
   font-size: clamp(2.25rem, 5vw, 4rem);
@@ -770,6 +770,10 @@ main {
   gap: 18px;
 }
 
+/* Review item 14: the services-page add-ons render as <a>, so the card must
+   not inherit default link styling. These rules previously lived in
+   pages.css; 602d698 rewrote that file as homepage-only, so they belong
+   here with the rest of the inner-page styles. */
 .addon-card {
   display: flex;
   align-items: flex-start;
@@ -778,6 +782,13 @@ main {
   border: var(--card-border);
   border-radius: 16px;
   background: #ffffff;
+  color: inherit;
+  text-decoration: none;
+}
+
+.addon-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .addon-card__icon {
