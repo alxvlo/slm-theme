@@ -62,8 +62,8 @@ $has_footer_menu = has_nav_menu('footer');
     <strong class="footer__brand-name"><?php bloginfo('name'); ?></strong>
     <p class="footer__tagline"><strong>Where Listings Become <span class="slm-noWrap">Showcase-Worthy.</span></strong>
     </p>
-    <p class="footer__desc">Premium real estate media for agents and broker teams that want stronger listing
-      presentation and faster marketing execution.</p>
+    <p class="footer__desc">Premium real estate media for North Florida agents — and the same scroll-stopping
+      content and social media systems for local businesses.</p>
   </div>
 
   <div class="footer__col">

@@ -5,9 +5,13 @@
 if (!defined('ABSPATH'))
   exit;
 
+slm_page_seo(
+  'Aerial Drone Video in Jacksonville, FL | Showcase Listings Media',
+  'Cinematic aerial video for North Florida listings and business marketing — reveal shots, flyovers, and social-ready cuts in 24–48 hours.'
+);
+
 get_header();
 
-$create_account_url = add_query_arg('mode', 'signup', slm_login_url());
 // Retrieve videos specifically assigned via this page's Portfolio Admin Settings
 $page_id = get_queried_object_id();
 $video_ids_raw = $page_id > 0 ? get_post_meta($page_id, 'slm_portfolio_video_ids', true) : '';
@@ -54,7 +58,6 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,
-  'book_url' => $create_account_url,
   'book_label' => 'Create Account to Order',
   'cta_title' => 'Upgrade Your Listing Story With Aerial Motion',
   'cta_text' => 'Break the standard. Showcase the difference. Create your account to launch higher-impact aerial campaigns.',

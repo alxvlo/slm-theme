@@ -5,12 +5,14 @@
 if (!defined('ABSPATH'))
   exit;
 
+slm_page_seo(
+  'Portfolio | Real Estate Photo & Video in North Florida | Showcase Listings Media',
+  'See recent listing photography, cinematic video, drone, and business branding work from Showcase Listings Media across North Florida.'
+);
+
 get_header();
 
-$is_logged_in = is_user_logged_in();
-$cta_url      = $is_logged_in
-  ? add_query_arg('view', 'place-order', slm_portal_url())
-  : add_query_arg('mode', 'signup', slm_login_url());
+$cta_url      = slm_book_url();
 $contact_url  = home_url('/contact/');
 
 $pid       = get_the_ID();

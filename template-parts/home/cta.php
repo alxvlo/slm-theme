@@ -16,9 +16,7 @@ if (!$cta_bg) {
 }
 
 $is_logged_in = is_user_logged_in();
-$cta_url      = $is_logged_in
-  ? add_query_arg('view', 'place-order', slm_portal_url())
-  : add_query_arg('mode', 'signup', slm_login_url());
+$cta_url      = slm_book_url();
 $cta_label    = $is_logged_in ? 'Place Order' : 'Book a Shoot';
 $contact_url  = home_url('/contact/');
 ?>

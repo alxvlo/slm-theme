@@ -40,11 +40,8 @@ foreach ($slide_fields as $field => $fallback) {
 // Remove empty entries
 $slides = array_filter($slides);
 
-$is_logged_in = is_user_logged_in();
-$order_url    = $is_logged_in
-  ? add_query_arg('view', 'place-order', slm_portal_url())
-  : add_query_arg('mode', 'signup', slm_login_url());
-$portfolio_url = home_url('/portfolio/');
+$order_url     = slm_book_url();
+$portfolio_url = slm_page_url_by_template('templates/page-portfolio.php', '/our-portfolio/');
 ?>
 
 <section class="home-hero" aria-label="Featured Property Media">
@@ -88,7 +85,7 @@ $portfolio_url = home_url('/portfolio/');
       <ul class="home-hero__trust js-hero-trust" aria-label="Key trust points">
         <li>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-          <?php echo esc_html(get_post_meta($pid, 'hp_hero_badge_1', true) ?: '24-hour standard delivery'); ?>
+          <?php echo esc_html(get_post_meta($pid, 'hp_hero_badge_1', true) ?: '24–48 hour delivery'); ?>
         </li>
         <li>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
