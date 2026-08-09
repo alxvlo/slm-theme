@@ -18,7 +18,7 @@ get_header();
 $is_logged_in  = is_user_logged_in();
 $book_url      = $is_logged_in
   ? add_query_arg('view', 'place-order', slm_portal_url())
-  : add_query_arg('mode', 'signup', slm_login_url());
+  : slm_booking_cta_url();
 $services_url  = esc_url(home_url('/services/'));
 $contact_email = function_exists('slm_footer_setting')
   ? slm_footer_setting('slm_footer_email', 'Showcaselistingsmedia@gmail.com')

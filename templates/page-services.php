@@ -20,7 +20,7 @@ $pid          = get_the_ID();
 $is_logged_in = is_user_logged_in();
 $cta_url      = $is_logged_in
   ? add_query_arg('view', 'place-order', slm_portal_url())
-  : add_query_arg('mode', 'signup', slm_login_url());
+  : slm_booking_cta_url();
 $contact_url  = home_url('/contact/');
 
 $re_photography_page_url    = slm_service_page_url('re-photography');
@@ -185,125 +185,9 @@ $social_assistance_products = [
   ],
 ];
 
-$monthly_memberships = [
-  [
-    'slug'     => 'monthly-momentum',
-    'name'     => 'Monthly Momentum',
-    'features' => [
-      '45 minute session',
-      '4 edited reels',
-      '1 talking head video',
-    ],
-  ],
-  [
-    'slug'     => 'growth-engine',
-    'name'     => 'Growth Engine',
-    'popular'  => true,
-    'features' => [
-      '1.5 hour session',
-      '10 edited reels',
-      '1 talking head video',
-      '1 horizontal video',
-      '5 branded Instagram posts',
-    ],
-  ],
-  [
-    'slug'     => 'brand-authority',
-    'name'     => 'Brand Authority',
-    'features' => [
-      '2 hour session',
-      '15 edited reels',
-      '2 talking head videos',
-      '1 horizontal video',
-      '8 branded Instagram posts',
-    ],
-  ],
-  [
-    'slug'     => 'elite-presence',
-    'name'     => 'Elite Presence',
-    'features' => [
-      'Half-day session',
-      '25 edited reels',
-      '2 talking head videos',
-      '2 horizontal videos',
-      '10 branded Instagram posts',
-      'Social media post plan',
-    ],
-  ],
-  [
-    'slug'     => 'vip-presence',
-    'name'     => 'VIP Presence',
-    'features' => [
-      'Full-day content shoot',
-      '30 edited reels',
-      '3 talking head videos',
-      '3 horizontal videos',
-      '15 branded Instagram posts',
-      'Social media post plan',
-      'Caption suggestions',
-      'Strategic media analysis',
-    ],
-  ],
-];
-
-$agent_memberships = [
-  [
-    'slug'     => 'agent-starting',
-    'name'     => 'Starting',
-    'features' => [
-      '1 listing shoot',
-      '1 AI video for 1 listing',
-      '1 staged photo or 1 dusk conversion',
-    ],
-  ],
-  [
-    'slug'     => 'agent-growing',
-    'name'     => 'Growing',
-    'popular'  => true,
-    'features' => [
-      '3 listing shoots',
-      '1 AI video for 1 listing',
-      '1 agent intro video',
-      '2 staged or dusk conversions',
-      '3 branded Instagram posts',
-    ],
-  ],
-  [
-    'slug'     => 'agent-established',
-    'name'     => 'Established',
-    'features' => [
-      '5 listing shoots',
-      '2 AI videos for listings',
-      '2 agent intro videos',
-      '1 horizontal video/tour',
-      '5 branded Instagram posts',
-    ],
-  ],
-  [
-    'slug'     => 'agent-elite',
-    'name'     => 'Elite',
-    'features' => [
-      '9 listing shoots',
-      '5 AI videos',
-      '4 agent intro videos',
-      '2 horizontal videos/tours',
-      '10 branded Instagram posts',
-      '4 staged or dusk conversions',
-    ],
-  ],
-  [
-    'slug'     => 'agent-top-tier',
-    'name'     => 'Top-Tier',
-    'features' => [
-      '15 listing shoots',
-      '7 AI videos',
-      '6 agent intro videos',
-      '4 horizontal videos/tours',
-      '15 branded Instagram posts',
-      '8 staged or dusk conversions',
-    ],
-  ],
-];
+$membership_catalog = function_exists('slm_subscriptions_membership_catalog') ? slm_subscriptions_membership_catalog() : ['social' => [], 'agent' => []];
+$monthly_memberships = (array) ($membership_catalog['social'] ?? []);
+$agent_memberships = (array) ($membership_catalog['agent'] ?? []);
 
 $addons = [
   [
@@ -441,7 +325,7 @@ $addons = [
           </span>
           <h3 class="svc-card__title">Brand Content for Businesses in North Florida</h3>
           <p class="svc-card__body">Professional photo and video content that highlights your brand, attracts new clients, and elevates your online presence. Whether you&rsquo;re a local business, service provider, or growing brand &mdash; we create content that makes people take notice.</p>
-          <a class="svc-card__btn" href="<?php echo esc_url($contact_url); ?>" aria-label="Learn more about Business Branding Content">Learn More</a>
+          <a class="svc-card__btn" href="<?php echo esc_url(slm_for_businesses_url()); ?>" aria-label="Learn more about Business Branding Content">Learn More</a>
         </div>
 
         <!-- Card 5: Aerial / Drone -->
@@ -571,12 +455,12 @@ $addons = [
   </section>
 
   <!-- ============================================================
-       Section 4 — Monthly Content Memberships
+       Section 4 — Content Memberships
        ============================================================ -->
   <section class="svc-section svc-section--alt" id="monthly-content-memberships" aria-labelledby="svc-monthly-title">
     <div class="container">
       <header class="svc-section__header">
-        <h2 id="svc-monthly-title">Monthly Memberships</h2>
+        <h2 id="svc-monthly-title">Content Memberships (agents &amp; businesses)</h2>
         <p>Recurring monthly plans for creators, teams, and brands that need consistent media output.</p>
       </header>
 
@@ -601,17 +485,17 @@ $addons = [
           </article>
         <?php endforeach; ?>
       </div>
-      <p class="svc-section__note">Monthly memberships require a minimum 3-month commitment.</p>
+      <p class="svc-section__note">Content memberships require a minimum 3-month commitment.</p>
     </div>
   </section>
 
   <!-- ============================================================
-       Section 5 — Listings-Agent Memberships
+       Section 5 — Listing Shoot Memberships
        ============================================================ -->
   <section class="svc-section" id="listings-agent-memberships" aria-labelledby="svc-agent-title">
     <div class="container">
       <header class="svc-section__header">
-        <h2 id="svc-agent-title">Listings-Agent Memberships</h2>
+        <h2 id="svc-agent-title">Listing Shoot Memberships (agents)</h2>
         <p>Membership tiers for agents combining shoots, AI edits, videos, tours, and branded social assets — all in one monthly plan.</p>
       </header>
 
@@ -636,7 +520,7 @@ $addons = [
           </article>
         <?php endforeach; ?>
       </div>
-      <p class="svc-section__note">Listings-agent memberships run on a 12-month agreement.</p>
+      <p class="svc-section__note">Listing shoot memberships run on a 12-month agreement.</p>
     </div>
   </section>
 

@@ -7,11 +7,14 @@ require_once __DIR__ . '/inc/subscriptions.php';
 require_once __DIR__ . '/inc/member-credits.php';
 require_once __DIR__ . '/inc/testimonials.php';
 require_once __DIR__ . '/inc/portfolio-gallery.php';
+require_once __DIR__ . '/inc/portfolio-items.php';
 require_once __DIR__ . '/inc/footer-customizer.php';
 require_once __DIR__ . '/inc/page-editable-text.php';
 require_once __DIR__ . '/inc/homepage-meta.php';
 require_once __DIR__ . '/inc/services-meta.php';
-require_once __DIR__ . '/inc/acf-fields.php';
+require_once __DIR__ . '/inc/maintenance.php';
+require_once __DIR__ . '/inc/customizer-maintenance.php';
+require_once __DIR__ . '/inc/seo.php';
 
 /**
  * Hint compatible cache layers to bypass full-page cache for signed-in users.
@@ -161,6 +164,42 @@ function slm_memberships_url(): string
   return slm_page_url_by_template('page-memberships.php', '/memberships/');
 }
 
+function slm_for_businesses_url(): string
+{
+  return slm_page_url_by_template('templates/page-for-businesses.php', '/for-businesses/');
+}
+
+function slm_social_media_management_url(): string
+{
+  return slm_page_url_by_template('templates/page-social-media-management.php', '/social-media-management/');
+}
+
+function slm_service_area_url(): string
+{
+  return slm_page_url_by_template('templates/page-service-area.php', '/service-area/');
+}
+
+/**
+ * Destination for public booking CTAs ("Book a Shoot" and friends).
+ *
+ * Resolves to the Aryeo hosted order form. Falls back to the contact page when
+ * the slm_aryeo_order_form_url option is unset, so a booking CTA never renders
+ * an empty href.
+ */
+function slm_booking_cta_url(): string
+{
+  $url = function_exists('slm_aryeo_public_order_form_url') ? slm_aryeo_public_order_form_url() : '';
+  return $url !== '' ? $url : slm_consult_cta_url();
+}
+
+/**
+ * Destination for consult / strategy-call CTAs.
+ */
+function slm_consult_cta_url(): string
+{
+  return slm_page_url_by_template('templates/page-contact.php', '/contact/');
+}
+
 /**
  * Primary role-aware CTA used across shared templates.
  */
@@ -187,9 +226,9 @@ function slm_primary_cta_for_user($user = null): array
   }
 
   return [
-    'url' => add_query_arg('mode', 'signup', slm_login_url()),
-    'label' => 'Create Account',
-    'is_order' => false,
+    'url' => slm_booking_cta_url(),
+    'label' => 'Book a Shoot',
+    'is_order' => true,
   ];
 }
 
@@ -742,6 +781,95 @@ add_action('init', function () {
   set_transient('slm_portfolio_page_exists', '1', DAY_IN_SECONDS);
 }, 7);
 
+add_action('init', function () {
+  if (wp_installing()) {
+    return;
+  }
+
+  if (get_transient('slm_for_businesses_page_exists')) {
+    return;
+  }
+
+  $for_businesses = get_page_by_path('for-businesses') ?: get_page_by_title('For Businesses');
+  if (!$for_businesses) {
+    $for_businesses_id = wp_insert_post([
+      'post_title' => 'For Businesses',
+      'post_status' => 'publish',
+      'post_type' => 'page',
+      'post_name' => 'for-businesses',
+    ]);
+    if ($for_businesses_id && !is_wp_error($for_businesses_id)) {
+      update_post_meta((int) $for_businesses_id, '_wp_page_template', 'templates/page-for-businesses.php');
+      update_post_meta((int) $for_businesses_id, 'slm_meta_title', 'Business Photo, Video & Social Media | Jacksonville, FL');
+      update_post_meta((int) $for_businesses_id, 'slm_meta_description', 'Brand content & social media management for Jacksonville & North Florida businesses — photo, video, drone & done-for-you social. Book a free consult.');
+    }
+  } else {
+    update_post_meta((int) $for_businesses->ID, '_wp_page_template', 'templates/page-for-businesses.php');
+    update_post_meta((int) $for_businesses->ID, 'slm_meta_title', 'Business Photo, Video & Social Media | Jacksonville, FL');
+    update_post_meta((int) $for_businesses->ID, 'slm_meta_description', 'Brand content & social media management for Jacksonville & North Florida businesses — photo, video, drone & done-for-you social. Book a free consult.');
+  }
+
+  set_transient('slm_for_businesses_page_exists', '1', DAY_IN_SECONDS);
+}, 8);
+
+add_action('init', function () {
+  if (wp_installing()) {
+    return;
+  }
+
+  if (get_transient('slm_social_media_management_page_exists')) {
+    return;
+  }
+
+  $sm_management = get_page_by_path('social-media-management') ?: get_page_by_title('Social Media Management');
+  if (!$sm_management) {
+    $sm_management_id = wp_insert_post([
+      'post_title' => 'Social Media Management',
+      'post_status' => 'publish',
+      'post_type' => 'page',
+      'post_name' => 'social-media-management',
+    ]);
+    if ($sm_management_id && !is_wp_error($sm_management_id)) {
+      update_post_meta((int) $sm_management_id, '_wp_page_template', 'templates/page-social-media-management.php');
+      update_post_meta((int) $sm_management_id, 'slm_meta_title', 'Social Media Management | Jacksonville, FL');
+      update_post_meta((int) $sm_management_id, 'slm_meta_description', 'Done-for-you social media management for Jacksonville businesses and real estate agents — content creation, posting, DM lead capture, and monthly reporting.');
+    }
+  } else {
+    update_post_meta((int) $sm_management->ID, '_wp_page_template', 'templates/page-social-media-management.php');
+    update_post_meta((int) $sm_management->ID, 'slm_meta_title', 'Social Media Management | Jacksonville, FL');
+    update_post_meta((int) $sm_management->ID, 'slm_meta_description', 'Done-for-you social media management for Jacksonville businesses and real estate agents — content creation, posting, DM lead capture, and monthly reporting.');
+  }
+
+  set_transient('slm_social_media_management_page_exists', '1', DAY_IN_SECONDS);
+}, 9);
+
+add_action('init', function () {
+  if (wp_installing()) {
+    return;
+  }
+
+  if (get_transient('slm_service_area_page_exists')) {
+    return;
+  }
+
+  $service_area = get_page_by_path('service-area') ?: get_page_by_title('Service Area');
+  if (!$service_area) {
+    $service_area_id = wp_insert_post([
+      'post_title' => 'Service Area',
+      'post_status' => 'publish',
+      'post_type' => 'page',
+      'post_name' => 'service-area',
+    ]);
+    if ($service_area_id && !is_wp_error($service_area_id)) {
+      update_post_meta((int) $service_area_id, '_wp_page_template', 'templates/page-service-area.php');
+    }
+  } else {
+    update_post_meta((int) $service_area->ID, '_wp_page_template', 'templates/page-service-area.php');
+  }
+
+  set_transient('slm_service_area_page_exists', '1', DAY_IN_SECONDS);
+}, 10);
+
 add_action('after_setup_theme', function () {
   add_theme_support('title-tag');
   add_theme_support('post-thumbnails');
@@ -784,6 +912,13 @@ add_action('wp_enqueue_scripts', function () {
   wp_enqueue_style('slm-components', $uri . $components, ['slm-base'], slm_asset_ver($components));
   wp_enqueue_style('slm-nav', $uri . $nav, ['slm-components'], slm_asset_ver($nav));
   wp_enqueue_style('slm-pages', $uri . $pages, ['slm-nav'], slm_asset_ver($pages));
+
+  if (is_page_template('templates/page-portal.php') || is_page_template('templates/admin-portal.php')) {
+    $portal_css = '/assets/css/pages-portal.css';
+    $admin_css  = '/assets/css/pages-admin.css';
+    wp_enqueue_style('slm-portal', $uri . $portal_css, ['slm-pages'], slm_asset_ver($portal_css));
+    wp_enqueue_style('slm-admin',  $uri . $admin_css,  ['slm-portal'], slm_asset_ver($admin_css));
+  }
 
   $main = '/assets/js/main.js';
   $hero_anim = '/assets/js/hero-animations.js';
@@ -971,6 +1106,62 @@ add_action('after_switch_theme', function () {
     }
   } else {
     update_post_meta((int) $portfolio->ID, '_wp_page_template', 'templates/page-portfolio.php');
+  }
+
+  // For Businesses landing page.
+  $for_businesses = get_page_by_path('for-businesses') ?: get_page_by_title('For Businesses');
+  if (!$for_businesses) {
+    $for_businesses_id = wp_insert_post([
+      'post_title' => 'For Businesses',
+      'post_status' => 'publish',
+      'post_type' => 'page',
+      'post_name' => 'for-businesses',
+    ]);
+    if ($for_businesses_id && !is_wp_error($for_businesses_id)) {
+      update_post_meta((int) $for_businesses_id, '_wp_page_template', 'templates/page-for-businesses.php');
+      update_post_meta((int) $for_businesses_id, 'slm_meta_title', 'Business Photo, Video & Social Media | Jacksonville, FL');
+      update_post_meta((int) $for_businesses_id, 'slm_meta_description', 'Brand content & social media management for Jacksonville & North Florida businesses — photo, video, drone & done-for-you social. Book a free consult.');
+    }
+  } else {
+    update_post_meta((int) $for_businesses->ID, '_wp_page_template', 'templates/page-for-businesses.php');
+    update_post_meta((int) $for_businesses->ID, 'slm_meta_title', 'Business Photo, Video & Social Media | Jacksonville, FL');
+    update_post_meta((int) $for_businesses->ID, 'slm_meta_description', 'Brand content & social media management for Jacksonville & North Florida businesses — photo, video, drone & done-for-you social. Book a free consult.');
+  }
+
+  // Social Media Management landing page.
+  $sm_management = get_page_by_path('social-media-management') ?: get_page_by_title('Social Media Management');
+  if (!$sm_management) {
+    $sm_management_id = wp_insert_post([
+      'post_title' => 'Social Media Management',
+      'post_status' => 'publish',
+      'post_type' => 'page',
+      'post_name' => 'social-media-management',
+    ]);
+    if ($sm_management_id && !is_wp_error($sm_management_id)) {
+      update_post_meta((int) $sm_management_id, '_wp_page_template', 'templates/page-social-media-management.php');
+      update_post_meta((int) $sm_management_id, 'slm_meta_title', 'Social Media Management | Jacksonville, FL');
+      update_post_meta((int) $sm_management_id, 'slm_meta_description', 'Done-for-you social media management for Jacksonville businesses and real estate agents — content creation, posting, DM lead capture, and monthly reporting.');
+    }
+  } else {
+    update_post_meta((int) $sm_management->ID, '_wp_page_template', 'templates/page-social-media-management.php');
+    update_post_meta((int) $sm_management->ID, 'slm_meta_title', 'Social Media Management | Jacksonville, FL');
+    update_post_meta((int) $sm_management->ID, 'slm_meta_description', 'Done-for-you social media management for Jacksonville businesses and real estate agents — content creation, posting, DM lead capture, and monthly reporting.');
+  }
+
+  // Service Area landing page.
+  $service_area = get_page_by_path('service-area') ?: get_page_by_title('Service Area');
+  if (!$service_area) {
+    $service_area_id = wp_insert_post([
+      'post_title' => 'Service Area',
+      'post_status' => 'publish',
+      'post_type' => 'page',
+      'post_name' => 'service-area',
+    ]);
+    if ($service_area_id && !is_wp_error($service_area_id)) {
+      update_post_meta((int) $service_area_id, '_wp_page_template', 'templates/page-service-area.php');
+    }
+  } else {
+    update_post_meta((int) $service_area->ID, '_wp_page_template', 'templates/page-service-area.php');
   }
 
   if (get_option('page_on_front'))

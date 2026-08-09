@@ -13,8 +13,8 @@ $args = wp_parse_args($args ?? [], [
   'why_choose' => [],    // array of strings
   'tour_embed' => '',    // URL for 3D tour iframe embed
   'tour_title' => 'Experience the 3D Tour',
-  'book_url' => add_query_arg('mode', 'signup', slm_login_url()),
-  'book_label' => 'Create Account to Order',
+  'book_url' => slm_booking_cta_url(),
+  'book_label' => 'Book a Shoot',
   'cta_title' => 'Ready to Break the Standard?',
   'cta_text' => 'Build stronger listing presentations, elevate your brand perception, and create marketing momentum with a partner invested in your long-term success.',
 ]);
@@ -38,6 +38,13 @@ if (current_user_can('manage_options')) {
   }
 }
 $has_hero_media = !empty($args['hero_image']);
+$hero_src = (string) $args['hero_image'];
+$hero_is_video = $has_hero_media && in_array(
+  strtolower((string) pathinfo((string) parse_url($hero_src, PHP_URL_PATH), PATHINFO_EXTENSION)),
+  ['mp4', 'webm', 'mov'],
+  true
+);
+$hero_is_image = $has_hero_media && !$hero_is_video;
 $has_description_media = !empty($args['description_image']);
 $gallery_items = array_values(array_filter((array) $args['gallery'], static function ($item): bool {
   return is_string($item) && trim($item) !== '';
@@ -63,27 +70,25 @@ $render_media = static function (string $src): void {
 ?>
 
 <main class="service-page">
-  <section class="service-hero">
+  <section class="service-hero<?php
+    echo $hero_is_image ? ' service-hero--has-image' : '';
+    echo $hero_is_video ? ' service-hero--has-video' : '';
+  ?>"<?php if ($hero_is_image): ?> style="background-image:url('<?php echo esc_url($hero_src); ?>')"<?php endif; ?>>
+    <?php if ($hero_is_video): ?>
+      <video class="service-hero__bg-video" src="<?php echo esc_url($hero_src); ?>" autoplay loop muted playsinline preload="metadata" aria-hidden="true"></video>
+    <?php endif; ?>
     <div class="container">
-      <div class="service-hero__grid<?php echo !$has_hero_media ? ' service-hero__grid--single' : ''; ?>">
-        <div class="service-hero__copy">
-          <h1><?php echo esc_html($args['title']); ?></h1>
-          <p><?php echo esc_html($args['subtitle']); ?></p>
-          <p class="service-hero__actions">
-            <a class="btn btn--accent"
-              href="<?php echo esc_url($primary_url); ?>"><?php echo esc_html($primary_label); ?></a>
-            <?php if ($admin_gallery_url !== ''): ?>
-              <a class="btn btn--secondary"
-                href="<?php echo esc_url($admin_gallery_url); ?>">Edit This Service Gallery</a>
-            <?php endif; ?>
-          </p>
-        </div>
-
-        <?php if ($has_hero_media): ?>
-          <div class="service-mediaCard">
-            <?php $render_media((string) $args['hero_image']); ?>
-          </div>
-        <?php endif; ?>
+      <div class="service-hero__copy">
+        <h1><?php echo esc_html($args['title']); ?></h1>
+        <p><?php echo esc_html($args['subtitle']); ?></p>
+        <p class="service-hero__actions">
+          <a class="btn btn--accent"
+            href="<?php echo esc_url($primary_url); ?>"><?php echo esc_html($primary_label); ?></a>
+          <?php if ($admin_gallery_url !== ''): ?>
+            <a class="btn btn--secondary"
+              href="<?php echo esc_url($admin_gallery_url); ?>">Edit This Service Gallery</a>
+          <?php endif; ?>
+        </p>
       </div>
     </div>
   </section>

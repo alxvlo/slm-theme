@@ -2938,6 +2938,82 @@ function slm_subscriptions_plan_feature_highlights(string $plan_slug): array {
   return array_values(array_filter(array_map('strval', $features), static function ($v) { return trim((string) $v) !== ''; }));
 }
 
+/**
+ * Canonical membership catalog consumed by the portal membership shop and the
+ * public memberships/services pages. Feature copy is not duplicated here - it
+ * comes from slm_subscriptions_plan_feature_highlights().
+ */
+function slm_subscriptions_membership_catalog(): array {
+  $families = [
+    'social' => [
+      'monthly-momentum' => ['name' => 'Monthly Momentum', 'price' => 349],
+      'growth-engine'    => ['name' => 'Growth Engine',    'price' => 649],
+      'brand-authority'  => ['name' => 'Brand Authority',  'price' => 949],
+      'elite-presence'   => ['name' => 'Elite Presence',   'price' => 1299],
+      'vip-presence'     => ['name' => 'VIP Presence',     'price' => 1599],
+    ],
+    'agent' => [
+      'agent-starting'    => ['name' => 'Starting',    'price' => 249],
+      'agent-growing'     => ['name' => 'Growing',     'price' => 525],
+      'agent-established' => ['name' => 'Established', 'price' => 999],
+      'agent-elite'       => ['name' => 'Elite',       'price' => 1599],
+      'agent-top-tier'    => ['name' => 'Top-Tier',    'price' => 1999],
+    ],
+  ];
+
+  $catalog = ['social' => [], 'agent' => []];
+  foreach ($families as $family => $plans) {
+    foreach ($plans as $slug => $info) {
+      $slug = sanitize_key((string) $slug);
+      if ($slug === '') continue;
+      $row = [
+        'slug' => $slug,
+        'name' => (string) ($info['name'] ?? $slug),
+        'price' => (int) ($info['price'] ?? 0),
+        'features' => slm_subscriptions_plan_feature_highlights($slug),
+      ];
+      if (!empty($info['popular'])) $row['popular'] = true;
+      $catalog[$family][] = $row;
+    }
+  }
+  return $catalog;
+}
+
+/**
+ * Formats a whole-dollar monthly membership price for display ("$1,299").
+ */
+function slm_subscriptions_format_price(int $amount): string {
+  return '$' . number_format($amount);
+}
+
+/**
+ * Rank glyph for a membership ladder card: five stacked bars, filled up to the
+ * card's zero-based position in its family.
+ */
+function slm_subscriptions_ladder_rank(int $index): void {
+  $total = 5;
+  $filled = max(1, min($total, $index + 1));
+  echo '<span class="pkg-ladder__rank" role="img" aria-label="' . esc_attr(sprintf('Tier %d of %d', $filled, $total)) . '">';
+  for ($i = 1; $i <= $total; $i++) {
+    echo '<i class="pkg-ladder__bar' . ($i <= $filled ? ' is-on' : '') . '" aria-hidden="true"></i>';
+  }
+  echo '</span>';
+}
+
+/**
+ * Rail header shown only when a ladder collapses to a horizontal rail (<=1200px).
+ */
+function slm_subscriptions_ladder_rail_head(): void {
+  $chevron = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false"><path d="%s" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  echo '<div class="pkg-ladder__railHead">';
+  echo '<span class="pkg-ladder__hint">Scroll the ladder</span>';
+  echo '<span class="pkg-ladder__nav">';
+  echo '<button type="button" class="pkg-ladder__navBtn" data-ladder-nav="prev" aria-label="Previous tiers">' . sprintf($chevron, 'M15 6l-6 6 6 6') . '</button>';
+  echo '<button type="button" class="pkg-ladder__navBtn" data-ladder-nav="next" aria-label="Next tiers">' . sprintf($chevron, 'M9 6l6 6-6 6') . '</button>';
+  echo '</span>';
+  echo '</div>';
+}
+
 function slm_get_user_subscription_summary(int $user_id): array {
   $keys = slm_subscriptions_meta_keys();
   $plan_slug = sanitize_key((string) get_user_meta($user_id, $keys['plan'], true));

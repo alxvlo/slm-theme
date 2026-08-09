@@ -59,6 +59,11 @@ $placeholder = get_template_directory_uri() . '/assets/img/placeholder.jpg';
             $img = get_the_post_thumbnail_url(get_the_ID(), 'large');
             if (!$img)
               $img = $placeholder;
+            $thumb_id = get_post_thumbnail_id(get_the_ID());
+            $img_alt = $thumb_id ? trim((string) get_post_meta($thumb_id, '_wp_attachment_image_alt', true)) : '';
+            if ($img_alt === '') {
+              $img_alt = get_the_title();
+            }
             $excerpt = get_the_excerpt();
             if ($excerpt === '') {
               $excerpt = wp_trim_words(wp_strip_all_tags((string) get_the_content()), 22);
@@ -66,7 +71,7 @@ $placeholder = get_template_directory_uri() . '/assets/img/placeholder.jpg';
             ?>
             <article class="post-card post-card--portfolio">
               <a class="post-card__img post-card__img--portfolio" href="<?php the_permalink(); ?>">
-                <img src="<?php echo esc_url($img); ?>" alt="<?php echo esc_attr(get_the_title()); ?>" loading="lazy"
+                <img src="<?php echo esc_url($img); ?>" alt="<?php echo esc_attr($img_alt); ?>" loading="lazy"
                   decoding="async">
               </a>
               <div class="post-card__body">

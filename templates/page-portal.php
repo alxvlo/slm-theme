@@ -58,27 +58,9 @@ $portal_member_state_issue_messages = is_array($portal_member_state_issues['mess
 $subscription_notice = isset($_GET['subscription']) ? sanitize_key((string) $_GET['subscription']) : '';
 $billing_notice = isset($_GET['billing']) ? sanitize_key((string) $_GET['billing']) : '';
 
-$portal_social_memberships = [
-  ['slug' => 'monthly-momentum', 'name' => 'Monthly Momentum', 'features' => ['45 minute session', '4 edited reels', '1 talking head video']],
-  ['slug' => 'growth-engine', 'name' => 'Growth Engine', 'popular' => true, 'features' => ['1.5 hour session', '10 edited reels', '1 talking head video', '1 horizontal video', '5 branded Instagram posts']],
-  ['slug' => 'brand-authority', 'name' => 'Brand Authority', 'features' => ['2 hour session', '15 edited reels', '2 talking head videos', '1 horizontal video', '8 branded Instagram posts']],
-  ['slug' => 'elite-presence', 'name' => 'Elite Presence', 'features' => ['Half-day session', '25 edited reels', '2 talking head videos', '2 horizontal videos', '10 branded Instagram posts', 'Social media post plan']],
-  ['slug' => 'vip-presence', 'name' => 'VIP Presence', 'features' => ['Full-day content shoot', '30 edited reels', '3 talking head videos', '3 horizontal videos', '15 branded Instagram posts', 'Social media post plan', 'Caption Suggestions', 'Strategic media analysis']],
-];
-$portal_agent_memberships = [
-  ['slug' => 'agent-starting', 'name' => 'Starting', 'features' => ['1 listing shoot', '1 AI video for 1 listing', '1 staged photo or 1 dusk conversion']],
-  ['slug' => 'agent-growing', 'name' => 'Growing', 'popular' => true, 'features' => ['3 listing shoots', '1 AI video for 1 listing', '1 agent intro video', '2 staged or dusk conversions', '3 branded Instagram posts']],
-  ['slug' => 'agent-established', 'name' => 'Established', 'features' => ['5 listing shoots', '2 AI videos for listings', '2 agent intro videos', '1 horizontal video/tour', '5 branded Instagram posts']],
-  ['slug' => 'agent-elite', 'name' => 'Elite', 'features' => ['9 listing shoots', '5 AI videos', '4 agent intro videos', '2 horizontal videos/tours', '10 branded Instagram posts', '4 staged or dusk conversions']],
-  ['slug' => 'agent-top-tier', 'name' => 'Top-Tier', 'features' => ['15 listing shoots', '7 AI videos', '6 agent intro videos', '4 horizontal videos/tours', '15 branded Instagram posts', '8 staged or dusk conversions']],
-];
-$portal_membership_features_by_slug = [];
-foreach (array_merge($portal_social_memberships, $portal_agent_memberships) as $membership_pkg) {
-  if (!is_array($membership_pkg)) continue;
-  $pkg_slug = sanitize_key((string) ($membership_pkg['slug'] ?? ''));
-  if ($pkg_slug === '') continue;
-  $portal_membership_features_by_slug[$pkg_slug] = is_array($membership_pkg['features'] ?? null) ? array_values((array) $membership_pkg['features']) : [];
-}
+$portal_membership_catalog = function_exists('slm_subscriptions_membership_catalog') ? slm_subscriptions_membership_catalog() : ['social' => [], 'agent' => []];
+$portal_social_memberships = (array) ($portal_membership_catalog['social'] ?? []);
+$portal_agent_memberships = (array) ($portal_membership_catalog['agent'] ?? []);
 $portal_social_term_options = [
   ['code' => 'm2m', 'label' => 'Month-to-Month'],
   ['code' => '6m', 'label' => '6-Month Agreement'],
@@ -705,8 +687,10 @@ get_header();
                   <span class="muted">Term selected above</span>
                 </div>
                 <div style="padding:0 16px 16px;">
-                  <div class="pkg-grid">
-                    <?php foreach ($portal_social_memberships as $pkg): ?>
+                  <div class="pkg-ladderWrap">
+                  <?php if (function_exists('slm_subscriptions_ladder_rail_head')) slm_subscriptions_ladder_rail_head(); ?>
+                  <div class="pkg-ladder" id="ladder-content" data-ladder>
+                    <?php foreach ($portal_social_memberships as $pkg_index => $pkg): ?>
                       <?php
                         $plan_slug = sanitize_key((string) ($pkg['slug'] ?? ''));
                         $cta = $membership_shop_card_cta($pkg, 'm2m');
@@ -717,10 +701,16 @@ get_header();
                         $button_enabled = !empty($cta['enabled']) && $has_any_checkout_term;
                         $is_current = $current_member_plan_slug === $plan_slug && !empty($subscription_summary['is_active']);
                       ?>
-                      <div class="pkg-card<?php echo !empty($pkg['popular']) ? ' pkg-card--popular' : ''; ?><?php echo $is_current ? ' membership-shop__card--current' : ''; ?>">
+                      <div class="pkg-card pkg-card--ladder<?php echo !empty($pkg['popular']) ? ' pkg-card--popular' : ''; ?><?php echo $is_current ? ' membership-shop__card--current' : ''; ?>">
                         <?php if (!empty($pkg['popular'])): ?><div class="pkg-badge">Most Popular</div><?php endif; ?>
                         <?php if ($is_current): ?><div class="membership-shop__statusTag">Current Plan</div><?php endif; ?>
                         <h3 class="pkg-title"><?php echo esc_html((string) ($pkg['name'] ?? '')); ?></h3>
+                        <?php slm_subscriptions_ladder_rank((int) $pkg_index); ?>
+                        <p class="pkg-ladder__price">
+                          <span class="pkg-ladder__amount"><?php echo esc_html(slm_subscriptions_format_price((int) ($pkg['price'] ?? 0))); ?></span>
+                          <span class="pkg-ladder__per">/ mo</span>
+                        </p>
+                        <p class="sub membership-shop__termPreview" data-term-preview="<?php echo esc_attr((string) ($pkg['slug'] ?? '')); ?>" style="margin:10px 0 12px; font-size:.9rem;">Agreement: Month-to-Month</p>
                         <ul class="pkg-features">
                           <?php foreach ((array) ($pkg['features'] ?? []) as $feature): ?>
                             <li>
@@ -729,17 +719,16 @@ get_header();
                             </li>
                           <?php endforeach; ?>
                         </ul>
-                        <p class="sub membership-shop__termPreview" data-term-preview="<?php echo esc_attr((string) ($pkg['slug'] ?? '')); ?>" style="margin:10px 0 12px; font-size:.9rem;">Agreement: Month-to-Month</p>
                         <?php if ($portal_member_exact_active): ?>
                           <?php if ($is_current): ?>
-                            <button type="button" class="btn btn--secondary" disabled aria-disabled="true">Current Plan</button>
+                            <button type="button" class="btn btn--accent pkg-cta" disabled aria-disabled="true">Current Plan</button>
                           <?php else: ?>
-                            <a class="btn btn--secondary" href="<?php echo esc_url(add_query_arg(['view' => 'membership-shop', 'request_plan' => $plan_slug], $portal_url)); ?>#membership-change-request-form"><?php echo esc_html($membership_change_request_button_label($plan_slug)); ?></a>
+                            <a class="btn btn--accent pkg-cta" href="<?php echo esc_url(add_query_arg(['view' => 'membership-shop', 'request_plan' => $plan_slug], $portal_url)); ?>#membership-change-request-form"><?php echo esc_html($membership_change_request_button_label($plan_slug)); ?></a>
                           <?php endif; ?>
                         <?php else: ?>
                           <button
                             type="button"
-                            class="btn btn--secondary membership-shop__select"
+                            class="btn btn--accent pkg-cta membership-shop__select"
                             data-plan-name="<?php echo esc_attr((string) ($pkg['name'] ?? '')); ?>"
                             data-plan-slug="<?php echo esc_attr($plan_slug); ?>"
                             data-plan-family="social"
@@ -753,21 +742,25 @@ get_header();
                           >
                             Select Plan
                           </button>
+                          <p class="membership-shop__reason" data-plan-reason hidden></p>
                         <?php endif; ?>
                       </div>
                     <?php endforeach; ?>
+                  </div>
                   </div>
                 </div>
               </section>
 
               <section class="portal-tableCard">
                 <div class="portal-tableCard__head">
-                  <h2>Listings-Agent Memberships</h2>
+                  <h2>Listing Shoot Memberships (agents)</h2>
                   <span class="muted">Fixed 12-Month Agreement</span>
                 </div>
                 <div style="padding:0 16px 16px;">
-                  <div class="pkg-grid">
-                    <?php foreach ($portal_agent_memberships as $pkg): ?>
+                  <div class="pkg-ladderWrap">
+                  <?php if (function_exists('slm_subscriptions_ladder_rail_head')) slm_subscriptions_ladder_rail_head(); ?>
+                  <div class="pkg-ladder" id="ladder-agent" data-ladder>
+                    <?php foreach ($portal_agent_memberships as $pkg_index => $pkg): ?>
                       <?php
                         $plan_slug = sanitize_key((string) ($pkg['slug'] ?? ''));
                         $cta = $membership_shop_card_cta($pkg, '12m');
@@ -778,10 +771,16 @@ get_header();
                         $button_enabled = !empty($cta['enabled']) && $has_any_checkout_term;
                         $is_current = $current_member_plan_slug === $plan_slug && !empty($subscription_summary['is_active']);
                       ?>
-                      <div class="pkg-card<?php echo !empty($pkg['popular']) ? ' pkg-card--popular' : ''; ?><?php echo $is_current ? ' membership-shop__card--current' : ''; ?>">
+                      <div class="pkg-card pkg-card--ladder<?php echo !empty($pkg['popular']) ? ' pkg-card--popular' : ''; ?><?php echo $is_current ? ' membership-shop__card--current' : ''; ?>">
                         <?php if (!empty($pkg['popular'])): ?><div class="pkg-badge">Most Popular</div><?php endif; ?>
                         <?php if ($is_current): ?><div class="membership-shop__statusTag">Current Plan</div><?php endif; ?>
                         <h3 class="pkg-title"><?php echo esc_html((string) ($pkg['name'] ?? '')); ?></h3>
+                        <?php slm_subscriptions_ladder_rank((int) $pkg_index); ?>
+                        <p class="pkg-ladder__price">
+                          <span class="pkg-ladder__amount"><?php echo esc_html(slm_subscriptions_format_price((int) ($pkg['price'] ?? 0))); ?></span>
+                          <span class="pkg-ladder__per">/ mo</span>
+                        </p>
+                        <p class="sub" style="margin:10px 0 12px; font-size:.9rem;">Agreement: 12-Month</p>
                         <ul class="pkg-features">
                           <?php foreach ((array) ($pkg['features'] ?? []) as $feature): ?>
                             <li>
@@ -790,17 +789,16 @@ get_header();
                             </li>
                           <?php endforeach; ?>
                         </ul>
-                        <p class="sub" style="margin:10px 0 12px; font-size:.9rem;">Agreement: 12-Month</p>
                         <?php if ($portal_member_exact_active): ?>
                           <?php if ($is_current): ?>
-                            <button type="button" class="btn btn--secondary" disabled aria-disabled="true">Current Plan</button>
+                            <button type="button" class="btn btn--accent pkg-cta" disabled aria-disabled="true">Current Plan</button>
                           <?php else: ?>
-                            <a class="btn btn--secondary" href="<?php echo esc_url(add_query_arg(['view' => 'membership-shop', 'request_plan' => $plan_slug, 'request_term' => '12m'], $portal_url)); ?>#membership-change-request-form"><?php echo esc_html($membership_change_request_button_label($plan_slug)); ?></a>
+                            <a class="btn btn--accent pkg-cta" href="<?php echo esc_url(add_query_arg(['view' => 'membership-shop', 'request_plan' => $plan_slug, 'request_term' => '12m'], $portal_url)); ?>#membership-change-request-form"><?php echo esc_html($membership_change_request_button_label($plan_slug)); ?></a>
                           <?php endif; ?>
                         <?php else: ?>
                           <button
                             type="button"
-                            class="btn btn--secondary membership-shop__select"
+                            class="btn btn--accent pkg-cta membership-shop__select"
                             data-plan-name="<?php echo esc_attr((string) ($pkg['name'] ?? '')); ?>"
                             data-plan-slug="<?php echo esc_attr($plan_slug); ?>"
                             data-plan-family="agent"
@@ -814,9 +812,11 @@ get_header();
                           >
                             Select Plan
                           </button>
+                          <p class="membership-shop__reason" data-plan-reason hidden></p>
                         <?php endif; ?>
                       </div>
                     <?php endforeach; ?>
+                  </div>
                   </div>
                 </div>
               </section>
@@ -917,7 +917,7 @@ get_header();
               $membership_catalog_url = $portal_membership_shop_url;
               $entitlements = is_array($subscription_summary['entitlements'] ?? null) ? (array) $subscription_summary['entitlements'] : [];
               $is_test_membership = !empty($subscription_summary['is_test_membership']);
-              $plan_feature_highlights = is_array($portal_membership_features_by_slug[$current_member_plan_slug] ?? null) ? (array) $portal_membership_features_by_slug[$current_member_plan_slug] : [];
+              $plan_feature_highlights = is_array($subscription_summary['plan_features'] ?? null) ? (array) $subscription_summary['plan_features'] : [];
               $entitlement_keys = [];
               foreach ($entitlements as $entitlement_row) {
                 if (!is_array($entitlement_row)) continue;
@@ -949,9 +949,6 @@ get_header();
                   <?php endif; ?>
                   <a class="btn btn--secondary" href="<?php echo esc_url(add_query_arg(['view' => 'account'], $portal_url)); ?>#membership-change-request-form">Request Plan Change</a>
                   <a class="btn btn--secondary" href="<?php echo esc_url($membership_catalog_url); ?>">Compare Plans</a>
-                  <?php if (current_user_can('manage_options') && function_exists('slm_subscriptions_recovery_admin_url')): ?>
-                    <a class="btn btn--secondary" href="<?php echo esc_url(slm_subscriptions_recovery_admin_url(['user_id' => (int) $user->ID])); ?>">Sync Status</a>
-                  <?php endif; ?>
                 </div>
               </div>
 
@@ -971,6 +968,14 @@ get_header();
                 <div>
                   <label>Next Billing Date</label>
                   <input type="text" value="<?php echo esc_attr((string) ($subscription_summary['current_period_end_label'] ?? 'N/A')); ?>" readonly>
+                </div>
+                <div>
+                  <label>Commitment End</label>
+                  <input type="text" value="<?php echo esc_attr((string) ($subscription_summary['commitment_end_label'] ?? 'N/A')); ?>" readonly>
+                </div>
+                <div>
+                  <label>Agreement End</label>
+                  <input type="text" value="<?php echo esc_attr((string) ($subscription_summary['term_ends_at_label'] ?? 'N/A')); ?>" readonly>
                 </div>
               </div>
 
@@ -1071,53 +1076,6 @@ get_header();
               <div style="margin-top:14px;"><button class="btn" type="submit">Save Profile</button></div>
             </form>
           </article>
-          <?php if (is_array($subscription_summary)): ?>
-            <?php
-              $is_subscription_active = !empty($subscription_summary['is_active']);
-              $can_manage_billing = !empty($subscription_summary['can_manage_billing']);
-              $manage_billing_url = (string) ($subscription_summary['manage_billing_url'] ?? '');
-              $manage_billing_label = (string) ($subscription_summary['manage_billing_label'] ?? 'Manage Billing');
-              $membership_catalog_url = $portal_membership_shop_url;
-            ?>
-            <article class="portal-card">
-              <h2>Membership Details</h2>
-              <div class="account-grid">
-                <div>
-                  <label>Plan</label>
-                  <input type="text" value="<?php echo esc_attr((string) ($subscription_summary['plan_label'] ?? 'No active plan')); ?>" readonly>
-                </div>
-                <div>
-                  <label>Status</label>
-                  <input type="text" value="<?php echo esc_attr((string) ($subscription_summary['status_label'] ?? 'Not Subscribed')); ?>" readonly>
-                </div>
-                <div>
-                  <label>Term</label>
-                  <input type="text" value="<?php echo esc_attr((string) ($subscription_summary['term_label'] ?? 'N/A')); ?>" readonly>
-                </div>
-                <div>
-                  <label>Next Billing Date</label>
-                  <input type="text" value="<?php echo esc_attr((string) ($subscription_summary['current_period_end_label'] ?? 'N/A')); ?>" readonly>
-                </div>
-                <div>
-                  <label>Commitment End</label>
-                  <input type="text" value="<?php echo esc_attr((string) ($subscription_summary['commitment_end_label'] ?? 'N/A')); ?>" readonly>
-                </div>
-                <div>
-                  <label>Agreement End</label>
-                  <input type="text" value="<?php echo esc_attr((string) ($subscription_summary['term_ends_at_label'] ?? 'N/A')); ?>" readonly>
-                </div>
-              </div>
-              <?php if (!$is_subscription_active): ?>
-                <p style="margin:14px 0 0;">Membership is inactive. Member-only pricing and credits are disabled until billing is active.</p>
-              <?php endif; ?>
-              <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
-                <?php if ($can_manage_billing && $manage_billing_url !== ''): ?>
-                  <a class="btn btn--secondary" href="<?php echo esc_url($manage_billing_url); ?>"><?php echo esc_html($manage_billing_label); ?></a>
-                <?php endif; ?>
-                <a class="btn btn--secondary" href="<?php echo esc_url($membership_catalog_url); ?>">Open Membership Shop</a>
-              </div>
-            </article>
-          <?php endif; ?>
           <article class="portal-card">
             <h2>Security</h2>
             <p>Update your password from WordPress account settings.</p>
@@ -1424,11 +1382,23 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  var disabledReasonMessages = {
+    no_checkout: 'Online checkout isn’t available for this plan yet — contact us to sign up.',
+    term_unavailable: 'Not available for the selected agreement term — try a different term above.'
+  };
+
   function setButtonInteractiveState(button, enabled, reason) {
     button.disabled = !enabled;
     button.setAttribute('aria-disabled', enabled ? 'false' : 'true');
     button.classList.toggle('is-unavailable', !enabled && reason === 'term_unavailable');
     button.setAttribute('data-disabled-reason', enabled ? '' : reason);
+
+    var card = button.closest('.pkg-card');
+    var note = card ? card.querySelector('[data-plan-reason]') : null;
+    if (!note) return;
+    var message = enabled ? '' : (disabledReasonMessages[reason] || '');
+    note.textContent = message;
+    note.hidden = message === '';
   }
 
   function refreshPlanButtonAvailability(options) {

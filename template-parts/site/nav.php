@@ -5,7 +5,13 @@ $is_logged_in = is_user_logged_in();
 $login_url = add_query_arg('mode', 'login', slm_login_url());
 $signup_url = add_query_arg('mode', 'signup', slm_login_url());
 $dashboard_url = $is_logged_in ? slm_dashboard_url() : $login_url;
-$order_url = $is_logged_in ? $dashboard_url : $signup_url;
+$public_order_url = function_exists('slm_aryeo_public_order_form_url')
+  ? slm_aryeo_public_order_form_url()
+  : '';
+$guest_order_url = $public_order_url !== ''
+  ? $public_order_url
+  : slm_page_url_by_template('templates/page-contact.php', '/contact/');
+$order_url = $is_logged_in ? $dashboard_url : $guest_order_url;
 $place_order_url = function_exists('slm_aryeo_start_order_url')
   ? slm_aryeo_start_order_url()
   : add_query_arg('view', 'place-order', slm_portal_url());

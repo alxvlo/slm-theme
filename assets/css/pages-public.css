@@ -152,6 +152,7 @@ main {
 
 .page-hero__curve {
   height: clamp(62px, 8vw, 96px);
+  pointer-events: none;
 }
 
 .kicker--hero {
@@ -803,16 +804,56 @@ main {
   background: linear-gradient(180deg, rgba(21, 52, 91, 0.03) 0%, rgba(21, 52, 91, 0) 24%);
 }
 
-.service-hero,
 .service-section {
   padding: clamp(54px, 7vw, 94px) 0;
+}
+
+.service-hero {
+  position: relative;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  padding: clamp(54px, 7vw, 94px) 0;
+  background-color: var(--primary, #0d1b2a);
+  overflow: hidden;
+}
+
+/* Dark overlay for image/video variants */
+.service-hero--has-image::before,
+.service-hero--has-video::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .52);
+  z-index: 1;
+}
+
+/* Background image (background-image set inline via style attribute) */
+.service-hero--has-image {
+  background-size: cover;
+  background-position: center;
+}
+
+/* Background video */
+.service-hero__bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Content sits above overlay/video */
+.service-hero .container {
+  position: relative;
+  z-index: 2;
 }
 
 .service-section--alt {
   background: var(--surface-3);
 }
 
-.service-hero__grid,
 .service-overview {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 46%);
@@ -820,18 +861,23 @@ main {
   align-items: center;
 }
 
-.service-hero__grid--single,
 .service-overview--single {
   grid-template-columns: 1fr;
+}
+
+.service-hero__copy {
+  max-width: 72ch;
 }
 
 .service-hero__copy h1 {
   margin: 0;
   font-size: clamp(2rem, 4vw, 3.6rem);
+  color: #fff;
 }
 
 .service-hero__copy p {
   max-width: 46ch;
+  color: #fff;
 }
 
 .service-mediaCard {
@@ -1104,7 +1150,6 @@ main {
   }
 
   .contact-grid,
-  .service-hero__grid,
   .service-overview,
   .about-owner {
     grid-template-columns: 1fr;
@@ -1112,6 +1157,10 @@ main {
 }
 
 @media (max-width: 700px) {
+  .service-hero {
+    min-height: 50vh;
+  }
+
   .page-editShortcut {
     right: 12px;
     bottom: 12px;

@@ -7,7 +7,7 @@ if (!defined('ABSPATH'))
 
 get_header();
 
-$create_account_url = add_query_arg('mode', 'signup', slm_login_url());
+$book_cta_url = slm_booking_cta_url();
 // Retrieve videos specifically assigned via this page's Portfolio Admin Settings
 $page_id = get_queried_object_id();
 $video_ids_raw = $page_id > 0 ? get_post_meta($page_id, 'slm_portfolio_video_ids', true) : '';
@@ -54,8 +54,8 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,
-  'book_url' => $create_account_url,
-  'book_label' => 'Create Account to Order',
+  'book_url' => $book_cta_url,
+  'book_label' => 'Book a Shoot',
   'cta_title' => 'Create Video Marketing That Works Harder for Your Business',
   'cta_text' => 'Break the standard. Showcase the difference. Build a stronger listing system with video assets designed for competitive advantage.',
 ]);

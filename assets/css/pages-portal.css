@@ -237,8 +237,11 @@
   background: #f8fbff;
 }
 
-.status-pill {
-  font-weight: 700;
+.membership-shop__reason {
+  margin: 8px 0 0;
+  font-size: .85rem;
+  line-height: 1.4;
+  color: var(--muted-foreground);
 }
 
 .portal-feedback {

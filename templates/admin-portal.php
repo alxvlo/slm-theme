@@ -807,23 +807,6 @@ get_header();
 
   <main class="portal-main">
     <div class="portal-wrap">
-      <section class="portal-toolbar" aria-label="Admin Quick Actions">
-        <a class="portal-toolbar__pill <?php echo $view === 'dashboard' ? 'is-active' : ''; ?>"
-          href="<?php echo esc_url(add_query_arg('view', 'dashboard', $admin_portal_url)); ?>">Overview</a>
-        <a class="portal-toolbar__pill <?php echo in_array($view, ['all-jobs', 'order-detail'], true) ? 'is-active' : ''; ?>"
-          href="<?php echo esc_url(add_query_arg('view', 'all-jobs', $admin_portal_url)); ?>">Order Queue</a>
-        <a class="portal-toolbar__pill <?php echo $view === 'memberships' ? 'is-active' : ''; ?>"
-          href="<?php echo esc_url(add_query_arg('view', 'memberships', $admin_portal_url)); ?>">Memberships</a>
-        <a class="portal-toolbar__pill <?php echo $view === 'clients' ? 'is-active' : ''; ?>"
-          href="<?php echo esc_url(add_query_arg('view', 'clients', $admin_portal_url)); ?>">Clients</a>
-        <a class="portal-toolbar__pill <?php echo $view === 'notifications' ? 'is-active' : ''; ?>"
-          href="<?php echo esc_url(add_query_arg('view', 'notifications', $admin_portal_url)); ?>">Notifications</a>
-        <a class="portal-toolbar__pill <?php echo $view === 'portfolio' ? 'is-active' : ''; ?>"
-          href="<?php echo esc_url(add_query_arg('view', 'portfolio', $admin_portal_url)); ?>">Portfolio</a>
-        <a class="portal-toolbar__pill <?php echo $view === 'account' ? 'is-active' : ''; ?>"
-          href="<?php echo esc_url(add_query_arg('view', 'account', $admin_portal_url)); ?>">Admin Profile</a>
-      </section>
-
       <?php if ($view === 'dashboard'): ?>
         <section class="portal-section">
           <h1>Admin Dashboard</h1>
@@ -2018,34 +2001,48 @@ get_header();
           </div>
         </div>
 
+        <?php $slm_portal_server_items = slm_portfolio_get_items(); ?>
         <script>
           (function () {
-            var LS_KEY = 'slm_portfolio_items_v1';
-            var LS_DEF = 'slm_portfolio_items_v1_defaults';
+            /* ── Server-saved items (post meta on the Portfolio page) ── */
+            var SERVER_ITEMS = <?php echo wp_json_encode($slm_portal_server_items); ?>;
+            var SAVE_NONCE = '<?php echo esc_js(wp_create_nonce('slm_save_portfolio_items')); ?>';
+            var RESET_NONCE = '<?php echo esc_js(wp_create_nonce('slm_reset_portfolio_items')); ?>';
+            var AJAX_URL = '<?php echo esc_js(admin_url('admin-ajax.php')); ?>';
 
-            /* ── Default items — mirrors the public page defaults ── */
-            var UPLOADS = '<?php echo esc_js($uploads_base ?? (content_url() . "/uploads")); ?>';
-            var DEFAULT_ITEMS = (function () {
-              var items = [];
-              var cats = ['Real Estate Photography', 'Real Estate Photography', 'Real Estate Photography', 'Real Estate Photography', 'Real Estate Photography', 'Real Estate Photography', 'Drone', 'Drone', 'Drone', 'Drone', 'Cinematic Video', 'Cinematic Video', 'Cinematic Video', 'Cinematic Video', 'Social Media / Reels', 'Social Media / Reels', 'Social Media / Reels', 'Business Branding', 'Business Branding', 'Business Branding'];
-              var titles = ['6000 on the River', 'Riverside Estates', 'Ponte Vedra Luxury Home', 'Fleming Island Pool Home', 'Mandarin Family Home', 'Nocatee New Build', 'St. Johns Aerial', 'Waterfront Lot Survey', 'Nassau County Aerial', 'Amelia Island Overview', 'River View Cinematic Tour', 'Luxury Walkthrough', 'New Construction Film', 'Sunset Home Tour', 'Agent Brand Reel', 'Market Update Reel', 'Behind the Scenes Reel', 'Corporate Brand Session', 'Business Launch Campaign', 'Team & Culture Shoot'];
-              var metrics = [['Sold in 8 days', 'MLS Featured'], ['Sold in 5 days', '38 Showings'], ['Sold Over Asking', 'MLS Featured'], ['Listed & Under Contract in 6 Days', '14,200 Video Views'], ['Sold in 11 days', 'Featured on Zillow'], ['Sold in 4 days', '60+ Inquiries'], ['Listed & Under Contract in 6 Days', 'Aerial Coverage'], ['Lot Sold in 14 days', 'Drone Survey'], ['Sold in 9 days', 'Aerial Featured'], ['Featured Listing', 'Aerial + Ground Coverage'], ['14,200 Video Views', 'Listed & Under Contract in 6 Days'], ['8,400 Video Views', 'Sold in 7 days'], ['22,000 Video Views', 'Featured on Social'], ['11,000 Video Views', 'Sold Over Asking'], ['18,000 Reel Views', '320 Saves'], ['24,000 Reel Views', '410 Saves'], ['15,500 Reel Views', 'Featured by Client'], ['Brand Refresh', '40% Engagement Increase'], ['Brand Campaign', '500+ New Followers'], ['Business Launch', 'Multi-Platform']];
-              for (var i = 1; i <= 20; i++) {
-                items.push({ id: i, title: titles[i - 1], category: cats[i - 1], image: UPLOADS + '/2026/02/' + i + '.png', thumb: UPLOADS + '/2026/02/' + i + '.png', metrics: metrics[i - 1], featured: i === 1 });
-              }
-              return items;
-            })();
+            /* ── Defaults come from PHP (inc/portfolio-items.php), resolved from the
+                  real media library — never from guessed upload paths. ── */
+            var DEFAULT_ITEMS = <?php echo wp_json_encode(slm_portfolio_default_items()); ?>;
 
             function loadItems() {
-              try {
-                var s = localStorage.getItem(LS_KEY);
-                if (s) { var p = JSON.parse(s); if (Array.isArray(p) && p.length) return p; }
-              } catch (e) { }
-              return JSON.parse(JSON.stringify(DEFAULT_ITEMS));
+              return (SERVER_ITEMS && SERVER_ITEMS.length)
+                ? SERVER_ITEMS
+                : JSON.parse(JSON.stringify(DEFAULT_ITEMS));
             }
 
             function saveItems(items) {
-              try { localStorage.setItem(LS_KEY, JSON.stringify(items)); } catch (e) { }
+              return fetch(AJAX_URL, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                  action: 'slm_save_portfolio_items',
+                  nonce: SAVE_NONCE,
+                  items: JSON.stringify(items)
+                })
+              })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                  if (!data || !data.success) {
+                    alert((data && data.data && data.data.message) || 'Could not save portfolio changes. Please try again.');
+                    return false;
+                  }
+                  return true;
+                })
+                .catch(function () {
+                  alert('Could not reach the server to save portfolio changes. Please try again.');
+                  return false;
+                });
             }
 
             var items = loadItems();
@@ -2181,13 +2178,38 @@ get_header();
               closeModal();
             });
 
+            /* Reset CLEARS the saved metadata server-side. It never writes a
+               hardcoded item list — the page then falls back to defaults built
+               from the real media library. */
+            function resetItems() {
+              return fetch(AJAX_URL, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                  action: 'slm_reset_portfolio_items',
+                  nonce: RESET_NONCE
+                })
+              })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                  if (!data || !data.success) {
+                    alert((data && data.data && data.data.message) || 'Could not reset the portfolio items. Please try again.');
+                    return false;
+                  }
+                  return true;
+                })
+                .catch(function () {
+                  alert('Could not reach the server to reset the portfolio items. Please try again.');
+                  return false;
+                });
+            }
+
             resetBtn && resetBtn.addEventListener('click', function () {
-              if (!confirm('Reset all portfolio items to defaults? This will clear any edits.')) return;
-              localStorage.removeItem(LS_KEY);
-              items = JSON.parse(JSON.stringify(DEFAULT_ITEMS));
-              nextId = items.reduce(function (m, i) { return Math.max(m, i.id || 0); }, 0) + 1;
-              renderTable();
-              alert('Reset to defaults.');
+              if (!confirm('Reset portfolio items to the site defaults? Your saved titles, categories and metrics will be cleared.')) return;
+              resetItems().then(function (ok) {
+                if (ok) window.location.reload();
+              });
             });
 
             function esc(str) {
@@ -2197,20 +2219,6 @@ get_header();
             renderTable();
           })();
         </script>
-      <?php endif; ?>
-
-      <?php if ($view === 'account'): ?>
-        <section class="portal-section">
-          <h1>Admin Account</h1>
-          <p class="sub">Access profile and security settings for your admin account.</p>
-        </section>
-        <section class="portal-account">
-          <article class="portal-card">
-            <h2>Administrator Profile</h2>
-            <p>Use WordPress profile settings to update password, contact details, and preferences.</p>
-            <a class="btn" href="<?php echo esc_url(admin_url('profile.php')); ?>">Open Admin Profile</a>
-          </article>
-        </section>
       <?php endif; ?>
     </div>
   </main>

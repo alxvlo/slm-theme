@@ -87,6 +87,7 @@ $packages = [
     <div class="container">
       <h2 class="center" style="margin-top:0;">Packages (One-Time)</h2>
       <p class="center sub" style="margin-bottom:34px; max-width:820px;">Choose the package that matches your current content cadence and growth goals.</p>
+      <p class="center" style="margin:-20px 0 30px; font-weight:600;">Starting as low as $225.</p>
 
       <div class="pkg-grid">
         <?php foreach ($packages as $pkg): ?>

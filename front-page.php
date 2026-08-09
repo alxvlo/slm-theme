@@ -14,6 +14,7 @@ $pid = get_option('page_on_front');
   <?php get_template_part('template-parts/home/who'); ?>
   <?php get_template_part('template-parts/home/services-links'); ?>
   <?php get_template_part('template-parts/home/why'); ?>
+  <?php get_template_part('template-parts/home/service-area'); ?>
   <?php get_template_part('template-parts/home/how-it-works'); ?>
   <?php get_template_part('template-parts/home/testimonials'); ?>
   <?php get_template_part('template-parts/home/cta'); ?>

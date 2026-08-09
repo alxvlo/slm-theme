@@ -7,7 +7,7 @@ if (!defined('ABSPATH'))
 
 get_header();
 
-$create_account_url = add_query_arg('mode', 'signup', slm_login_url());
+$book_cta_url = slm_booking_cta_url();
 // Retrieve media specifically assigned via this page's Portfolio Admin Settings
 $page_id = get_queried_object_id();
 $photo_ids = $page_id > 0 ? get_post_meta($page_id, 'slm_portfolio_gallery_ids', true) : '';
@@ -57,8 +57,8 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,
-  'book_url' => $create_account_url,
-  'book_label' => 'Create Account to Order',
+  'book_url' => $book_cta_url,
+  'book_label' => 'Book a Shoot',
   'cta_title' => 'Give Buyers a Better Way to Experience Your Listings',
   'cta_text' => 'Break the standard. Showcase the difference. Create your account and add virtual tours to your growth-ready marketing system.',
 ]);

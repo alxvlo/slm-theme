@@ -7,7 +7,7 @@ if (!defined('ABSPATH'))
 
 get_header();
 
-$create_account_url = add_query_arg('mode', 'signup', slm_login_url());
+$book_cta_url = slm_booking_cta_url();
 // Retrieve media specifically assigned via this page's Portfolio Admin Settings
 $page_id = get_queried_object_id();
 $photo_ids = $page_id > 0 ? get_post_meta($page_id, 'slm_portfolio_gallery_ids', true) : '';
@@ -59,8 +59,8 @@ get_template_part('template-parts/blocks/service-detail', null, [
     'why_choose' => $why_choose,
     'tour_embed' => 'https://youriguide.com/138_palm_island_way_nocatee_fl?page=tour',
     'tour_title' => 'Experience the 3D Tour',
-    'book_url' => $create_account_url,
-    'book_label' => 'Create Account to Order',
+    'book_url' => $book_cta_url,
+    'book_label' => 'Book a Shoot',
     'cta_title' => 'Maximize Your Zillow Listing Impact',
     'cta_text' => 'Break the standard. Showcase the difference. Add 3D tours and floorplans to every listing and give buyers the complete experience they expect.',
 ]);

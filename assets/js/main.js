@@ -124,44 +124,44 @@
   const slider = document.querySelector('[data-home-slider]');
   if (!slider) return;
 
-  // Support both old and new class names
-  const slides = Array.from(slider.querySelectorAll('.home-hero__slide, .home-heroSlider__slide'));
+  const slides = Array.from(slider.querySelectorAll('.home-heroSlider__slide'));
+  const dotsWrap = document.querySelector('[data-home-slider-dots]');
+  const dots = dotsWrap ? Array.from(dotsWrap.querySelectorAll('[data-slide-index]')) : [];
   if (!slides.length) return;
-
-  // Dot nav: supports both old [data-home-slider-dots] and new .home-hero__dots
-  const dotsContainerOld = document.querySelector('[data-home-slider-dots]');
-  const dotsContainerNew = document.querySelector('.home-hero__dots');
-  const oldDots = dotsContainerOld ? Array.from(dotsContainerOld.querySelectorAll('[data-slide-index]')) : [];
-  const newDots = dotsContainerNew ? Array.from(dotsContainerNew.querySelectorAll('[data-slide]')) : [];
 
   let activeIndex = slides.findIndex((slide) => slide.classList.contains('is-active'));
   if (activeIndex < 0) activeIndex = 0;
+
+  function loadSlideImage(slide) {
+    if (!slide || slide.dataset.lazyLoaded === '1') return;
+    const lazyUrl = (slide.getAttribute('data-lazy-bg') || '').trim();
+    if (!lazyUrl) return;
+    const img = new Image();
+    img.onload = () => {
+      slide.style.backgroundImage = `url("${lazyUrl}")`;
+      slide.dataset.lazyLoaded = '1';
+      slide.removeAttribute('data-lazy');
+    };
+    img.src = lazyUrl;
+  }
 
   function show(index) {
     const next = (index + slides.length) % slides.length;
     activeIndex = next;
 
+    loadSlideImage(slides[next]);
+    loadSlideImage(slides[(next + 1) % slides.length]);
+
     slides.forEach((slide, i) => {
       const active = i === next;
-      // Set background image on first show if not yet set
-      const bg = slide.getAttribute('data-bg-image');
-      if (bg && !slide.style.backgroundImage) {
-        slide.style.backgroundImage = `url("${bg}")`;
-      }
       slide.classList.toggle('is-active', active);
       slide.setAttribute('aria-hidden', active ? 'false' : 'true');
     });
 
-    oldDots.forEach((dot, i) => {
+    dots.forEach((dot, i) => {
       const active = i === next;
       dot.classList.toggle('is-active', active);
       dot.setAttribute('aria-pressed', active ? 'true' : 'false');
-    });
-
-    newDots.forEach((dot, i) => {
-      const active = i === next;
-      dot.classList.toggle('is-active', active);
-      dot.setAttribute('aria-selected', active ? 'true' : 'false');
     });
   }
 
@@ -170,7 +170,7 @@
 
   function start() {
     if (timer || slides.length < 2 || prefersReducedMotion.matches) return;
-    timer = window.setInterval(() => show(activeIndex + 1), 5500);
+    timer = window.setInterval(() => show(activeIndex + 1), 5000);
   }
 
   function stop() {
@@ -179,18 +179,9 @@
     timer = null;
   }
 
-  oldDots.forEach((dot) => {
+  dots.forEach((dot) => {
     dot.addEventListener('click', () => {
       const index = Number(dot.getAttribute('data-slide-index') || '0');
-      show(index);
-      stop();
-      start();
-    });
-  });
-
-  newDots.forEach((dot) => {
-    dot.addEventListener('click', () => {
-      const index = Number(dot.getAttribute('data-slide') || '0');
       show(index);
       stop();
       start();
@@ -406,6 +397,15 @@
   });
 
   revealTargets.forEach((element) => observer.observe(element));
+
+  requestAnimationFrame(function () {
+    revealTargets.forEach(function (element) {
+      var rect = element.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        element.classList.add('is-visible');
+      }
+    });
+  });
 })();
 
 (function () {
@@ -714,47 +714,63 @@
   });
 })();
 
-/* ── Scroll-aware sticky header ── */
+/* ---- Social Mentorship Program: Learn More modal ---- */
 (function () {
-  const header = document.querySelector('.site-header');
-  if (!header) return;
+  function initSmpModal() {
+    var modal = document.querySelector('[data-smp-modal]');
+    if (!modal) return;
+    var openers = document.querySelectorAll('[data-smp-open]');
+    var closers = modal.querySelectorAll('[data-smp-close]');
+    var lastFocused = null;
 
-  let ticking = false;
-
-  function update() {
-    header.classList.toggle('is-scrolled', window.scrollY > 20);
-    ticking = false;
-  }
-
-  window.addEventListener('scroll', function () {
-    if (!ticking) {
-      window.requestAnimationFrame(update);
-      ticking = true;
+    function openModal() {
+      lastFocused = document.activeElement;
+      modal.hidden = false;
+      document.body.classList.add('smp-modal-open');
+      var closeBtn = modal.querySelector('.smp-modal__close');
+      if (closeBtn) closeBtn.focus();
     }
-  }, { passive: true });
+    function closeModal() {
+      modal.hidden = true;
+      document.body.classList.remove('smp-modal-open');
+      if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+    }
 
-  update();
-})();
-
-/* ── Hero scroll-dot animation ── */
-(function () {
-  const dot = document.querySelector('.home-hero__scroll-dot');
-  if (!dot || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-  let y = 8;
-  let dir = 1;
-  const bottom = 20;
-  const top = 8;
-  const speed = 0.25;
-
-  let frame;
-  function animate() {
-    y += speed * dir;
-    if (y >= bottom) { y = bottom; dir = -1; }
-    if (y <= top) { y = top; dir = 1; }
-    dot.setAttribute('cy', String(y));
-    frame = requestAnimationFrame(animate);
+    openers.forEach(function (btn) { btn.addEventListener('click', openModal); });
+    closers.forEach(function (btn) { btn.addEventListener('click', closeModal); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !modal.hidden) closeModal();
+    });
   }
-  animate();
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSmpModal);
+  } else {
+    initSmpModal();
+  }
 })();
 
+/* Membership ladder rail: prev/next arrows scroll one card per click. */
+(function () {
+  document.addEventListener('click', function (event) {
+    var target = event.target;
+    if (!target || typeof target.closest !== 'function') return;
+
+    var button = target.closest('[data-ladder-nav]');
+    if (!button) return;
+
+    var wrap = button.closest('.pkg-ladderWrap');
+    var ladder = wrap ? wrap.querySelector('[data-ladder]') : null;
+    if (!ladder) return;
+
+    var card = ladder.querySelector('.pkg-card--ladder');
+    var step = (card ? card.offsetWidth : 280) + 16;
+    var direction = button.getAttribute('data-ladder-nav') === 'prev' ? -1 : 1;
+
+    if (typeof ladder.scrollBy === 'function') {
+      ladder.scrollBy({ left: direction * step, behavior: 'smooth' });
+    } else {
+      ladder.scrollLeft += direction * step;
+    }
+  });
+})();

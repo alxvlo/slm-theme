@@ -18,7 +18,7 @@ get_header();
 $is_logged_in = is_user_logged_in();
 $cta_url      = $is_logged_in
   ? add_query_arg('view', 'place-order', slm_portal_url())
-  : add_query_arg('mode', 'signup', slm_login_url());
+  : slm_booking_cta_url();
 $contact_url  = home_url('/contact/');
 
 $pid    = get_the_ID();
@@ -42,11 +42,6 @@ $owner_bio       = $meta_get('slm_about_owner_bio');
 $owner_photo_id  = absint((string) $meta_get('slm_about_owner_photo_id'));
 $owner_photo_url = $owner_photo_id > 0 ? wp_get_attachment_image_url($owner_photo_id, 'large') : '';
 
-// Partners
-$partner1_photo_id  = absint((string) $meta_get('slm_about_partner1_photo_id'));
-$partner1_photo_url = $partner1_photo_id > 0 ? wp_get_attachment_image_url($partner1_photo_id, 'medium') : '';
-$partner2_photo_id  = absint((string) $meta_get('slm_about_partner2_photo_id'));
-$partner2_photo_url = $partner2_photo_id > 0 ? wp_get_attachment_image_url($partner2_photo_id, 'medium') : '';
 ?>
 
 <main id="main-content">
@@ -198,42 +193,24 @@ $partner2_photo_url = $partner2_photo_id > 0 ? wp_get_attachment_image_url($part
 
       <div class="about-partners__grid">
 
-        <article class="about-partner-card js-reveal" aria-label="Partner: Reesa Storely">
-          <div class="about-partner-card__header">
-            <div class="about-partner-card__avatar">
-              <img
-                src="<?php echo esc_url($partner1_photo_url ?: get_template_directory_uri() . '/assets/img/reesa.jpg'); ?>"
-                alt="Reesa Storely, Managing Member and Certified Staging Expert at Modern Florida Home Staging"
-                class="partner-avatar--reesa"
-                loading="lazy">
-            </div>
-            <div class="about-partner-card__info">
-              <h3 class="about-partner-card__name">Reesa Storely</h3>
-              <p class="about-partner-card__role">Managing Member &amp; Certified Staging Expert</p>
-              <p class="about-partner-card__company">Modern Florida Home Staging</p>
-            </div>
+        <article class="about-partner-card about-partner-card--org js-reveal" aria-label="Partner: Modern Florida Home Staging">
+          <span class="about-partner-card__badge">Partner</span>
+          <div class="about-partner-card__logo">
+            <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/modern-florida-home-staging-logo.jpeg'); ?>"
+                 alt="Modern Florida Home Staging logo" loading="lazy">
           </div>
-          <p class="about-partner-card__desc">Reesa Storely is a Managing Member of Modern Florida Home Staging LLC and a certified staging expert. With years of experience in interior design and a refined eye for detail, she brings sophistication and elegance to every project — transforming spaces to captivate buyers and maximize property value.</p>
+          <p class="about-partner-card__desc">Modern Florida Home Staging LLC is our trusted staging partner. Their certified staging expertise transforms spaces to captivate buyers and maximize property value on every project we shoot together.</p>
           <a href="https://www.modernfloridahomestaging.com/" class="about-partner-card__link" target="_blank" rel="noopener noreferrer">Visit Website &rarr;</a>
         </article>
 
-        <article class="about-partner-card js-reveal" aria-label="Partner: Danielle Ramos">
-          <div class="about-partner-card__header">
-            <div class="about-partner-card__avatar">
-              <img
-                src="<?php echo esc_url($partner2_photo_url ?: get_template_directory_uri() . '/assets/img/danielle.jpg'); ?>"
-                alt="Danielle Ramos, Managing Member and Social Media Manager at Modern Florida Home Staging"
-                class="partner-avatar--danielle"
-                loading="lazy">
-            </div>
-            <div class="about-partner-card__info">
-              <h3 class="about-partner-card__name">Danielle Ramos</h3>
-              <p class="about-partner-card__role">Managing Member &amp; Social Media Manager</p>
-              <p class="about-partner-card__company">Modern Florida Home Staging</p>
-            </div>
+        <article class="about-partner-card about-partner-card--org js-reveal" aria-label="Participant: realMLS Photographer Network">
+          <span class="about-partner-card__badge">Participant</span>
+          <div class="about-partner-card__logo">
+            <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/img/realmls-photographer-network-badge.png'); ?>"
+                 alt="realMLS Photographer Network participant badge" loading="lazy">
           </div>
-          <p class="about-partner-card__desc">Danielle Ramos is a Managing Member of Modern Florida Home Staging LLC, serving as the team's social media content creator and lead stager. She brings a fresh, modern perspective to every staging project and plays a key role in sharing the company's work with the broader community — connecting clients with inspired design.</p>
-          <a href="https://www.modernfloridahomestaging.com/" class="about-partner-card__link" target="_blank" rel="noopener noreferrer">Visit Website &rarr;</a>
+          <p class="about-partner-card__desc">Through this access, we can upload and manage photographs, captions, videos, virtual tours, and floor plans on behalf of the listing brokerage or agent within realMLS &mdash; saving agents so much time!</p>
+          <a href="https://www.realmls.com/" class="about-partner-card__link" target="_blank" rel="noopener noreferrer">Visit Website &rarr;</a>
         </article>
 
       </div>
