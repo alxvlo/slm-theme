@@ -1,6 +1,9 @@
 # MCP configuration with sensitive credentials
 .mcp.json
 
+# Per-machine Claude Code settings
+.claude/settings.local.json
+
 # Generated / local artifacts
 __pycache__/
 *.py[cod]
