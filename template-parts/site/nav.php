@@ -36,7 +36,10 @@ $has_logo = file_exists($logo_abs);
         'container' => false,
         'menu_id' => 'site-primary-menu',
         'menu_class' => 'nav__menu',
-        'fallback_cb' => '__return_false',
+        // An environment with no menu assigned to the primary location (a fresh
+        // staging clone, for one) used to render an empty nav. Fall back to the
+        // hard-coded menu instead of nothing.
+        'fallback_cb' => 'slm_primary_nav_fallback',
       ]);
     ?>
   </div>
