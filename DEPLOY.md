@@ -45,7 +45,12 @@ decides the target, not the branch:**
 | cPanel Git clone | Deploys to |
 | --- | --- |
 | `~/repositories/slm-theme` | production |
-| `~/repositories/slm-theme-staging` | staging |
+| `~/repositories/slm-theme-staging,` | staging |
+
+The staging clone directory really does end in a comma — a typo from when the
+cPanel repo was created. It is harmless: routing treats anything that is not
+exactly `slm-theme` as staging, and backup names come from `$ENVNAME`, not the
+directory. Fixing it would mean re-cloning ~510MB of history, so it stays.
 
 That is deliberate. If the branch decided, checking out `staging` in the
 production clone would push unreviewed code onto the live site. Routing on the
