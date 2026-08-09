@@ -31,11 +31,23 @@ Nothing deploys until you click Deploy — pushing to GitHub alone changes nothi
 
 ## Staging
 
-Staging is a Bluehost staging site: its own copy of the files **and its own
-database**, so it renders real content without touching production. It has to be
-a separate database — `functions.php` creates and edits pages on every request
-(the `init` hooks around lines 748-906), so a staging build sharing prod's
-database would rewrite prod's content just by being viewed.
+Staging is a Bluehost staging site: its own copy of the files and its own set of
+tables, so it renders real content without touching production. The content has
+to stay separate — `functions.php` creates and edits pages on every request (the
+`init` hooks around lines 748-906), so a staging build sharing prod's content
+would rewrite it just by being viewed.
+
+**Both sites live in one MySQL database** (`xbxkhdmy_WPVFO`). They are separated
+by table prefix, not by database:
+
+| Site | Prefix |
+| --- | --- |
+| Production | `wp_` |
+| Staging | `staging_wp_` |
+
+That matters for any manual DB work: a dump-and-restore that is not scoped to
+one prefix will write into the other site's tables. Scope every operation with
+`wp --path=<the site>` and `--all-tables-with-prefix`, never `--all-tables`.
 
 ### Which clone deploys where
 
@@ -78,11 +90,23 @@ Deploy the **slm-theme** clone. `--ff-only` is deliberate: it fails loudly if
 `main` moved underneath you instead of quietly making a merge commit. If it
 fails, rebase `staging` onto `main` and re-verify on staging before promoting.
 
+### Refreshing staging from production
+
+Staging content drifts from prod (its menus and pages are a snapshot from
+whenever it was last cloned). To resync, use Bluehost's own staging tool and
+pick the **production → staging** direction. It copies files, tables and rewrites
+URLs to `/staging/5169/` prefix-safely, which hand-rolled SQL does not.
+
+Afterwards: confirm the staging directory is still `5169` (if Bluehost recreated
+it, update `.cpanel.yml`), turn the caching plugin back off, and re-deploy the
+`slm-theme-staging` clone if staging needs commits that prod does not have yet.
+
 ### Two things not to do on staging
 
-- **Never press Bluehost's "Deploy to Production" / "Publish" button.** It copies
-  staging files *and database* over production, bypassing git completely, and
-  would undo whatever prod currently has. Git is the only promotion path.
+- **Never press Bluehost's "Deploy to Production" / "Publish" button.** That is
+  the *opposite* direction to the refresh above: it copies staging files *and
+  database* over production, bypassing git completely, and would undo whatever
+  prod currently has. Git is the only promotion path.
 - **Never place an order or run a checkout on staging.** The cloned database
   carries the production Stripe key, the production Aryeo key, and
   `slm_square_environment = production`. A test order there is a real charge on
