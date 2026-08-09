@@ -22,7 +22,6 @@ $trust_points = [
 ];
 ?>
 
-<!-- SLM-ENV-MARKER staging-isolation-test -- temporary, reverted after the staging/prod isolation check -->
 <section class="home-heroSlider" aria-label="Featured Property Media">
   <div class="home-heroSlider__slides" data-home-slider>
     <?php foreach ($slides as $i => $img): ?>
