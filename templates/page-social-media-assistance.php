@@ -5,17 +5,14 @@
 if (!defined('ABSPATH'))
   exit;
 
+slm_page_seo(
+  'Social Media Management in North Florida | Showcase Listings Media',
+  'Content planning, reel editing, and posting support for North Florida businesses and real estate agents.'
+);
+
 get_header();
 
-$aryeo_public_order_form_url = function_exists('slm_aryeo_public_order_form_url')
-  ? slm_aryeo_public_order_form_url()
-  : '';
-
-$cta_url = $aryeo_public_order_form_url !== ''
-  ? $aryeo_public_order_form_url
-  : (function_exists('slm_aryeo_start_order_url')
-    ? slm_aryeo_start_order_url()
-    : slm_page_url_by_template('templates/page-contact.php', '/contact/'));
+$cta_url = slm_book_url();
 $cta_label = 'Get Started';
 
 $assistance_areas = [

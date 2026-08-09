@@ -2,9 +2,7 @@
 if (!defined('ABSPATH')) exit;
 
 $is_logged_in = is_user_logged_in();
-$cta_url      = $is_logged_in
-  ? add_query_arg('view', 'place-order', slm_portal_url())
-  : slm_booking_cta_url();
+$cta_url      = slm_book_url();
 $cta_label    = $is_logged_in ? 'Place Order' : 'Book a Shoot';
 $contact_url  = home_url('/contact/');
 $pid = get_option('page_on_front');

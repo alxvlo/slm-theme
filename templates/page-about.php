@@ -15,10 +15,7 @@ add_action('wp_head', function () {
 
 get_header();
 
-$is_logged_in = is_user_logged_in();
-$cta_url      = $is_logged_in
-  ? add_query_arg('view', 'place-order', slm_portal_url())
-  : slm_booking_cta_url();
+$cta_url      = slm_book_url();
 $contact_url  = home_url('/contact/');
 
 $pid    = get_the_ID();

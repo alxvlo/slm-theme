@@ -3,18 +3,8 @@ if (!defined('ABSPATH')) exit;
 
 $is_logged_in = is_user_logged_in();
 $login_url = add_query_arg('mode', 'login', slm_login_url());
-$signup_url = add_query_arg('mode', 'signup', slm_login_url());
 $dashboard_url = $is_logged_in ? slm_dashboard_url() : $login_url;
-$public_order_url = function_exists('slm_aryeo_public_order_form_url')
-  ? slm_aryeo_public_order_form_url()
-  : '';
-$guest_order_url = $public_order_url !== ''
-  ? $public_order_url
-  : slm_page_url_by_template('templates/page-contact.php', '/contact/');
-$order_url = $is_logged_in ? $dashboard_url : $guest_order_url;
-$place_order_url = function_exists('slm_aryeo_start_order_url')
-  ? slm_aryeo_start_order_url()
-  : add_query_arg('view', 'place-order', slm_portal_url());
+$book_url = slm_book_url();
 
 $logo_src = get_template_directory_uri() . '/assets/img/logo-icon.png';
 $logo_abs = get_template_directory() . '/assets/img/logo-icon.png';
@@ -23,6 +13,12 @@ $has_logo = file_exists($logo_abs);
 
 <nav class="nav" aria-label="Primary" data-nav>
   <a class="nav__brand" href="<?php echo esc_url(home_url('/')); ?>">
+    <?php
+      // Review item 19: the logo mark is decorative on purpose. The link is
+      // already labelled by the visible .nav__brandText below, so the mark stays
+      // aria-hidden with an empty alt. Do not set alt="" and aria-hidden apart —
+      // adding alt text inside an aria-hidden wrapper hides it from AT anyway.
+    ?>
     <span class="nav__brandLogo" aria-hidden="true">
       <?php if ($has_logo): ?>
         <img class="nav__logoImg" src="<?php echo esc_url($logo_src); ?>" alt="" width="34" height="34" decoding="async" loading="eager">
@@ -48,11 +44,11 @@ $has_logo = file_exists($logo_abs);
   <div class="nav__right">
     <?php if ($is_logged_in): ?>
       <a class="nav__login" href="<?php echo esc_url($dashboard_url); ?>">Dashboard</a>
-      <a class="btn" href="<?php echo esc_url($place_order_url); ?>">Book a Shoot</a>
+      <a class="btn" href="<?php echo esc_url($book_url); ?>">Book a Shoot</a>
       <a class="btn btn--secondary" href="<?php echo esc_url(wp_logout_url(home_url('/'))); ?>">Logout</a>
     <?php else: ?>
-      <a class="nav__login" href="<?php echo esc_url($login_url); ?>">Login</a>
-      <a class="btn" href="<?php echo esc_url($order_url); ?>">Book a Shoot</a>
+      <a class="nav__login" href="<?php echo esc_url($login_url); ?>">Client Login</a>
+      <a class="btn" href="<?php echo esc_url($book_url); ?>">Book a Shoot</a>
     <?php endif; ?>
     <button
       class="nav__toggle"

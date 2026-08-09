@@ -12,6 +12,8 @@ require_once __DIR__ . '/inc/footer-customizer.php';
 require_once __DIR__ . '/inc/page-editable-text.php';
 require_once __DIR__ . '/inc/homepage-meta.php';
 require_once __DIR__ . '/inc/services-meta.php';
+require_once __DIR__ . '/inc/acf-fields.php';
+require_once __DIR__ . '/inc/portfolio-items.php';
 require_once __DIR__ . '/inc/maintenance.php';
 require_once __DIR__ . '/inc/customizer-maintenance.php';
 require_once __DIR__ . '/inc/seo.php';
@@ -166,38 +168,70 @@ function slm_memberships_url(): string
 
 function slm_for_businesses_url(): string
 {
-  return slm_page_url_by_template('templates/page-for-businesses.php', '/for-businesses/');
+  return slm_page_url_by_template('page-for-businesses.php', '/for-businesses/');
 }
 
 function slm_social_media_management_url(): string
 {
-  return slm_page_url_by_template('templates/page-social-media-management.php', '/social-media-management/');
+  return slm_page_url_by_template('page-social-media-management.php', '/social-media-management/');
 }
 
 function slm_service_area_url(): string
 {
-  return slm_page_url_by_template('templates/page-service-area.php', '/service-area/');
-}
-
-/**
- * Destination for public booking CTAs ("Book a Shoot" and friends).
- *
- * Resolves to the Aryeo hosted order form. Falls back to the contact page when
- * the slm_aryeo_order_form_url option is unset, so a booking CTA never renders
- * an empty href.
- */
-function slm_booking_cta_url(): string
-{
-  $url = function_exists('slm_aryeo_public_order_form_url') ? slm_aryeo_public_order_form_url() : '';
-  return $url !== '' ? $url : slm_consult_cta_url();
+  return slm_page_url_by_template('page-service-area.php', '/service-area/');
 }
 
 /**
  * Destination for consult / strategy-call CTAs.
+ *
+ * Distinct from slm_book_url(): a consult is a conversation, a booking is a
+ * shoot. Keep them apart so the two funnels stay measurable.
  */
 function slm_consult_cta_url(): string
 {
-  return slm_page_url_by_template('templates/page-contact.php', '/contact/');
+  return slm_page_url_by_template('page-contact.php', '/contact/');
+}
+
+/**
+ * The one canonical "Book a Shoot" destination (review item 2).
+ *
+ * Every booking CTA in the theme must resolve through this helper. Templates
+ * used to each define their own $cta_url / $order_url / $book_url and they
+ * drifted apart, which split the booking funnel and the analytics.
+ *
+ * Logged-out visitors are sent to signup; signed-in clients go straight into
+ * an order.
+ */
+function slm_book_url(): string
+{
+  if (is_user_logged_in()) {
+    return function_exists('slm_aryeo_start_order_url')
+      ? slm_aryeo_start_order_url()
+      : add_query_arg('view', 'place-order', slm_portal_url());
+  }
+
+  return add_query_arg('mode', 'signup', slm_login_url());
+}
+
+/**
+ * Register a page's SEO title and meta description together (review item 7).
+ *
+ * Without both, `add_theme_support('title-tag')` falls back to the raw page
+ * slug — which is how "service-re-photography" ended up in search results.
+ * Must be called before get_header() so it runs ahead of wp_head.
+ */
+function slm_page_seo(string $title, string $description, bool $index = true): void
+{
+  add_filter('pre_get_document_title', static function () use ($title): string {
+    return $title;
+  }, 99);
+
+  add_action('wp_head', static function () use ($description, $index): void {
+    echo '<meta name="description" content="' . esc_attr($description) . '">' . "\n";
+    if (!$index) {
+      echo '<meta name="robots" content="noindex, nofollow">' . "\n";
+    }
+  }, 1);
 }
 
 /**
@@ -322,7 +356,7 @@ function slm_primary_nav_fallback(): void
   }
   echo '</ul></li>';
   echo '<li><a href="' . esc_url(slm_memberships_url()) . '">Memberships</a></li>';
-  echo '<li><a href="' . esc_url(slm_page_url_by_template('templates/page-portfolio.php', '/portfolio/')) . '">Portfolio</a></li>';
+  echo '<li><a href="' . esc_url(slm_page_url_by_template('templates/page-portfolio.php', '/our-portfolio/')) . '">Portfolio</a></li>';
   echo '<li><a href="' . esc_url(home_url('/contact/')) . '">Contact</a></li>';
   echo '</ul>';
 }

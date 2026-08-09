@@ -7,12 +7,25 @@ class WP_Mock {
     public static $get_permalink_result = '';
     public static $home_url_result = '';
     public static $cache = [];
+    public static $is_logged_in = false;
+
+    /** Hook registrations recorded by the add_filter/add_action stubs. */
+    public static $filters = [];
+    public static $actions = [];
 
     public static function reset() {
         self::$get_posts_result = [];
         self::$get_permalink_result = '';
         self::$home_url_result = '';
         self::$cache = [];
+        self::$is_logged_in = false;
+        self::$filters = [];
+        self::$actions = [];
+    }
+
+    /** Callbacks registered for a hook, in registration order. */
+    public static function callbacks(array $registry, string $tag): array {
+        return $registry[$tag] ?? [];
     }
 }
 
@@ -25,10 +38,14 @@ class WP_Mock {
  */
 
 if (!function_exists('add_action')) {
-    function add_action($tag, $callback, $priority = 10, $accepted_args = 1) {}
+    function add_action($tag, $callback, $priority = 10, $accepted_args = 1) {
+        WP_Mock::$actions[$tag][] = $callback;
+    }
 }
 if (!function_exists('add_filter')) {
-    function add_filter($tag, $callback, $priority = 10, $accepted_args = 1) {}
+    function add_filter($tag, $callback, $priority = 10, $accepted_args = 1) {
+        WP_Mock::$filters[$tag][] = $callback;
+    }
 }
 if (!function_exists('register_post_type')) {
     function register_post_type($post_type, $args = []) {}
@@ -107,7 +124,7 @@ if (!function_exists('is_admin')) {
     function is_admin() { return false; }
 }
 if (!function_exists('is_user_logged_in')) {
-    function is_user_logged_in() { return false; }
+    function is_user_logged_in() { return WP_Mock::$is_logged_in; }
 }
 if (!function_exists('wp_get_current_user')) {
     function wp_get_current_user() { return new stdClass(); }
@@ -124,8 +141,40 @@ if (!function_exists('esc_url')) {
 if (!function_exists('esc_html')) {
     function esc_html($text) { return $text; }
 }
+if (!function_exists('esc_attr')) {
+    function esc_attr($text) { return htmlspecialchars((string) $text, ENT_QUOTES); }
+}
+if (!function_exists('wp_nonce_url')) {
+    function wp_nonce_url($actionurl, $action = -1, $name = '_wpnonce') {
+        return add_query_arg($name, 'testnonce', $actionurl);
+    }
+}
 if (!function_exists('add_query_arg')) {
-    function add_query_arg(...$args) { return 'http://example.com/query'; }
+    /**
+     * Supports both WordPress signatures:
+     *   add_query_arg(string $key, string $value, string $url)
+     *   add_query_arg(array $params, string $url)
+     */
+    function add_query_arg(...$args) {
+        if (is_array($args[0])) {
+            $params = $args[0];
+            $url = $args[1] ?? 'http://example.com/';
+        } else {
+            $params = [$args[0] => $args[1] ?? ''];
+            $url = $args[2] ?? 'http://example.com/';
+        }
+
+        $fragment = '';
+        if (($hash = strpos($url, '#')) !== false) {
+            $fragment = substr($url, $hash);
+            $url = substr($url, 0, $hash);
+        }
+
+        [$base, $query] = array_pad(explode('?', $url, 2), 2, '');
+        parse_str($query, $existing);
+
+        return $base . '?' . http_build_query(array_merge($existing, $params)) . $fragment;
+    }
 }
 if (!function_exists('wp_reset_postdata')) {
     function wp_reset_postdata() {}

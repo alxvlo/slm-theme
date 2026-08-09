@@ -17,10 +17,7 @@ add_action('wp_head', function () {
 get_header();
 
 $pid          = get_the_ID();
-$is_logged_in = is_user_logged_in();
-$cta_url      = $is_logged_in
-  ? add_query_arg('view', 'place-order', slm_portal_url())
-  : slm_booking_cta_url();
+$cta_url      = slm_book_url();
 $contact_url  = home_url('/contact/');
 
 $re_photography_page_url    = slm_service_page_url('re-photography');
@@ -537,7 +534,13 @@ $addons = [
 
       <div class="addon-grid">
         <?php foreach ($addons as $addon): ?>
-          <div class="addon-card">
+          <?php
+            // Review item 14: add-ons used to be plain text. Each one now links
+            // to the canonical booking URL unless it declares its own target.
+            $addon_url = isset($addon['url']) && $addon['url'] !== '' ? $addon['url'] : slm_book_url();
+          ?>
+          <a class="addon-card" href="<?php echo esc_url($addon_url); ?>"
+            aria-label="Book <?php echo esc_attr($addon['name']); ?>">
             <div class="addon-card__icon" aria-hidden="true">
               <?php echo $addon['icon']; ?>
             </div>
@@ -545,7 +548,7 @@ $addons = [
               <h3 class="addon-card__title"><?php echo esc_html($addon['name']); ?></h3>
               <p class="addon-card__desc"><?php echo esc_html($addon['desc']); ?></p>
             </div>
-          </div>
+          </a>
         <?php endforeach; ?>
       </div>
     </div>

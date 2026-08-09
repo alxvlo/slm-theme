@@ -12,10 +12,7 @@ $q = new WP_Query([
 
 if (!$q->have_posts()) return;
 
-$is_logged_in = is_user_logged_in();
-$cta_url = $is_logged_in
-  ? add_query_arg('view', 'place-order', slm_portal_url())
-  : slm_booking_cta_url();
+$cta_url = slm_book_url();
 
 $star_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3 5.8 20.8l1.2-7.1L1.8 8.7l7.2-1L12 1.2l3 6.5 7.2 1-5.2 5 1.2 7.1L12 17.3Z" fill="currentColor"/></svg>';
 ?>

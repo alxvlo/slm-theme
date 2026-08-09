@@ -4,6 +4,11 @@
  */
 if (!defined('ABSPATH')) exit;
 
+slm_page_seo(
+  'Real Estate Media Memberships | Showcase Listings Media',
+  'Monthly listing media memberships for North Florida agents and businesses — predictable pricing and priority scheduling.'
+);
+
 get_header();
 
 $is_logged_in = is_user_logged_in();

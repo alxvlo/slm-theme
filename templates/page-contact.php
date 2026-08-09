@@ -5,20 +5,70 @@
 if (!defined('ABSPATH'))
   exit;
 
-// SEO
-add_filter('pre_get_document_title', function () {
-  return 'Contact Us | Showcase Listings Media';
-}, 99);
-add_action('wp_head', function () {
-  echo '<meta name="description" content="Get in touch with Showcase Listings Media — Jacksonville\'s real estate photography and video team serving agents and businesses across North Florida.">' . "\n";
-}, 1);
+slm_page_seo(
+  'Contact Us | Showcase Listings Media',
+  'Get in touch with Showcase Listings Media — Jacksonville\'s real estate photography and video team serving agents and businesses across North Florida.'
+);
+
+/**
+ * Review item 17: LocalBusiness structured data so search engines can read the
+ * phone number and service area.
+ *
+ * openingHours and a street address are deliberately omitted — the client has
+ * not supplied them, and publishing guessed hours for a real business is worse
+ * than publishing none. Add them here once confirmed.
+ */
+add_action('wp_head', function (): void {
+  $default_phone = '(904)-294-5809';
+  $default_email = 'Showcaselistingsmedia@gmail.com';
+
+  $phone = function_exists('slm_footer_setting')
+    ? (string) slm_footer_setting('slm_footer_phone', $default_phone)
+    : $default_phone;
+  $email = function_exists('slm_footer_setting')
+    ? (string) slm_footer_setting('slm_footer_email', $default_email)
+    : $default_email;
+
+  if ($phone === '') {
+    $phone = $default_phone;
+  }
+  if ($email === '') {
+    $email = $default_email;
+  }
+
+  $digits = (string) preg_replace('/\D+/', '', $phone);
+  if (strlen($digits) === 10) {
+    $digits = '1' . $digits;
+  }
+
+  $schema = [
+    '@context'    => 'https://schema.org',
+    '@type'       => 'LocalBusiness',
+    'name'        => get_bloginfo('name'),
+    'url'         => home_url('/'),
+    'telephone'   => $digits !== '' ? '+' . $digits : '',
+    'email'       => $email,
+    'image'       => get_template_directory_uri() . '/assets/img/logo-icon.png',
+    'address'     => [
+      '@type'          => 'PostalAddress',
+      'addressLocality' => 'Jacksonville',
+      'addressRegion'  => 'FL',
+      'addressCountry' => 'US',
+    ],
+    'areaServed'  => [
+      ['@type' => 'City', 'name' => 'Jacksonville'],
+      ['@type' => 'AdministrativeArea', 'name' => 'North Florida'],
+    ],
+  ];
+
+  echo '<script type="application/ld+json">'
+    . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+    . '</script>' . "\n";
+}, 2);
 
 get_header();
 
-$is_logged_in  = is_user_logged_in();
-$book_url      = $is_logged_in
-  ? add_query_arg('view', 'place-order', slm_portal_url())
-  : slm_booking_cta_url();
+$book_url      = slm_book_url();
 $services_url  = esc_url(home_url('/services/'));
 $contact_email = function_exists('slm_footer_setting')
   ? slm_footer_setting('slm_footer_email', 'Showcaselistingsmedia@gmail.com')

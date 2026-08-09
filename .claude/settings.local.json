@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Read",
+      "WebFetch",
+      "Bash(npm ls *)",
+      "Bash(php run-tests.php)",
+      "Bash(echo \"RUNNER_EXIT=$?\")",
+      "Bash(git config *)",
+      "Bash(git diff *)"
     ]
   },
   "enabledPlugins": {

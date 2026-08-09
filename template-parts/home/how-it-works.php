@@ -1,10 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-$is_logged_in = is_user_logged_in();
-$book_url = $is_logged_in
-  ? add_query_arg('view', 'place-order', slm_portal_url())
-  : slm_booking_cta_url();
+$book_url = slm_book_url();
 $pid = get_option('page_on_front');
 ?>
 

@@ -5,9 +5,13 @@
 if (!defined('ABSPATH'))
   exit;
 
+slm_page_seo(
+  'Real Estate Photography in Jacksonville, FL | Showcase Listings Media',
+  'Professional MLS-ready listing photography for Jacksonville and North Florida agents. 24–48 hour turnaround. Book online.'
+);
+
 get_header();
 
-$book_cta_url = slm_booking_cta_url();
 // Retrieve media specifically assigned via this page's Portfolio Admin Settings
 $page_id = get_queried_object_id();
 $photo_ids = $page_id > 0 ? get_post_meta($page_id, 'slm_portfolio_gallery_ids', true) : '';
@@ -56,8 +60,7 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,
-  'book_url' => $book_cta_url,
-  'book_label' => 'Book a Shoot',
+  'book_label' => 'Create Account to Order',
   'cta_title' => 'Turn Every Listing Into a Stronger First Impression',
   'cta_text' => 'Create your account to launch polished media that lifts first impressions and supports measurable listing performance.',
 ]);
