@@ -12,9 +12,15 @@ deployment:
     #
     # $CLONE is also the backup filename prefix, so production keeps the exact
     # names and rotation it has always had and staging rotates separately.
+    #
+    # The 5169 in the staging path is the directory Bluehost generated for the
+    # staging site. Deleting and recreating staging produces a NEW number --
+    # update the line below when that happens, or staging deploys will quietly
+    # build an empty directory instead of updating the site. Production is
+    # unaffected either way.
     - export CLONE=$(basename $(pwd))
     - export WPROOT=/home2/xbxkhdmy/public_html
-    - /usr/bin/test "$CLONE" = slm-theme || export WPROOT=$WPROOT/staging
+    - /usr/bin/test "$CLONE" = slm-theme || export WPROOT=$WPROOT/staging/5169
     - export DEPLOYPATH=$WPROOT/wp-content/themes/slm-theme
     - export BACKUPDIR=/home2/xbxkhdmy/backups
     - /bin/mkdir -p $BACKUPDIR $DEPLOYPATH

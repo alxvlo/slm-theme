@@ -5,7 +5,12 @@ WordPress on Bluehost, with two environments:
 | Environment | Branch | Theme path |
 | --- | --- | --- |
 | Production | `main` | `/home2/xbxkhdmy/public_html/wp-content/themes/slm-theme` |
-| Staging | `staging` | `/home2/xbxkhdmy/public_html/staging/wp-content/themes/slm-theme` |
+| Staging | `staging` | `/home2/xbxkhdmy/public_html/staging/5169/wp-content/themes/slm-theme` |
+
+Staging is served at `https://showcaselistingsmedia.com/staging/5169/`. The
+`5169` is Bluehost's generated directory name — if the staging site is ever
+deleted and recreated the number changes, and the staging path in `.cpanel.yml`
+has to be updated to match.
 
 **Neither deploy method ever deletes files on the server.** They overwrite what
 they ship and leave everything else alone, so uploads, media and anything added
