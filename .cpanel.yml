@@ -1,19 +1,32 @@
 ---
 # cPanel Git Version Control deploy hook. Runs server-side inside the repo
-# clone at /home2/xbxkhdmy/repositories/slm-theme when you click "Deploy HEAD
-# Commit". See DEPLOY.md for the full workflow.
+# clone when you click "Deploy HEAD Commit". See DEPLOY.md for the full
+# workflow.
 deployment:
   tasks:
-    - export DEPLOYPATH=/home2/xbxkhdmy/public_html/wp-content/themes/slm-theme
+    # The clone directory decides which site this deploy targets -- not the
+    # branch. ~/repositories/slm-theme is production;
+    # ~/repositories/slm-theme-staging is the staging site. Routing on the
+    # directory means checking out the wrong branch can never cross-deploy
+    # staging code onto the live site.
+    #
+    # $CLONE is also the backup filename prefix, so production keeps the exact
+    # names and rotation it has always had and staging rotates separately.
+    - export CLONE=$(basename $(pwd))
+    - export WPROOT=/home2/xbxkhdmy/public_html
+    - /usr/bin/test "$CLONE" = slm-theme || export WPROOT=$WPROOT/staging
+    - export DEPLOYPATH=$WPROOT/wp-content/themes/slm-theme
     - export BACKUPDIR=/home2/xbxkhdmy/backups
     - /bin/mkdir -p $BACKUPDIR $DEPLOYPATH
 
     # Back up the live theme before touching it. Media is excluded: it is never
     # deployed, and a one-off media tarball already lives in $BACKUPDIR.
-    - /bin/tar czf $BACKUPDIR/slm-theme-$(date +%Y%m%d-%H%M%S).tar.gz --exclude=slm-theme/assets/media -C $DEPLOYPATH/.. slm-theme
+    - /bin/tar czf $BACKUPDIR/$CLONE-$(date +%Y%m%d-%H%M%S).tar.gz --exclude=slm-theme/assets/media -C $DEPLOYPATH/.. slm-theme
 
-    # Keep the 5 newest backups. The 2* glob skips slm-theme-media-ONETIME.tar.gz.
-    - /bin/ls -1t $BACKUPDIR/slm-theme-2*.tar.gz | /usr/bin/tail -n +6 | /usr/bin/xargs -r /bin/rm -f
+    # Keep the 5 newest backups for this environment. The 2* glob skips
+    # slm-theme-media-ONETIME.tar.gz, and prod's slm-theme-2* cannot match
+    # staging's slm-theme-staging-* because the char after the dash differs.
+    - /bin/ls -1t $BACKUPDIR/$CLONE-2*.tar.gz | /usr/bin/tail -n +6 | /usr/bin/xargs -r /bin/rm -f
 
     # Ship the theme. No --delete: nothing already on the server is ever removed,
     # so uploads and server-side media survive every deploy. assets/media is
