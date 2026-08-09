@@ -18,4 +18,9 @@ deployment:
     # Ship the theme. No --delete: nothing already on the server is ever removed,
     # so uploads and server-side media survive every deploy. assets/media is
     # excluded because media is managed through WP Admin, not the repo.
-    - /usr/bin/rsync -a --exclude=.git --exclude=.github --exclude=.gitignore --exclude=.gitattributes --exclude=.cpanel.yml --exclude=.claude --exclude=.agent --exclude=.tmp --exclude=.backups --exclude=scripts --exclude=shared --exclude=tests --exclude=docs --exclude=memory-bank --exclude=node_modules --exclude=run-tests.php --exclude=AGENTS.md --exclude=DEPLOY.md --exclude=opencode.json --exclude=mfhs.html --exclude=assets/media ./ $DEPLOYPATH/
+    #
+    # --chmod is not optional: the cPanel clone under ~/repositories is created
+    # with a restrictive umask, and plain `rsync -a` would copy mode 600/700 onto
+    # the live theme. PHP still runs (it executes as this user) but Apache serves
+    # CSS/JS as another user and 403s them, so the site renders unstyled.
+    - /usr/bin/rsync -a --chmod=D755,F644 --exclude=.git --exclude=.github --exclude=.gitignore --exclude=.gitattributes --exclude=.cpanel.yml --exclude=.claude --exclude=.agent --exclude=.tmp --exclude=.backups --exclude=scripts --exclude=shared --exclude=tests --exclude=docs --exclude=memory-bank --exclude=node_modules --exclude=run-tests.php --exclude=AGENTS.md --exclude=DEPLOY.md --exclude=opencode.json --exclude=mfhs.html --exclude=assets/media ./ $DEPLOYPATH/
