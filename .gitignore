@@ -20,3 +20,6 @@ _to_delete/
 
 # Live-site backups (large, not for version control)
 .backups/
+
+# Media is managed through WP Admin, not the repo. See DEPLOY.md.
+assets/media/

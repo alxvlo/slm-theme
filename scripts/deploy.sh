@@ -20,6 +20,7 @@ EXCLUDES=(
   ".claude"
   ".agent"
   ".tmp"
+  ".backups"
   "scripts"
   "shared"
   "tests"
@@ -28,11 +29,14 @@ EXCLUDES=(
   "node_modules"
   "run-tests.php"
   "AGENTS.md"
+  "DEPLOY.md"
   "opencode.json"
   ".cpanel.yml"
   ".gitignore"
   ".gitattributes"
   "mfhs.html"
+  # Media lives on the server and in WP Admin, not in the repo. See DEPLOY.md.
+  "assets/media"
 )
 
 tar_excludes=()

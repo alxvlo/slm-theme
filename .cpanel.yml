@@ -1,19 +1,21 @@
 ---
+# cPanel Git Version Control deploy hook. Runs server-side inside the repo
+# clone at /home2/xbxkhdmy/repositories/slm-theme when you click "Deploy HEAD
+# Commit". See DEPLOY.md for the full workflow.
 deployment:
   tasks:
     - export DEPLOYPATH=/home2/xbxkhdmy/public_html/wp-content/themes/slm-theme
-    - /bin/mkdir -p $DEPLOYPATH
+    - export BACKUPDIR=/home2/xbxkhdmy/backups
+    - /bin/mkdir -p $BACKUPDIR $DEPLOYPATH
 
-    # Theme root: every template plus the stylesheet header.
-    - /bin/cp -f *.php $DEPLOYPATH/
-    - /bin/cp -f style.css $DEPLOYPATH/
+    # Back up the live theme before touching it. Media is excluded: it is never
+    # deployed, and a one-off media tarball already lives in $BACKUPDIR.
+    - /bin/tar czf $BACKUPDIR/slm-theme-$(date +%Y%m%d-%H%M%S).tar.gz --exclude=slm-theme/assets/media -C $DEPLOYPATH/.. slm-theme
 
-    # Theme directories.
-    - /bin/cp -Rf assets $DEPLOYPATH/
-    - /bin/cp -Rf inc $DEPLOYPATH/
-    - /bin/cp -Rf template-parts $DEPLOYPATH/
-    - /bin/cp -Rf templates $DEPLOYPATH/
+    # Keep the 5 newest backups. The 2* glob skips slm-theme-media-ONETIME.tar.gz.
+    - /bin/ls -1t $BACKUPDIR/slm-theme-2*.tar.gz | /usr/bin/tail -n +6 | /usr/bin/xargs -r /bin/rm -f
 
-    # Strip dev-only files that the globs above pull in. `shared/`, `tests/`,
-    # `docs/`, `memory-bank/` and `scripts/` are never copied in the first place.
-    - /bin/rm -f $DEPLOYPATH/run-tests.php
+    # Ship the theme. No --delete: nothing already on the server is ever removed,
+    # so uploads and server-side media survive every deploy. assets/media is
+    # excluded because media is managed through WP Admin, not the repo.
+    - /usr/bin/rsync -a --exclude=.git --exclude=.github --exclude=.gitignore --exclude=.gitattributes --exclude=.cpanel.yml --exclude=.claude --exclude=.agent --exclude=.tmp --exclude=.backups --exclude=scripts --exclude=shared --exclude=tests --exclude=docs --exclude=memory-bank --exclude=node_modules --exclude=run-tests.php --exclude=AGENTS.md --exclude=DEPLOY.md --exclude=opencode.json --exclude=mfhs.html --exclude=assets/media ./ $DEPLOYPATH/
