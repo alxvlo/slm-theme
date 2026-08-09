@@ -13,7 +13,7 @@ $pid = get_option('page_on_front');?>
 <section id="services" class="home-services page-section--secondary" aria-label="Real Estate Media Services">
   <div class="container">
     <header class="home-services__header">
-      <h1 id="home-services-title"><?php echo esc_html(get_post_meta($pid, 'hp_services_headline', true) ?: "What We Offer"); ?></h1>
+      <h2 id="home-services-title"><?php echo esc_html(get_post_meta($pid, 'hp_services_headline', true) ?: "What We Offer"); ?></h2>
       <p><?php echo esc_html(get_post_meta($pid, 'hp_services_subheadline', true) ?: "Professional photo, video, and content services — built for agents and businesses who want to stand out."); ?></p>
     </header>
 

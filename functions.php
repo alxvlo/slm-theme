@@ -260,7 +260,7 @@ function slm_primary_cta_for_user($user = null): array
   }
 
   return [
-    'url' => slm_booking_cta_url(),
+    'url' => slm_book_url(),
     'label' => 'Book a Shoot',
     'is_order' => true,
   ];

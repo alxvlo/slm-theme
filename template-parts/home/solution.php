@@ -1,9 +1,22 @@
 <?php
 if (!defined('ABSPATH')) exit;
 $pid = get_option('page_on_front');
+
+// Solution image: ACF field first, then theme fallback
+$solution_img = '';
+if (function_exists('get_field')) {
+  $val = get_field('hp_solution_image', (int) $pid);
+  if ($val && is_numeric($val)) {
+    $url = wp_get_attachment_image_url((int) $val, 'large');
+    $solution_img = ($url !== false) ? $url : '';
+  }
+}
+if (!$solution_img) {
+  $solution_img = get_template_directory_uri() . '/assets/img/Homepage3.jpg';
+}
 ?>
 
-<section id="home-solution" class="home-solution page-section--secondary" aria-labelledby="home-solution-title">
+<section id="home-solution" class="home-solution" aria-labelledby="home-solution-title">
   <div class="container">
     <div class="home-solution__grid">
 
@@ -60,31 +73,8 @@ $pid = get_option('page_on_front');
           >
           <div class="home-solution__img-accent" aria-hidden="true"></div>
         </div>
-        <div class="home-solution__pillar">
-          <span class="home-solution__check" aria-hidden="true">✓</span>
-          <div>
-            <strong><?php echo esc_html(get_post_meta($pid, 'hp_solution_point_2', true) ?: "Elevate your brand"); ?></strong>
-            <p>We shoot for your identity, not just the space.</p>
-          </div>
-        </div>
-        <div class="home-solution__pillar">
-          <span class="home-solution__check" aria-hidden="true">✓</span>
-          <div>
-            <strong><?php echo esc_html(get_post_meta($pid, 'hp_solution_point_3', true) ?: "Stand out in a crowded market"); ?></strong>
-            <p>Whether it's a listing or a business — we make people pay attention.</p>
-          </div>
-        </div>
-        <?php if ($pt4 = get_post_meta($pid, 'hp_solution_point_4', true)): ?>
-        <div class="home-solution__pillar">
-          <span class="home-solution__check" aria-hidden="true">✓</span>
-          <div>
-            <strong><?php echo esc_html($pt4); ?></strong>
-            <p>Built for impact.</p>
-          </div>
-        </div>
-        <?php endif; ?>
       </div>
-      <a class="btn home-solution__cta" href="<?php echo esc_url(home_url('/portfolio/')); ?>"><?php echo esc_html(get_post_meta($pid, 'hp_solution_cta', true) ?: "See Our Work"); ?></a>
+
     </div>
   </div>
 </section>

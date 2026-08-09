@@ -40,7 +40,7 @@ $placeholder = get_template_directory_uri() . '/assets/img/placeholder.jpg';
             <?php if (is_user_logged_in()): ?>
               <a class="btn btn--accent" href="<?php echo esc_url(slm_dashboard_url()); ?>">Go to Dashboard</a>
             <?php else: ?>
-              <a class="btn btn--accent" href="<?php echo esc_url(slm_booking_cta_url()); ?>">Book a Shoot</a>
+              <a class="btn btn--accent" href="<?php echo esc_url(slm_book_url()); ?>">Book a Shoot</a>
             <?php endif; ?>
           </div>
         </div>

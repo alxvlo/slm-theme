@@ -7,8 +7,9 @@
  * set as post meta in functions.php (slm_meta_title / slm_meta_description) and
  * emitted by the generic system in inc/seo.php — no inline filter needed here.
  *
- * Pricing for the three tiers is intentionally omitted pending confirmed numbers;
- * every CTA points at the contact/strategy-call flow instead of a price.
+ * A section-level starting price ($500/mo, per Brittney's page copy) is shown above
+ * the tier grid. Per-tier prices remain consult-first: individual tiers carry no
+ * price and every CTA points at the contact/strategy-call flow instead.
  */
 if (!defined('ABSPATH'))
   exit;
@@ -216,6 +217,7 @@ $faqs = [
     <div class="container">
       <h2 class="center" style="margin-top:0;">Choose Your Level of Support</h2>
       <p class="center sub" style="margin-bottom:34px; max-width:820px;">Every plan is done-for-you. Pick the level of output and support that matches where your business is right now.</p>
+      <p class="center" style="margin:-20px 0 30px; font-weight:600;">Starting as low as $500/mo.</p>
 
       <div class="pkg-grid">
         <?php foreach ($tiers as $tier): ?>
