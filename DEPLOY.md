@@ -55,18 +55,26 @@ tar czf /home2/xbxkhdmy/backups/slm-theme-$(date +%Y%m%d-%H%M%S).tar.gz \
   -C /home2/xbxkhdmy/public_html/wp-content/themes slm-theme
 ```
 
-Roll back:
+Roll back. The `-p` is required: this account's umask is restrictive, and
+without it `tar` extracts the theme as mode 600, which Apache cannot read — the
+site comes back unstyled and looks like the restore failed.
 
 ```bash
-tar xzf /home2/xbxkhdmy/backups/slm-theme-<TIMESTAMP>.tar.gz \
+tar xzpf /home2/xbxkhdmy/backups/slm-theme-<TIMESTAMP>.tar.gz \
   -C /home2/xbxkhdmy/public_html/wp-content/themes/
 ```
 
 Restore media, if it is ever damaged:
 
 ```bash
-tar xzf /home2/xbxkhdmy/backups/slm-theme-media-ONETIME.tar.gz \
+tar xzpf /home2/xbxkhdmy/backups/slm-theme-media-ONETIME.tar.gz \
   -C /home2/xbxkhdmy/public_html/wp-content/themes/slm-theme/
+```
+
+If anything ever renders unstyled after a restore, it is permissions. Fix with:
+
+```bash
+chmod -R u+rwX,go+rX,go-w /home2/xbxkhdmy/public_html/wp-content/themes/slm-theme
 ```
 
 Rolling back only fixes the server. Also revert the bad commit in git, or the
