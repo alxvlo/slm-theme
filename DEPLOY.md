@@ -93,9 +93,16 @@ fails, rebase `staging` onto `main` and re-verify on staging before promoting.
 ### Refreshing staging from production
 
 Staging content drifts from prod (its menus and pages are a snapshot from
-whenever it was last cloned). To resync, use Bluehost's own staging tool and
-pick the **production → staging** direction. It copies files, tables and rewrites
-URLs to `/staging/5169/` prefix-safely, which hand-rolled SQL does not.
+whenever it was last cloned). To resync, use the Bluehost plugin's staging
+screen — it copies files, tables and rewrites URLs to `/staging/5169/`
+prefix-safely, which hand-rolled SQL does not.
+
+**In production's wp-admin** (not staging's — the module refuses to clone from
+anywhere else), go to **Bluehost > Settings > Staging**:
+
+    https://showcaselistingsmedia.com/wp-admin/admin.php?page=bluehost#/settings/staging
+
+Press **Clone to staging**. That is production → staging.
 
 Afterwards: confirm the staging directory is still `5169` (if Bluehost recreated
 it, update `.cpanel.yml`), turn the caching plugin back off, and re-deploy the
@@ -103,10 +110,11 @@ it, update `.cpanel.yml`), turn the caching plugin back off, and re-deploy the
 
 ### Two things not to do on staging
 
-- **Never press Bluehost's "Deploy to Production" / "Publish" button.** That is
-  the *opposite* direction to the refresh above: it copies staging files *and
-  database* over production, bypassing git completely, and would undo whatever
-  prod currently has. Git is the only promotion path.
+- **Never press "Deploy Site"** on that same Staging screen — or its *Deploy all
+  changes* / *Deploy database only* / *Deploy files only* options. They are the
+  *opposite* direction to Clone to staging: they copy staging files and tables
+  over production, bypassing git completely, and would undo whatever prod
+  currently has. Git is the only promotion path.
 - **Never place an order or run a checkout on staging.** The cloned database
   carries the production Stripe key, the production Aryeo key, and
   `slm_square_environment = production`. A test order there is a real charge on
