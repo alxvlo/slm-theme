@@ -60,6 +60,11 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,
+  'faqs' => [
+    ['q' => 'Why add a floor plan to my listing?', 'a' => 'Floor plans help buyers understand layout and flow before they ever visit, which keeps them engaged with the listing longer.'],
+    ['q' => 'Can I order a floor plan with my photo shoot?', 'a' => 'Yes — add it to your order when booking and we will capture everything in one visit.'],
+    ['q' => 'What areas do you cover?', 'a' => 'We serve five North Florida counties: Duval, St. Johns, Clay, Nassau, and Putnam.'],
+  ],
   'book_label' => 'Create Account to Order',
   'cta_title' => 'Add Structure and Clarity to Every Listing',
   'cta_text' => 'Break the standard. Showcase the difference. Use floor plans to deliver complete, confidence-building marketing assets.',

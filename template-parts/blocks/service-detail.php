@@ -11,6 +11,7 @@ $args = wp_parse_args($args ?? [], [
   'description' => [],   // array of paragraphs
   'benefits' => [],      // array of ['title' => '', 'description' => '']
   'why_choose' => [],    // array of strings
+  'faqs' => [],          // array of ['q' => '', 'a' => ''] — renders FAQ + FAQPage JSON-LD
   'tour_embed' => '',    // URL for 3D tour iframe embed
   'tour_title' => 'Experience the 3D Tour',
   'book_label' => 'Create Account to Order',
@@ -174,6 +175,44 @@ $render_media = static function (string $src): void {
           </ul>
         </div>
       </div>
+    </section>
+  <?php endif; ?>
+
+  <?php
+  $faq_items = array_values(array_filter((array) $args['faqs'], static function ($item): bool {
+    return is_array($item) && trim((string) ($item['q'] ?? '')) !== '' && trim((string) ($item['a'] ?? '')) !== '';
+  }));
+  ?>
+  <?php if (!empty($faq_items)): ?>
+    <section class="service-section">
+      <div class="container">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-list">
+          <?php foreach ($faq_items as $faq): ?>
+            <details class="faq-item">
+              <summary><?php echo esc_html((string) $faq['q']); ?></summary>
+              <p><?php echo esc_html((string) $faq['a']); ?></p>
+            </details>
+          <?php endforeach; ?>
+        </div>
+      </div>
+      <?php
+      $service_faq_schema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'FAQPage',
+        'mainEntity' => array_map(static function (array $faq): array {
+          return [
+            '@type' => 'Question',
+            'name' => (string) $faq['q'],
+            'acceptedAnswer' => [
+              '@type' => 'Answer',
+              'text' => (string) $faq['a'],
+            ],
+          ];
+        }, $faq_items),
+      ];
+      ?>
+      <script type="application/ld+json"><?php echo wp_json_encode($service_faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
     </section>
   <?php endif; ?>
 

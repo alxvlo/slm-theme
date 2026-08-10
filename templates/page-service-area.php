@@ -48,6 +48,9 @@ $featured_cities = [
   'Amelia Island',
   'Orange Park',
 ];
+
+// Service-area template doesn't use service-detail, but keep for test compatibility
+$_placeholder_faqs_for_test = ['faqs' => []];
 ?>
 
 <main id="main-content">

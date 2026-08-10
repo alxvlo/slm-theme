@@ -58,6 +58,11 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,
+  'faqs' => [
+    ['q' => 'How long until my video is delivered?', 'a' => 'Edited video is delivered within 24–48 hours of the shoot.'],
+    ['q' => 'Where can I use my listing video?', 'a' => 'Anywhere you market the listing — your MLS where video is permitted, YouTube, Instagram, Facebook, and your own website.'],
+    ['q' => 'Can I book video and photos together?', 'a' => 'Yes — add videography to your photo order when booking and we will capture both in a single visit.'],
+  ],
   'book_label' => 'Create Account to Order',
   'cta_title' => 'Create Video Marketing That Works Harder for Your Business',
   'cta_text' => 'Break the standard. Showcase the difference. Build a stronger listing system with video assets designed for competitive advantage.',

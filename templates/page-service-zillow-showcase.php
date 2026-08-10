@@ -61,6 +61,11 @@ get_template_part('template-parts/blocks/service-detail', null, [
     'description' => $description,
     'benefits' => $benefits,
     'why_choose' => $why_choose,
+    'faqs' => [
+      ['q' => 'What is Zillow Showcase?', 'a' => 'Zillow\'s premium listing presentation — immersive media and elevated placement that helps your listing stand out on the platform buyers use most.'],
+      ['q' => 'How do I add Zillow Showcase to my order?', 'a' => 'Book it as its own service or add the Zillow Add-On to any listing shoot when you order.'],
+      ['q' => 'What areas do you cover?', 'a' => 'We serve five North Florida counties: Duval, St. Johns, Clay, Nassau, and Putnam.'],
+    ],
     'tour_embed' => 'https://youriguide.com/138_palm_island_way_nocatee_fl?page=tour',
     'tour_title' => 'Experience the 3D Tour',
     'book_label' => 'Create Account to Order',
