@@ -12,8 +12,6 @@ if (!defined('ABSPATH'))
 
 get_header();
 
-$is_logged_in = is_user_logged_in();
-
 // Role-aware primary CTA — resolved by slm_consult_or_order_url() (consult for guests,
 // place-order for clients). Do NOT redesign booking here (step 5).
 $book_url = slm_consult_or_order_url();

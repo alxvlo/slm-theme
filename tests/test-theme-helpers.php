@@ -131,7 +131,11 @@ function slm_test_template_has_meta_seo(string $template_basename): bool
 {
     static $init_chunks = null;
     if ($init_chunks === null) {
-        $init_chunks = explode("add_action('init'", slm_test_read('functions.php'));
+        $init_chunks = [];
+        foreach (explode("add_action('init'", slm_test_read('functions.php')) as $chunk) {
+            $end = strpos($chunk, 'set_transient(');
+            $init_chunks[] = $end === false ? $chunk : substr($chunk, 0, $end);
+        }
     }
     foreach ($init_chunks as $chunk) {
         if (strpos($chunk, 'templates/' . $template_basename) !== false
