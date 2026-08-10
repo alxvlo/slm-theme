@@ -941,6 +941,37 @@ add_action('init', function () {
   set_transient('slm_faq_page_exists', '1', DAY_IN_SECONDS);
 }, 11);
 
+add_action('init', function () {
+  if (wp_installing()) {
+    return;
+  }
+
+  if (get_transient('slm_mentorship_page_exists')) {
+    return;
+  }
+
+  $mentorship = get_page_by_path('social-mentorship-program') ?: get_page_by_title('Social Mentorship Program');
+  if (!$mentorship) {
+    $mentorship_id = wp_insert_post([
+      'post_title' => 'Social Mentorship Program',
+      'post_status' => 'publish',
+      'post_type' => 'page',
+      'post_name' => 'social-mentorship-program',
+    ]);
+    if ($mentorship_id && !is_wp_error($mentorship_id)) {
+      update_post_meta((int) $mentorship_id, '_wp_page_template', 'templates/page-social-mentorship-program.php');
+      update_post_meta((int) $mentorship_id, 'slm_meta_title', 'Social Media Mentorship for Agents & Businesses | Jacksonville, FL');
+      update_post_meta((int) $mentorship_id, 'slm_meta_description', 'A hands-on mentorship that teaches North Florida agents and business owners to plan, capture, and post their own content — strategy, systems, and on-camera confidence.');
+    }
+  } else {
+    update_post_meta((int) $mentorship->ID, '_wp_page_template', 'templates/page-social-mentorship-program.php');
+    update_post_meta((int) $mentorship->ID, 'slm_meta_title', 'Social Media Mentorship for Agents & Businesses | Jacksonville, FL');
+    update_post_meta((int) $mentorship->ID, 'slm_meta_description', 'A hands-on mentorship that teaches North Florida agents and business owners to plan, capture, and post their own content — strategy, systems, and on-camera confidence.');
+  }
+
+  set_transient('slm_mentorship_page_exists', '1', DAY_IN_SECONDS);
+}, 12);
+
 add_action('after_setup_theme', function () {
   add_theme_support('title-tag');
   add_theme_support('post-thumbnails');
