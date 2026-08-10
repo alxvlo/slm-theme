@@ -14,9 +14,9 @@ $slides = [
 ];
 
 $order_url = slm_book_url();
-$portfolio_url = home_url('/portfolio/');
+$portfolio_url = slm_page_url_by_template('templates/page-portfolio.php', '/our-portfolio/');
 $trust_points = [
-  '24-hour standard delivery',
+  '24–48 hour delivery',
   'Dedicated client support',
   'Media quality built for conversion',
 ];
@@ -52,7 +52,7 @@ $trust_points = [
     <p class="home-heroSlider__tagline js-hero-tagline"><?php echo esc_html(get_post_meta($pid, 'hp_hero_trust_line', true) ?: 'Trusted by agents and brands across North Florida'); ?></p>
 
     <ul class="home-heroSlider__trust js-hero-trust" aria-label="Why clients choose us">
-      <li><?php echo esc_html(get_post_meta($pid, 'hp_hero_badge_1', true) ?: '24-hour standard delivery'); ?></li>
+      <li><?php echo esc_html(get_post_meta($pid, 'hp_hero_badge_1', true) ?: '24–48 hour delivery'); ?></li>
       <li><?php echo esc_html(get_post_meta($pid, 'hp_hero_badge_2', true) ?: 'Dedicated client support'); ?></li>
       <li><?php echo esc_html(get_post_meta($pid, 'hp_hero_badge_3', true) ?: 'Media quality built for conversion'); ?></li>
     </ul>

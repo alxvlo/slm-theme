@@ -14,11 +14,9 @@ get_header();
 
 $is_logged_in = is_user_logged_in();
 
-// Role-aware primary CTA — matches the resolution used sitewide (home/cta.php,
-// how-it-works.php, slm_primary_cta_for_user). Do NOT redesign booking here (step 5).
-$book_url = $is_logged_in
-  ? add_query_arg('view', 'place-order', slm_portal_url())
-  : slm_consult_cta_url();
+// Role-aware primary CTA — resolved by slm_consult_or_order_url() (consult for guests,
+// place-order for clients). Do NOT redesign booking here (step 5).
+$book_url = slm_consult_or_order_url();
 
 $contact_url = home_url('/contact/');
 

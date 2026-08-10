@@ -123,6 +123,26 @@ function test_page_seo_escapes_the_description()
 }
 
 /**
+ * Newer templates get SEO via slm_meta_title/slm_meta_description post meta set
+ * by their auto-create init hook in functions.php (the for-businesses pattern),
+ * instead of an inline slm_page_seo() call.
+ */
+function slm_test_template_has_meta_seo(string $template_basename): bool
+{
+    static $init_chunks = null;
+    if ($init_chunks === null) {
+        $init_chunks = explode("add_action('init'", slm_test_read('functions.php'));
+    }
+    foreach ($init_chunks as $chunk) {
+        if (strpos($chunk, 'templates/' . $template_basename) !== false
+            && strpos($chunk, "'slm_meta_title'") !== false) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Review item 7: every public page template must register title + description,
  * or WordPress falls back to the raw slug.
  */
@@ -135,6 +155,8 @@ function test_every_public_page_template_registers_seo()
         'page-login.php',
         'page-privacy-policy.php',
         'page-terms-of-service.php',
+        // Maintenance interstitial; not a public content page.
+        'page-maintenance.php',
         // 301-redirects to the homepage before rendering; never has a title.
         'page-blog.php',
     ];
@@ -146,7 +168,8 @@ function test_every_public_page_template_registers_seo()
         }
         $body = (string) file_get_contents($template);
         $has_seo = strpos($body, 'slm_page_seo(') !== false
-            || (strpos($body, 'pre_get_document_title') !== false && strpos($body, 'name="description"') !== false);
+            || (strpos($body, 'pre_get_document_title') !== false && strpos($body, 'name="description"') !== false)
+            || slm_test_template_has_meta_seo(basename($template));
 
         if (!$has_seo) {
             $missing[] = basename($template);

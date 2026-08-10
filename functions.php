@@ -198,6 +198,19 @@ function slm_consult_cta_url(): string
 }
 
 /**
+ * Role-aware consult CTA: logged-in clients go straight to placing an order;
+ * logged-out visitors are invited to a consult conversation instead.
+ * Distinct from slm_book_url(), whose logged-out destination is signup.
+ */
+function slm_consult_or_order_url(): string
+{
+  if (is_user_logged_in()) {
+    return add_query_arg('view', 'place-order', slm_portal_url());
+  }
+  return slm_consult_cta_url();
+}
+
+/**
  * The one canonical "Book a Shoot" destination (review item 2).
  *
  * Every booking CTA in the theme must resolve through this helper. Templates
@@ -902,9 +915,13 @@ add_action('init', function () {
     ]);
     if ($service_area_id && !is_wp_error($service_area_id)) {
       update_post_meta((int) $service_area_id, '_wp_page_template', 'templates/page-service-area.php');
+      update_post_meta((int) $service_area_id, 'slm_meta_title', 'Service Area — Jacksonville & North Florida');
+      update_post_meta((int) $service_area_id, 'slm_meta_description', 'Showcase Listings Media serves agents and local businesses across five North Florida counties: Duval, St. Johns, Clay, Nassau, and Putnam.');
     }
   } else {
     update_post_meta((int) $service_area->ID, '_wp_page_template', 'templates/page-service-area.php');
+    update_post_meta((int) $service_area->ID, 'slm_meta_title', 'Service Area — Jacksonville & North Florida');
+    update_post_meta((int) $service_area->ID, 'slm_meta_description', 'Showcase Listings Media serves agents and local businesses across five North Florida counties: Duval, St. Johns, Clay, Nassau, and Putnam.');
   }
 
   set_transient('slm_service_area_page_exists', '1', DAY_IN_SECONDS);
