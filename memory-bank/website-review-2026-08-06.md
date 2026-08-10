@@ -77,6 +77,8 @@ client whether that was intentional before assigning it to two categories.
 
 Compress and convert to WebP/AVIF before upload; set explicit dimensions.
 
+**Update 2026-08-10:** live check shows the gallery is now populated (many photos render under the grid). Remaining ADMIN work: confirm each of the five filter categories holds 8–12 items, and get the client's answer on the Drone folder double-use before mapping Business assets.
+
 ---
 
 ### 2. "Book a Shoot" has two destinations — `THEME` — status: done
@@ -125,6 +127,8 @@ different menus — so this is either a WP Admin menu assignment problem or (mor
 likely, given item 4) a stale page cache serving an older menu. Purge cache
 first, then re-check before editing menus.
 
+**Update 2026-08-10:** logged-in live check shows one unified menu; group headers render as labels. Re-verify logged-out after the cache purge (item 4), then close.
+
 ---
 
 ### 4. Pages served from stale cache — `INFRA` — status: open
@@ -150,6 +154,8 @@ items, not theme code.
 
 **Fix:** in Appearance → Menus, convert those headers to non-clickable labels or
 point them at real landing pages.
+
+**Update 2026-08-10:** headers render non-clickable on the live dropdown (hard-coded fallback shipped in a75f1ef, or the menu was fixed). Re-verify logged-out after the purge, then close.
 
 ---
 
@@ -212,10 +218,10 @@ Templates needing coverage:
 - [ ] `page-social-media-packages.php`
 - [ ] `page-social-media-assistance.php`
 - [ ] `page-memberships.php`
-- [ ] `page-portfolio.php`
-- [ ] Mentorship page (no template yet)
-- [ ] For Businesses page (no template yet — see item 13)
-- [ ] Social Media Management page (no template yet)
+- [x] `page-portfolio.php`
+- [x] Mentorship page (no template yet — covered via `slm_meta_title`/`slm_meta_description` post meta set by auto-create hooks)
+- [x] For Businesses page (no template yet — see item 13; covered via `slm_meta_title`/`slm_meta_description` post meta set by auto-create hooks)
+- [x] Social Media Management page (no template yet; covered via `slm_meta_title`/`slm_meta_description` post meta set by auto-create hooks)
 
 Consider extracting a shared `slm_page_seo(string $title, string $desc): void`
 helper rather than copy-pasting the filter into fifteen files.
@@ -282,7 +288,7 @@ purge; only reopen if it survives.
 
 ---
 
-### 13. Wrong link on the Services page — `THEME` + `ADMIN` — status: open
+### 13. Wrong link on the Services page — `THEME` + `ADMIN` — status: done
 
 "Brand Content for Businesses in North Florida" → Learn More goes to Contact
 instead of the For Businesses page.
@@ -294,6 +300,8 @@ proper service page URLs.
 **Blocker:** there is no For Businesses page or template. `For Businesses`
 exists only as a homepage block heading (`template-parts/home/who.php:32`). The
 page must be created before the link can be repointed at `/for-businesses/`.
+
+**Update 2026-08-10:** verified live — the card links via slm_for_businesses_url() (templates/page-services.php:325) and /for-businesses/ is published.
 
 ---
 
@@ -353,13 +361,15 @@ and North Florida area to `templates/page-contact.php`.
 
 ---
 
-### 18. No FAQ page — `THEME` + `ADMIN` — status: open
+### 18. No FAQ page — `THEME` + `ADMIN` — status: done
 
 Unanswered: rain policy, whether the seller must be home, photo counts per
 package, cancellation policy, commercial work. These rank well in search.
 
 **Fix:** build an FAQ page with `FAQPage` schema; consider per-service FAQ
 blocks (ties into item 20).
+
+**Update 2026-08-10:** templates/page-faq.php ships the page with FAQPage JSON-LD; the page auto-creates at /faq/. Remaining ADMIN: add FAQ to the assigned primary menu in Appearance → Menus (prod does not render the code fallback), and have the client approve the flagged policy answers (rain, cancellation, seller-home, photo counts, advance booking).
 
 ---
 
@@ -379,7 +389,7 @@ leave the decorative pattern intact. Do not do half of it. Low severity.
 
 ---
 
-### 20. Service pages lack pricing, FAQ, and unique structure — `THEME` — status: open
+### 20. Service pages lack pricing, FAQ, and unique structure — `THEME` — status: in-progress
 
 Every service page repeats Overview → Featured Work → Benefits → Why Choose Us.
 Search engines prefer unique per-page content and buyers want specifics.
@@ -387,6 +397,8 @@ Search engines prefer unique per-page content and buyers want specifics.
 **Fix:** add per-service detail (photo counts, shoot duration, what's included)
 and a per-service FAQ. Interacts with the open pricing-visibility decision —
 prices are currently hidden for all users pending the guest vs logged-in split.
+
+**Update 2026-08-10:** per-service FAQ blocks shipped via template-parts/blocks/service-detail.php. Per-service details (photo counts, durations, inclusions) remain blocked on client facts and the pricing-visibility decision — do not invent numbers.
 
 ---
 
