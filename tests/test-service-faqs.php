@@ -28,6 +28,10 @@ function test_every_service_template_passes_faqs()
 {
     $missing = [];
     foreach (glob(slm_test_theme_dir() . '/templates/page-service-*.php') as $template) {
+        // county list page — no service-detail block
+        if (basename($template) === 'page-service-area.php') {
+            continue;
+        }
         if (strpos((string) file_get_contents($template), "'faqs' =>") === false) {
             $missing[] = basename($template);
         }
