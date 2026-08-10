@@ -23,5 +23,10 @@ function test_mentorship_page_is_auto_created_with_seo_meta()
         substr_count($hook, "'slm_meta_title'") === 2 && substr_count($hook, "'slm_meta_description'") === 2,
         'Both branches must set slm_meta_title and slm_meta_description'
     );
+    assert(
+        strpos($hook, "slm_page_by_template('templates/page-social-mentorship-program.php')") !== false,
+        'The lookup must fall back to template assignment — the live "Mentorship Program" page '
+            . 'uses this template under a different slug, and slug/title-only matching duplicated it'
+    );
     echo "PASS: test_mentorship_page_is_auto_created_with_seo_meta\n";
 }

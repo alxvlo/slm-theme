@@ -146,6 +146,27 @@ function slm_page_url_by_template(string $template_file, string $fallback_path):
   return $cache[$cache_key];
 }
 
+/**
+ * First published page assigned a given theme template, if any.
+ */
+function slm_page_by_template(string $template_file): ?WP_Post
+{
+  $page_ids = get_posts([
+    'post_type' => 'page',
+    'post_status' => 'publish',
+    'posts_per_page' => 1,
+    'fields' => 'ids',
+    'no_found_rows' => true,
+    'meta_key' => '_wp_page_template',
+    'meta_value' => $template_file,
+  ]);
+  if (empty($page_ids)) {
+    return null;
+  }
+  $page = get_post((int) $page_ids[0]);
+  return $page instanceof WP_Post ? $page : null;
+}
+
 function slm_admin_portal_url(): string
 {
   return slm_page_url_by_template('admin-portal.php', '/admin-portal/');
@@ -967,7 +988,12 @@ add_action('init', function () {
     return;
   }
 
-  $mentorship = get_page_by_path('social-mentorship-program') ?: get_page_by_title('Social Mentorship Program');
+  // Look up by slug, exact title, and finally by assigned template — the live
+  // site already had a "Mentorship Program" page (slug mentorship-program)
+  // using this template, and matching only slug/title created a duplicate.
+  $mentorship = get_page_by_path('social-mentorship-program')
+    ?: get_page_by_title('Social Mentorship Program')
+    ?: slm_page_by_template('templates/page-social-mentorship-program.php');
   if (!$mentorship) {
     $mentorship_id = wp_insert_post([
       'post_title' => 'Social Mentorship Program',
