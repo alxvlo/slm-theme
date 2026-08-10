@@ -58,6 +58,11 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,
+  'faqs' => [
+    ['q' => 'Are your drone pilots certified?', 'a' => 'Yes — our aerial photo and video work is FAA-certified.'],
+    ['q' => 'How long until my aerial video is delivered?', 'a' => 'Edited aerial video is delivered within 24–48 hours of the shoot.'],
+    ['q' => 'Can drone video be combined with ground video?', 'a' => 'Yes — add both to one order and we will blend aerial and interior footage into a single cinematic piece.'],
+  ],
   'book_label' => 'Create Account to Order',
   'cta_title' => 'Upgrade Your Listing Story With Aerial Motion',
   'cta_text' => 'Break the standard. Showcase the difference. Create your account to launch higher-impact aerial campaigns.',

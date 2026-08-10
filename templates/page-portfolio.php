@@ -25,10 +25,19 @@ if (empty($portfolio_items_json)) {
   $portfolio_items_json = slm_portfolio_default_items();
 }
 
-// Hero stays sourced from the first GALLERY image, not the first saved item, so
-// reordering items in the portal never silently swaps the featured photo.
-$wp_images    = slm_portfolio_gallery_images();
-$featured_img = $wp_images[0]['full'] ?? '';
+// Featured Project: the item flagged "featured" in the admin portal's Portfolio
+// Manager wins; otherwise the first item. Label, name, and badges all come from
+// the same record as the media, so they can never disagree with the picture.
+$featured_item = null;
+foreach ($portfolio_items_json as $candidate) {
+  if (!empty($candidate['featured'])) {
+    $featured_item = $candidate;
+    break;
+  }
+}
+if ($featured_item === null && !empty($portfolio_items_json)) {
+  $featured_item = $portfolio_items_json[0];
+}
 ?>
 
 <main id="main-content">
@@ -54,26 +63,48 @@ $featured_img = $wp_images[0]['full'] ?? '';
   <!-- ============================================================
        Section 2 — Featured Work (dark navy continues)
        ============================================================ -->
-  <?php if ($featured_img): ?>
+  <?php if ($featured_item && !empty($featured_item['image'])): ?>
+  <?php
+    $featured_src      = (string) $featured_item['image'];
+    $featured_is_video = (($featured_item['type'] ?? 'image') === 'video');
+    $featured_title    = (string) ($featured_item['title'] ?? '');
+    $featured_cat      = (string) ($featured_item['category'] ?? '');
+    $featured_poster   = (string) ($featured_item['thumb'] ?? '');
+    $featured_metrics  = array_slice(array_filter((array) ($featured_item['metrics'] ?? []), 'is_string'), 0, 2);
+  ?>
   <section class="port-featured" aria-label="Featured project">
     <div class="container">
       <p class="port-featured__eyebrow">Featured Project</p>
       <div class="port-featured__frame js-reveal">
-        <img
-          src="<?php echo esc_url($featured_img); ?>"
-          alt="6000 on the River — featured real estate media project"
-          loading="eager"
-          decoding="async">
+        <?php if ($featured_is_video): ?>
+          <video
+            src="<?php echo esc_url($featured_src); ?>"
+            <?php if ($featured_poster !== ''): ?>poster="<?php echo esc_url($featured_poster); ?>"<?php endif; ?>
+            autoplay muted loop playsinline preload="metadata"></video>
+        <?php else: ?>
+          <img
+            src="<?php echo esc_url($featured_src); ?>"
+            alt="<?php echo esc_attr($featured_title !== '' ? $featured_title . ' — featured project' : 'Featured project'); ?>"
+            loading="eager"
+            decoding="async">
+        <?php endif; ?>
         <div class="port-featured__overlay">
           <div class="port-featured__overlay-inner">
             <div class="port-featured__meta">
-              <span class="port-featured__cat">Cinematic Video</span>
-              <h2 class="port-featured__name">6000 on the River</h2>
+              <?php if ($featured_cat !== ''): ?>
+                <span class="port-featured__cat"><?php echo esc_html($featured_cat); ?></span>
+              <?php endif; ?>
+              <?php if ($featured_title !== ''): ?>
+                <h2 class="port-featured__name"><?php echo esc_html($featured_title); ?></h2>
+              <?php endif; ?>
             </div>
-            <div class="port-featured__badges">
-              <span class="port-featured__badge">&#9733; Listed &amp; Under Contract in 6 Days</span>
-              <span class="port-featured__badge">&#9733; 14,200 Video Views</span>
-            </div>
+            <?php if (!empty($featured_metrics)): ?>
+              <div class="port-featured__badges">
+                <?php foreach ($featured_metrics as $featured_metric): ?>
+                  <span class="port-featured__badge">&#9733; <?php echo esc_html($featured_metric); ?></span>
+                <?php endforeach; ?>
+              </div>
+            <?php endif; ?>
           </div>
         </div>
       </div>
@@ -126,6 +157,7 @@ $featured_img = $wp_images[0]['full'] ?? '';
 <div class="slm-lightbox" id="slmLightbox" aria-hidden="true">
   <button class="slm-lightbox__close" id="lbClose" aria-label="Close viewer">&times;</button>
   <img src="" alt="Enlarged portfolio image" class="slm-lightbox__img" id="lbImg">
+  <video class="slm-lightbox__img" id="lbVideo" controls playsinline style="display:none" aria-label="Portfolio video"></video>
   <div class="slm-lightbox__controls">
     <button class="slm-lightbox__btn" id="lbPrev" type="button">&larr;</button>
     <button class="slm-lightbox__btn" id="lbNext" type="button">&rarr;</button>
@@ -173,8 +205,21 @@ $featured_img = $wp_images[0]['full'] ?? '';
 
         var altText = item.category ? item.category + ' — ' + item.title : item.title;
 
+        var isVideo = item.type === 'video';
+        var mediaHtml;
+        if (isVideo) {
+          mediaHtml =
+            '<video class="port-card__img" src="' + escAttr(item.image) + '"' +
+            (item.thumb ? ' poster="' + escAttr(item.thumb) + '"' : '') +
+            ' muted loop playsinline preload="metadata" aria-label="' + escAttr(altText) + '"></video>' +
+            '<span class="port-card__play" aria-hidden="true">&#9654;</span>';
+        } else {
+          mediaHtml =
+            '<img class="port-card__img" src="' + escAttr(item.thumb || item.image) + '" alt="' + escAttr(altText) + '" loading="lazy" decoding="async">';
+        }
+
         card.innerHTML =
-          '<img class="port-card__img" src="' + escAttr(item.thumb || item.image) + '" alt="' + escAttr(altText) + '" loading="lazy" decoding="async">' +
+          mediaHtml +
           '<div class="port-card__overlay">' +
             '<div class="port-card__overlay-body">' +
               '<span class="port-card__cat">' + escHtml(item.category) + '</span>' +
@@ -216,6 +261,7 @@ $featured_img = $wp_images[0]['full'] ?? '';
   /* ── Lightbox ── */
   var lb        = document.getElementById('slmLightbox');
   var lbImg     = document.getElementById('lbImg');
+  var lbVideo   = document.getElementById('lbVideo');
   var lbClose   = document.getElementById('lbClose');
   var lbPrev    = document.getElementById('lbPrev');
   var lbNext    = document.getElementById('lbNext');
@@ -227,13 +273,17 @@ $featured_img = $wp_images[0]['full'] ?? '';
     var filtered = activeFilter === 'All'
       ? portfolioItems
       : portfolioItems.filter(function (item) { return item.category === activeFilter; });
-    lbItems = filtered.map(function (item) { return item.image; });
+    lbItems = filtered.map(function (item) {
+      return { url: item.image, type: item.type === 'video' ? 'video' : 'image' };
+    });
   }
 
   function openLightbox(url) {
     buildLbList();
-    lbCurrent = lbItems.indexOf(url);
-    if (lbCurrent < 0) lbCurrent = 0;
+    lbCurrent = 0;
+    for (var i = 0; i < lbItems.length; i++) {
+      if (lbItems[i].url === url) { lbCurrent = i; break; }
+    }
     showLbMedia();
     lb.classList.add('is-open');
     lb.setAttribute('aria-hidden', 'false');
@@ -241,9 +291,19 @@ $featured_img = $wp_images[0]['full'] ?? '';
   }
 
   function showLbMedia() {
-    if (!lbImg || !lbItems[lbCurrent]) return;
-    lbImg.src = lbItems[lbCurrent];
-    if (lbInd) lbInd.textContent = 'Photo ' + (lbCurrent + 1) + ' / ' + lbItems.length;
+    var entry = lbItems[lbCurrent];
+    if (!entry) return;
+    var isVideo = entry.type === 'video';
+    if (lbVideo) {
+      lbVideo.pause();
+      lbVideo.style.display = isVideo ? 'block' : 'none';
+      if (isVideo) { lbVideo.src = entry.url; } else { lbVideo.removeAttribute('src'); }
+    }
+    if (lbImg) {
+      lbImg.style.display = isVideo ? 'none' : 'block';
+      lbImg.src = isVideo ? '' : entry.url;
+    }
+    if (lbInd) lbInd.textContent = (lbCurrent + 1) + ' / ' + lbItems.length;
   }
 
   function closeLightbox() {
@@ -251,6 +311,10 @@ $featured_img = $wp_images[0]['full'] ?? '';
     lb.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
     lbImg.src = '';
+    if (lbVideo) {
+      lbVideo.pause();
+      lbVideo.removeAttribute('src');
+    }
   }
 
   if (lb) {

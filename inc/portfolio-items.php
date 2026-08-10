@@ -81,11 +81,55 @@ function slm_portfolio_gallery_images(): array
 }
 
 /**
+ * Resolve the Portfolio page video picker to a list of video records.
+ *
+ * Reads the same slm_portfolio_video_ids meta the WP Admin "Video Portfolio"
+ * picker saves. Poster comes from the attachment's featured image when set.
+ *
+ * @return array<int, array{url:string, poster:string, title:string}>
+ */
+function slm_portfolio_gallery_videos(): array
+{
+  $page_id = slm_portfolio_page_id();
+  if ($page_id <= 0)
+    return [];
+
+  $raw_ids = (string) get_post_meta($page_id, slm_portfolio_video_meta_key(), true);
+  if (trim($raw_ids) === '')
+    return [];
+
+  $videos = [];
+  foreach (slm_portfolio_sanitize_ids($raw_ids) as $att_id) {
+    $url = (string) wp_get_attachment_url($att_id);
+    if ($url === '')
+      continue;
+
+    $poster = '';
+    $poster_id = (int) get_post_thumbnail_id($att_id);
+    if ($poster_id > 0) {
+      $poster = (string) wp_get_attachment_image_url($poster_id, 'large');
+    }
+
+    $videos[] = [
+      'url' => $url,
+      'poster' => $poster,
+      'title' => (string) get_the_title($att_id),
+    ];
+  }
+
+  return $videos;
+}
+
+/**
  * The site's default portfolio items, derived from real media-library attachments.
  *
  * This is the ONLY default-items implementation in the theme. Both the public
  * portfolio grid and the portal Portfolio Manager render from it, so the two can
  * never drift apart or ship guessed image paths.
+ *
+ * Images come first (positionally categorized until curated in the Portfolio
+ * Manager), then videos from the Video Portfolio picker, defaulting to the
+ * Cinematic Video category.
  *
  * @return array<int, array<string, mixed>>
  */
@@ -174,14 +218,34 @@ function slm_portfolio_default_items(): array
       'id' => $idx + 1,
       'title' => $title,
       'category' => $default_categories[$cat_idx],
+      'type' => 'image',
       'image' => $img['full'],
       'thumb' => $img['thumb'],
       'metrics' => $default_metrics[$met_idx],
-      // NOTE: 'featured' is currently WRITE-ONLY. It exists so defaults match the
-      // shape slm_portfolio_items_sanitize() emits and the portal's editor expects.
-      // Nothing reads it — the portfolio hero image comes from the first gallery
-      // image, not from this flag. Do not assume it drives the hero.
+      // The featured item drives the Featured Project section on the portfolio
+      // page (first item flagged wins; the page falls back to the first item).
       'featured' => ($idx === 0),
+    ];
+  }
+
+  $video_metrics = [
+    ['14,200 Video Views', 'Listed & Under Contract in 6 Days'],
+    ['8,400 Video Views', 'Sold in 7 days'],
+    ['22,000 Video Views', 'Featured on Social'],
+    ['11,000 Video Views', 'Sold Over Asking'],
+  ];
+
+  $next_id = count($items) + 1;
+  foreach (slm_portfolio_gallery_videos() as $v_idx => $video) {
+    $items[] = [
+      'id' => $next_id++,
+      'title' => $video['title'] !== '' ? $video['title'] : 'Cinematic Tour ' . ($v_idx + 1),
+      'category' => 'Cinematic Video',
+      'type' => 'video',
+      'image' => $video['url'],
+      'thumb' => $video['poster'],
+      'metrics' => $video_metrics[$v_idx % count($video_metrics)],
+      'featured' => false,
     ];
   }
 
@@ -208,7 +272,13 @@ function slm_portfolio_items_sanitize(array $raw): array
     if (!in_array($category, $categories, true))
       continue;
 
-    if ($thumb === '')
+    $type = strtolower(sanitize_text_field((string) ($entry['type'] ?? 'image')));
+    if (!in_array($type, ['image', 'video'], true))
+      $type = 'image';
+
+    // A video's thumb is its optional poster image — never fall back to the
+    // video URL itself, which is not a valid <img> source.
+    if ($thumb === '' && $type !== 'video')
       $thumb = $image;
 
     $metrics = [];
@@ -228,6 +298,7 @@ function slm_portfolio_items_sanitize(array $raw): array
       'id' => $id,
       'title' => $title,
       'category' => $category,
+      'type' => $type,
       'image' => $image,
       'thumb' => $thumb,
       'metrics' => $metrics,

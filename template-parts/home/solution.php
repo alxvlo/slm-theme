@@ -42,7 +42,7 @@ $pid = get_option('page_on_front');
         </div>
         <?php endif; ?>
       </div>
-      <a class="btn home-solution__cta" href="<?php echo esc_url(home_url('/portfolio/')); ?>"><?php echo esc_html(get_post_meta($pid, 'hp_solution_cta', true) ?: "See Our Work"); ?></a>
+      <a class="btn home-solution__cta" href="<?php echo esc_url(slm_page_url_by_template('templates/page-portfolio.php', '/our-portfolio/')); ?>"><?php echo esc_html(get_post_meta($pid, 'hp_solution_cta', true) ?: "See Our Work"); ?></a>
     </div>
   </div>
 </section>

@@ -60,6 +60,11 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,
+  'faqs' => [
+    ['q' => 'Are your drone pilots certified?', 'a' => 'Yes — our aerial photo and video work is FAA-certified.'],
+    ['q' => 'How fast will I get my aerial photos?', 'a' => 'Edited aerial photos are delivered within 24–48 hours of the shoot.'],
+    ['q' => 'When does drone photography make the biggest difference?', 'a' => 'Large lots, waterfront and preserve views, acreage, and any listing where the location and surroundings are part of the story.'],
+  ],
   'book_label' => 'Create Account to Order',
   'cta_title' => 'Add Aerial Context to Your Listing Strategy',
   'cta_text' => 'Break the standard. Showcase the difference. Use aerial media to elevate presentation quality and competitive advantage.',

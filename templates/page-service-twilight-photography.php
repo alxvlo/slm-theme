@@ -60,6 +60,11 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,
+  'faqs' => [
+    ['q' => 'Do you shoot real twilight or edit it?', 'a' => 'Both are available: in-person twilight shoots captured at dusk, and dusk conversions edited from daytime photos — choose whichever fits your timeline and budget.'],
+    ['q' => 'How fast will I get my twilight photos?', 'a' => 'Edited twilight photos are delivered within 24–48 hours of the shoot.'],
+    ['q' => 'Why add twilight photography to a listing?', 'a' => 'Warm dusk lighting makes a listing stand out in search results and thumbnails, where most buyers form their first impression.'],
+  ],
   'book_label' => 'Create Account to Order',
   'cta_title' => 'Showcase Listings With Premium Twilight Impact',
   'cta_text' => 'Break the standard. Showcase the difference. Create your account and add high-impact twilight visuals to your next listing campaign.',

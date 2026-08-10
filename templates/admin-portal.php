@@ -1969,9 +1969,9 @@ get_header();
               </div>
 
               <div class="pMgr-field">
-                <label class="pMgr-label" for="pMgrModalImg">Image URL from WordPress Media Library</label>
+                <label class="pMgr-label" for="pMgrModalImg">Image or Video URL from WordPress Media Library</label>
                 <input class="pMgr-input" id="pMgrModalImg" type="url" placeholder="https://...">
-                <small class="pMgr-helper">Paste the full image URL from WordPress Media &rsaquo; Library</small>
+                <small class="pMgr-helper">Paste the full media URL from WordPress Media &rsaquo; Library. Video links (.mp4, .webm, .mov) are detected automatically.</small>
               </div>
 
               <div class="pMgr-field">
@@ -2083,8 +2083,11 @@ get_header();
                 var tr = document.createElement('tr');
                 tr.style.background = rowIdx % 2 === 0 ? '#fff' : '#F8F9FB';
                 var metrics = (item.metrics || []).join(', ');
+                var thumbHtml = item.type === 'video'
+                  ? '<video src="' + esc(item.image) + '"' + (item.thumb ? ' poster="' + esc(item.thumb) + '"' : '') + ' muted preload="metadata" style="width:72px;height:52px;object-fit:cover;border-radius:6px;display:block;background:#0d1b2a;"></video>'
+                  : '<img src="' + esc(item.thumb || item.image) + '" alt="" style="width:72px;height:52px;object-fit:cover;border-radius:6px;display:block;">';
                 tr.innerHTML =
-                  '<td><img src="' + esc(item.thumb || item.image) + '" alt="" style="width:72px;height:52px;object-fit:cover;border-radius:6px;display:block;"></td>' +
+                  '<td>' + thumbHtml + '</td>' +
                   '<td style="font-family:Outfit,sans-serif;font-weight:600;color:#0d1b2a;font-size:0.95rem;">' + esc(item.title) + '</td>' +
                   '<td><span style="display:inline-block;background:#c9922a;color:#0d1b2a;font-size:0.75rem;font-weight:700;padding:3px 10px;border-radius:20px;">' + esc(item.category) + '</span></td>' +
                   '<td style="color:#6b7280;font-size:0.85rem;">' + esc(metrics) + '</td>' +
@@ -2156,12 +2159,18 @@ get_header();
             saveBtn && saveBtn.addEventListener('click', function () {
               var id = mId ? parseInt(mId.value, 10) : 0;
               var img = mImg ? mImg.value.trim() : '';
+              var existing = id && id > 0 ? items.find(function (i) { return i.id === id; }) : null;
+              /* Type follows the media URL; a video's thumb stays its poster
+                 image (or empty) — never the video URL itself. */
+              var isVideoUrl = /\.(mp4|webm|mov)(\?.*)?$/i.test(img);
+              var type = isVideoUrl ? 'video' : 'image';
               var data = {
                 id: id || nextId,
                 title: mTitle ? mTitle.value.trim() : '',
                 category: mCat ? mCat.value : 'Real Estate Photography',
+                type: type,
                 image: img,
-                thumb: img,
+                thumb: type === 'video' ? ((existing && existing.type === 'video' && existing.thumb) || '') : img,
                 metrics: [mM1, mM2, mM3].map(function (el) { return el ? el.value.trim() : ''; }).filter(Boolean),
                 featured: mFeatured ? mFeatured.checked : false,
               };

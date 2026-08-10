@@ -60,6 +60,11 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'description' => $description,
   'benefits' => $benefits,
   'why_choose' => $why_choose,
+  'faqs' => [
+    ['q' => 'How fast will I get my listing photos?', 'a' => 'Edited, MLS-ready photos are delivered within 24–48 hours of the shoot.'],
+    ['q' => 'What areas do you photograph?', 'a' => 'We shoot across five North Florida counties: Duval, St. Johns, Clay, Nassau, and Putnam.'],
+    ['q' => 'Can I add more services to a photo shoot?', 'a' => 'Yes — add drone, twilight, video, or a floor plan to the same order when you book and we will capture everything in one visit.'],
+  ],
   'book_label' => 'Create Account to Order',
   'cta_title' => 'Turn Every Listing Into a Stronger First Impression',
   'cta_text' => 'Create your account to launch polished media that lifts first impressions and supports measurable listing performance.',

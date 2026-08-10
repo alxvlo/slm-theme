@@ -146,6 +146,27 @@ function slm_page_url_by_template(string $template_file, string $fallback_path):
   return $cache[$cache_key];
 }
 
+/**
+ * First published page assigned a given theme template, if any.
+ */
+function slm_page_by_template(string $template_file): ?WP_Post
+{
+  $page_ids = get_posts([
+    'post_type' => 'page',
+    'post_status' => 'publish',
+    'posts_per_page' => 1,
+    'fields' => 'ids',
+    'no_found_rows' => true,
+    'meta_key' => '_wp_page_template',
+    'meta_value' => $template_file,
+  ]);
+  if (empty($page_ids)) {
+    return null;
+  }
+  $page = get_post((int) $page_ids[0]);
+  return $page instanceof WP_Post ? $page : null;
+}
+
 function slm_admin_portal_url(): string
 {
   return slm_page_url_by_template('admin-portal.php', '/admin-portal/');
@@ -176,6 +197,11 @@ function slm_social_media_management_url(): string
   return slm_page_url_by_template('page-social-media-management.php', '/social-media-management/');
 }
 
+function slm_faq_url(): string
+{
+  return slm_page_url_by_template('templates/page-faq.php', '/faq/');
+}
+
 function slm_service_area_url(): string
 {
   return slm_page_url_by_template('page-service-area.php', '/service-area/');
@@ -190,6 +216,19 @@ function slm_service_area_url(): string
 function slm_consult_cta_url(): string
 {
   return slm_page_url_by_template('page-contact.php', '/contact/');
+}
+
+/**
+ * Role-aware consult CTA: logged-in clients go straight to placing an order;
+ * logged-out visitors are invited to a consult conversation instead.
+ * Distinct from slm_book_url(), whose logged-out destination is signup.
+ */
+function slm_consult_or_order_url(): string
+{
+  if (is_user_logged_in()) {
+    return add_query_arg('view', 'place-order', slm_portal_url());
+  }
+  return slm_consult_cta_url();
 }
 
 /**
@@ -357,9 +396,34 @@ function slm_primary_nav_fallback(): void
   echo '</ul></li>';
   echo '<li><a href="' . esc_url(slm_memberships_url()) . '">Memberships</a></li>';
   echo '<li><a href="' . esc_url(slm_page_url_by_template('templates/page-portfolio.php', '/our-portfolio/')) . '">Portfolio</a></li>';
+  echo '<li><a href="' . esc_url(slm_faq_url()) . '">FAQ</a></li>';
   echo '<li><a href="' . esc_url(home_url('/contact/')) . '">Contact</a></li>';
   echo '</ul>';
 }
+
+/**
+ * 301 stray copies of the portfolio page to the canonical one (review item 6).
+ * The legacy /portfolio/ page still carries the portfolio template in prod's
+ * database; anything rendering that template other than the canonical page is
+ * duplicate content and redirects instead.
+ */
+add_action('template_redirect', function () {
+  if (!is_page() || !is_page_template('templates/page-portfolio.php')) {
+    return;
+  }
+
+  $canonical_id = slm_portfolio_page_id();
+  $current_id = (int) get_queried_object_id();
+  if ($canonical_id <= 0 || $current_id <= 0 || $current_id === $canonical_id) {
+    return;
+  }
+
+  $target = get_permalink($canonical_id);
+  if (is_string($target) && $target !== '') {
+    wp_safe_redirect($target, 301);
+    exit;
+  }
+});
 
 /**
  * Prevent cache bleed on auth-sensitive pages/routes.
@@ -896,13 +960,84 @@ add_action('init', function () {
     ]);
     if ($service_area_id && !is_wp_error($service_area_id)) {
       update_post_meta((int) $service_area_id, '_wp_page_template', 'templates/page-service-area.php');
+      update_post_meta((int) $service_area_id, 'slm_meta_title', 'Service Area — Jacksonville & North Florida');
+      update_post_meta((int) $service_area_id, 'slm_meta_description', 'Showcase Listings Media serves agents and local businesses across five North Florida counties: Duval, St. Johns, Clay, Nassau, and Putnam.');
     }
   } else {
     update_post_meta((int) $service_area->ID, '_wp_page_template', 'templates/page-service-area.php');
+    update_post_meta((int) $service_area->ID, 'slm_meta_title', 'Service Area — Jacksonville & North Florida');
+    update_post_meta((int) $service_area->ID, 'slm_meta_description', 'Showcase Listings Media serves agents and local businesses across five North Florida counties: Duval, St. Johns, Clay, Nassau, and Putnam.');
   }
 
   set_transient('slm_service_area_page_exists', '1', DAY_IN_SECONDS);
 }, 10);
+
+add_action('init', function () {
+  if (wp_installing()) {
+    return;
+  }
+
+  if (get_transient('slm_faq_page_exists')) {
+    return;
+  }
+
+  $faq = get_page_by_path('faq') ?: get_page_by_title('FAQ');
+  if (!$faq) {
+    $faq_id = wp_insert_post([
+      'post_title' => 'FAQ',
+      'post_status' => 'publish',
+      'post_type' => 'page',
+      'post_name' => 'faq',
+    ]);
+    if ($faq_id && !is_wp_error($faq_id)) {
+      update_post_meta((int) $faq_id, '_wp_page_template', 'templates/page-faq.php');
+      update_post_meta((int) $faq_id, 'slm_meta_title', 'FAQ — Booking, Turnaround & Delivery | Jacksonville, FL');
+      update_post_meta((int) $faq_id, 'slm_meta_description', 'Answers to common questions about booking, 24–48 hour delivery, weather policy, and working with Showcase Listings Media in Jacksonville & North Florida.');
+    }
+  } else {
+    update_post_meta((int) $faq->ID, '_wp_page_template', 'templates/page-faq.php');
+    update_post_meta((int) $faq->ID, 'slm_meta_title', 'FAQ — Booking, Turnaround & Delivery | Jacksonville, FL');
+    update_post_meta((int) $faq->ID, 'slm_meta_description', 'Answers to common questions about booking, 24–48 hour delivery, weather policy, and working with Showcase Listings Media in Jacksonville & North Florida.');
+  }
+
+  set_transient('slm_faq_page_exists', '1', DAY_IN_SECONDS);
+}, 11);
+
+add_action('init', function () {
+  if (wp_installing()) {
+    return;
+  }
+
+  if (get_transient('slm_mentorship_page_exists')) {
+    return;
+  }
+
+  // Look up by slug, exact title, and finally by assigned template — the live
+  // site already had a "Mentorship Program" page (slug mentorship-program)
+  // using this template, and matching only slug/title created a duplicate.
+  $mentorship = get_page_by_path('social-mentorship-program')
+    ?: get_page_by_title('Social Mentorship Program')
+    ?: slm_page_by_template('templates/page-social-mentorship-program.php');
+  if (!$mentorship) {
+    $mentorship_id = wp_insert_post([
+      'post_title' => 'Social Mentorship Program',
+      'post_status' => 'publish',
+      'post_type' => 'page',
+      'post_name' => 'social-mentorship-program',
+    ]);
+    if ($mentorship_id && !is_wp_error($mentorship_id)) {
+      update_post_meta((int) $mentorship_id, '_wp_page_template', 'templates/page-social-mentorship-program.php');
+      update_post_meta((int) $mentorship_id, 'slm_meta_title', 'Social Media Mentorship for Agents & Businesses | Jacksonville, FL');
+      update_post_meta((int) $mentorship_id, 'slm_meta_description', 'A hands-on mentorship that teaches North Florida agents and business owners to plan, capture, and post their own content — strategy, systems, and on-camera confidence.');
+    }
+  } else {
+    update_post_meta((int) $mentorship->ID, '_wp_page_template', 'templates/page-social-mentorship-program.php');
+    update_post_meta((int) $mentorship->ID, 'slm_meta_title', 'Social Media Mentorship for Agents & Businesses | Jacksonville, FL');
+    update_post_meta((int) $mentorship->ID, 'slm_meta_description', 'A hands-on mentorship that teaches North Florida agents and business owners to plan, capture, and post their own content — strategy, systems, and on-camera confidence.');
+  }
+
+  set_transient('slm_mentorship_page_exists', '1', DAY_IN_SECONDS);
+}, 12);
 
 add_action('after_setup_theme', function () {
   add_theme_support('title-tag');

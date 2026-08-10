@@ -133,6 +133,7 @@ $has_footer_menu = has_nav_menu('footer');
       ?>
     <?php endif; ?>
     <ul class="footer__menu">
+      <li><a href="<?php echo esc_url(slm_faq_url()); ?>">FAQ</a></li>
       <li><a href="<?php echo esc_url($privacy_url); ?>">Privacy Policy</a></li>
       <li><a href="<?php echo esc_url($terms_url); ?>">Terms of Service</a></li>
     </ul>
