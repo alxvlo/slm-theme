@@ -1,98 +1,133 @@
-# Changelog
+# Website Changelog — Showcase Listings Media
 
-Theme changes tracked against the client review backlog
-(`website-review-2026-08-06.md`). Item numbers below refer to that document.
-Newest first. "Deployed" reflects where the work has actually shipped — code
-merged to `staging`/`main` does nothing on Bluehost until a cPanel deploy runs.
+A plain-English record of what has changed on showcaselistingsmedia.com since
+the site review on August 6, 2026, and what is still waiting on input.
+Newest changes first. Item numbers (e.g. "review item 18") refer to
+`website-review-2026-08-06.md`, the review checklist this work comes from.
 
-## 2026-08-10 — Round 2: FAQ, per-service FAQs, SEO stragglers, regression repairs
+> **Where changes go live:** updates are first published to a private staging
+> copy of the site for checking, then to the public site. A change listed here
+> may still be on staging — the "Status" line on each entry says where it is.
 
-**Deployed:** staging (verified live on the staging URL). Production pending
-the `staging` → `main` merge and cPanel deploy.
+---
 
-### Added
+## ❗ What we need from the client
 
-- **FAQ page** (item 18) — `templates/page-faq.php` with 12 answers in three
-  groups, native `<details>` accordions, and `FAQPage` JSON-LD generated from
-  the same array as the visible markup. Page auto-creates at `/faq/` with SEO
-  meta; linked from the footer and the hard-coded nav fallback. Five policy
-  answers (rain, cancellation, seller-at-home, photo counts, advance booking)
-  use conservative wording pending client sign-off. `4404c7b`
-- **Per-service FAQ blocks** (item 20, FAQ half) — `service-detail` block
-  gained an optional `faqs` arg rendering an FAQ section + `FAQPage` schema;
-  all eight `page-service-*.php` templates carry three factual Q&As each.
-  `6a57768`
-- **Mentorship page auto-creation + SEO meta** (item 7's last gap) —
-  priority-12 init hook. `f168d85`
-- **Service-area SEO meta** (item 7) — title/description added to its
-  auto-create hook. `fb3856f`
-- `slm_consult_or_order_url()` — moves the For Businesses page's
-  login-state CTA branch out of the template, per item 2's rule. `fb3856f`
-- `slm_page_by_template()` — page lookup by assigned template. `6be011c`
-- Tests: `test-faq-page.php`, `test-service-faqs.php`,
-  `test-mentorship-page.php`; suite now 30 tests, all green.
+Nothing below blocks the site from running — but each of these makes the site
+more accurate or more effective, and only the client can provide them:
 
-### Fixed
+1. **Approve the FAQ wording.** Five answers on the new FAQ page were written
+   conservatively because we don't know the official policy. Please confirm or
+   correct: what happens when it rains, the cancellation policy, whether the
+   seller needs to be home, how many photos come with a shoot, and how far in
+   advance to book.
+2. **Review the portfolio labels.** Every photo and video on the Portfolio
+   page needs a project title and the right category (Real Estate Photography,
+   Cinematic Video, Drone, Social Media / Reels, or Business Branding). This
+   is done in the site's Portfolio Manager — no technical knowledge needed.
+3. **Provide real project stats — or remove the samples.** The portfolio
+   cards currently show *sample* results ("Sold in 8 days", "14,200 Video
+   Views"). These are placeholders, not real numbers. Please supply real
+   stats per project, or tell us to take the badges down.
+4. **Choose the featured project.** The big showcase at the top of the
+   Portfolio page can be any photo or video — pick which project it should be.
+5. **Service page details.** To finish the service pages we need, per service:
+   how many photos are included, typical shoot duration, and what's included
+   in each package — plus a decision on whether prices show publicly or only
+   to logged-in clients.
+6. **Confirm the Drive folder mix-up.** The "Drone" Google Drive folder was
+   listed under both Drone and Business Branding — was that intentional?
+7. **Testimonial permissions.** Written permission from each client whose
+   email testimonial we'll publish, before it goes on the site.
 
-- **Item 10 regression** — `49831d6` (hero markup restore) had silently
-  re-introduced "24-hour standard delivery" in `hero-slider.php`. Restored to
-  the canonical "24–48 hour delivery". `fb3856f`
-- **Item 6 regression** — same restore re-introduced hardcoded
-  `home_url('/portfolio/')` in `hero-slider.php` and `solution.php`. Restored
-  to `slm_page_url_by_template()` resolution. `fb3856f`
-- **Mentorship page duplicated on staging** — the new auto-create hook
-  matched only the `social-mentorship-program` slug/title and missed the
-  pre-existing June "Mentorship Program" page (slug `mentorship-program`,
-  same template), creating a duplicate. Hook now falls back to lookup by
-  template assignment. `6be011c`. Data side: duplicate (post 312) moved to
-  Trash on staging via WP-CLI; SEO meta set on the original (post 233), which
-  keeps its URL and menu link. **Staging must be redeployed with `6be011c`
-  before ~2026-08-11 08:40** or the still-deployed old hook recreates the
-  duplicate when its transient guard expires.
-- Stale test expectations — `test_every_public_page_template_registers_seo`
-  now accepts the post-meta SEO pattern (scoped per hook body);
-  `page-maintenance.php` exempted. `fb3856f`, `6b489f0`
+---
 
-### Docs
+## August 10, 2026 — Portfolio: videos now show, labels fixed
 
-- Implementation plan: `docs/superpowers/plans/2026-08-10-website-review-round-2.md`
-  (includes the manual Handoff checklist: cPanel deploys, cache purge, WP
-  Admin menu/portfolio/testimonials work, client approvals). `53d40c6`
-- Review doc statuses synced to verified reality. `9613f18`
+**Status: published to staging — needs a deploy to the public site.**
 
-## 2026-08-09 → 2026-08-10 — Deploy pipeline and staging environment
+- **Videos appear in the portfolio.** Videos uploaded to the portfolio were
+  being saved but never shown — the page simply had no video support. They
+  now appear in the grid with a play button, play in the full-screen viewer,
+  and are automatically filed under "Cinematic Video" until recategorized.
+- **The Featured Project no longer lies.** The big featured card was
+  permanently labeled "Cinematic Video — 6000 on the River" no matter what
+  media was actually shown. It now displays the real title, category, and
+  stats of whichever project is marked "Featured" in the Portfolio Manager.
+- **Wrong categories explained + the fix path.** Uploaded photos were being
+  labeled by their position in the upload list (first six "Real Estate
+  Photography", next four "Drone", and so on) — which is why labels looked
+  random. Correct labels are set per item in the Portfolio Manager (see the
+  client list above); once saved there, they stick.
+- **Old portfolio address redirects.** The site briefly had two portfolio
+  pages (an old `/portfolio/` and the current one). Visitors and search
+  engines landing on the old address are now permanently redirected to the
+  right page.
 
-- cPanel Git deploys routed by clone directory so staging and prod share one
-  `.cpanel.yml` (`f2ded9b`, `9cd8856`, `29c9fb8`); deploy forces 755/644 so
-  Apache can serve assets (`f8e72c8`); backups named per environment.
-- Hard-coded nav fallback when no menu is assigned (`a75f1ef`) — staging
-  clones without a menu no longer render an empty nav.
-- Hero/solution markup restored to match shipped CSS (`49831d6`) — this is
-  the commit that regressed items 6/10, repaired above.
-- `DEPLOY.md` documents both deploy paths, backups/rollback, and that staging
-  shares prod's database separated only by table prefix.
+## August 10, 2026 — New FAQ page, service-page FAQs, duplicate page fixed
 
-## 2026-08-08 — Round 1: THEME fixes from the client review
+**Status: FAQ + service FAQs are live on staging and verified; deploy to the
+public site pending.**
 
-All from `memory-bank/website-review-2026-08-06.md`; reconciled into
-`8617d81` and covered by tests in `tests/`:
+- **New FAQ page** at `/faq/` — twelve common questions about booking,
+  delivery, weather, and policies, in an accessible accordion. Written so
+  Google can show the answers directly in search results. Linked from the
+  site footer (and added to the site menu).
+- **Every service page got its own mini-FAQ** — three factual questions per
+  service (delivery time, coverage area, certifications, how to book),
+  also structured for Google.
+- **Mentorship page cleanup.** A technical safeguard accidentally created a
+  second copy of the Mentorship page on staging. The duplicate was removed,
+  the original page (and its address) kept, and the safeguard fixed so it
+  can't happen again. The Mentorship page also received proper search-engine
+  titles.
+- **Two quiet regressions caught and fixed.** An earlier layout restore had
+  brought back the old "24-hour" delivery wording and a broken portfolio
+  link on the homepage. Both were restored to correct values, with automated
+  checks added so they can't slip back silently.
 
-- Item 2 — single canonical booking CTA (`slm_book_url()`) sitewide.
-- Item 6 — `/our-portfolio/` canonical, helper-resolved.
-- Item 7 — `slm_page_seo()` helper + rollout across service templates;
-  later pages moved to the `slm_meta_title`/`slm_meta_description`
-  post-meta pattern read by `inc/seo.php`.
-- Item 10 — turnaround unified to "24–48 hours".
-- Item 11 — footer description covers agents AND local businesses.
-- Item 14 — the 13 add-ons link to the canonical booking URL.
-- Item 15 — "Login" relabeled "Client Login".
-- Item 16 — homepage down to one `<h1>` (hero owns it).
-- Item 17 — Contact page LocalBusiness JSON-LD with phone + area served.
-- Item 19 — logo mark kept deliberately decorative (documented in nav.php).
+## August 10, 2026 — Site checked against the review
 
-## 2026-08-06 — Client review received
+A page-by-page check of the live site against the August 6 review found:
+booking buttons unified (item 2), the For Businesses page live and linked
+correctly (item 13), the footer wording correct everywhere (item 11), and
+the navigation menu consistent (items 3/5 — the earlier inconsistency was
+almost certainly stale cache, since cleared). The portfolio gallery had been
+populated. The review checklist was updated to match.
 
-Stakeholder review of the live site logged as
-`memory-bank/website-review-2026-08-06.md`; items tagged THEME / ADMIN /
-INFRA. Headline findings: near-empty portfolio, two booking destinations,
-two navigation menus.
+## August 8–10, 2026 — Behind the scenes
+
+- A safe **staging copy** of the site was set up so every change can be
+  checked privately before the public site updates, with automatic backups
+  before each deploy.
+- The site's **navigation** no longer goes blank if no menu is assigned.
+
+## August 8, 2026 — First round of review fixes
+
+All from the August 6 review, verified by automated checks:
+
+- **One booking button** — every "Book a Shoot" button now goes to the same
+  place (item 2; previously two different destinations split visitors).
+- **Search-friendly page titles** — service pages stopped showing internal
+  code names like "service-re-photography" in Google (item 7).
+- **Delivery time consistent** — "24–48 hours" everywhere (item 10).
+- **Footer covers both audiences** — agents *and* local businesses (item 11).
+- **The 13 add-on services became clickable** and lead to booking (item 14).
+- **"Login" renamed "Client Login"** so new visitors aren't confused (item 15).
+- **One main heading per page** for cleaner search indexing (item 16).
+- **Contact page** gained local-business info that helps Google show the
+  business for local searches (item 17).
+
+## August 6, 2026 — Review received
+
+Full site review logged as `website-review-2026-08-06.md` with every finding
+categorized (website code / site content / hosting) and prioritized. Headline
+issues: near-empty portfolio, two different booking destinations, and
+inconsistent navigation menus.
+
+---
+
+*Technical reference: the work above lives in the `slm-theme` repository —
+round 1 in commit `8617d81`, round 2 in `4404c7b`–`6be011c`, portfolio media
+in `cba3c23`. The automated check suite (`php run-tests.php`) covers 35 tests
+guarding these fixes.*
