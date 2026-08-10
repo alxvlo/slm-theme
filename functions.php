@@ -402,6 +402,30 @@ function slm_primary_nav_fallback(): void
 }
 
 /**
+ * 301 stray copies of the portfolio page to the canonical one (review item 6).
+ * The legacy /portfolio/ page still carries the portfolio template in prod's
+ * database; anything rendering that template other than the canonical page is
+ * duplicate content and redirects instead.
+ */
+add_action('template_redirect', function () {
+  if (!is_page() || !is_page_template('templates/page-portfolio.php')) {
+    return;
+  }
+
+  $canonical_id = slm_portfolio_page_id();
+  $current_id = (int) get_queried_object_id();
+  if ($canonical_id <= 0 || $current_id <= 0 || $current_id === $canonical_id) {
+    return;
+  }
+
+  $target = get_permalink($canonical_id);
+  if (is_string($target) && $target !== '') {
+    wp_safe_redirect($target, 301);
+    exit;
+  }
+});
+
+/**
  * Prevent cache bleed on auth-sensitive pages/routes.
  */
 add_action('send_headers', function () {
