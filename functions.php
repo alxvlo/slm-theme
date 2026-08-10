@@ -176,6 +176,11 @@ function slm_social_media_management_url(): string
   return slm_page_url_by_template('page-social-media-management.php', '/social-media-management/');
 }
 
+function slm_faq_url(): string
+{
+  return slm_page_url_by_template('templates/page-faq.php', '/faq/');
+}
+
 function slm_service_area_url(): string
 {
   return slm_page_url_by_template('page-service-area.php', '/service-area/');
@@ -357,6 +362,7 @@ function slm_primary_nav_fallback(): void
   echo '</ul></li>';
   echo '<li><a href="' . esc_url(slm_memberships_url()) . '">Memberships</a></li>';
   echo '<li><a href="' . esc_url(slm_page_url_by_template('templates/page-portfolio.php', '/our-portfolio/')) . '">Portfolio</a></li>';
+  echo '<li><a href="' . esc_url(slm_faq_url()) . '">FAQ</a></li>';
   echo '<li><a href="' . esc_url(home_url('/contact/')) . '">Contact</a></li>';
   echo '</ul>';
 }
@@ -903,6 +909,37 @@ add_action('init', function () {
 
   set_transient('slm_service_area_page_exists', '1', DAY_IN_SECONDS);
 }, 10);
+
+add_action('init', function () {
+  if (wp_installing()) {
+    return;
+  }
+
+  if (get_transient('slm_faq_page_exists')) {
+    return;
+  }
+
+  $faq = get_page_by_path('faq') ?: get_page_by_title('FAQ');
+  if (!$faq) {
+    $faq_id = wp_insert_post([
+      'post_title' => 'FAQ',
+      'post_status' => 'publish',
+      'post_type' => 'page',
+      'post_name' => 'faq',
+    ]);
+    if ($faq_id && !is_wp_error($faq_id)) {
+      update_post_meta((int) $faq_id, '_wp_page_template', 'templates/page-faq.php');
+      update_post_meta((int) $faq_id, 'slm_meta_title', 'FAQ — Booking, Turnaround & Delivery | Jacksonville, FL');
+      update_post_meta((int) $faq_id, 'slm_meta_description', 'Answers to common questions about booking, 24–48 hour delivery, weather policy, and working with Showcase Listings Media in Jacksonville & North Florida.');
+    }
+  } else {
+    update_post_meta((int) $faq->ID, '_wp_page_template', 'templates/page-faq.php');
+    update_post_meta((int) $faq->ID, 'slm_meta_title', 'FAQ — Booking, Turnaround & Delivery | Jacksonville, FL');
+    update_post_meta((int) $faq->ID, 'slm_meta_description', 'Answers to common questions about booking, 24–48 hour delivery, weather policy, and working with Showcase Listings Media in Jacksonville & North Florida.');
+  }
+
+  set_transient('slm_faq_page_exists', '1', DAY_IN_SECONDS);
+}, 11);
 
 add_action('after_setup_theme', function () {
   add_theme_support('title-tag');
