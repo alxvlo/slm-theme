@@ -774,3 +774,26 @@
     }
   });
 })();
+
+/* ── Homepage virtual staging: drag-to-compare before/after ──
+   The native range input is the control, so drag, touch and keyboard
+   all come for free. This only mirrors its value onto a CSS variable. */
+(function () {
+  const sections = Array.from(document.querySelectorAll('.home-ba'));
+  if (!sections.length) return;
+
+  sections.forEach((section) => {
+    const frame = section.querySelector('.home-ba__frame');
+    const range = section.querySelector('.home-ba__range');
+    if (!frame || !range) return;
+
+    const setPos = () => {
+      frame.style.setProperty('--pos', range.value + '%');
+    };
+
+    /* Seed from the input, so a bfcache-restored value survives. */
+    setPos();
+    section.classList.add('home-ba--ready');
+    range.addEventListener('input', setPos);
+  });
+})();

@@ -7291,3 +7291,240 @@ a.ctc-info__value:hover {
     padding: 40px 0;
   }
 }
+
+/* ── Homepage virtual staging: drag-to-compare before/after ──
+   Base rules are the no-JS fallback (images stacked). main.js adds
+   .home-ba--ready, which promotes the frame to an overlaid slider. */
+.home-ba {
+  background: #eef2f7;
+  padding: 80px 20px;
+}
+
+.home-ba .container {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.home-ba__header {
+  max-width: 760px;
+  margin: 0 auto 36px;
+  text-align: center;
+}
+
+.home-ba__title {
+  margin: 0 0 12px;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.15;
+  color: #0d1b2a;
+}
+
+.home-ba__lede {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.home-ba__frame {
+  display: grid;
+  gap: 16px;
+  max-width: var(--container);
+  margin-inline: auto;
+}
+
+.home-ba__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(16, 24, 40, 0.1);
+}
+
+.home-ba__label {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #c9922a;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Fallback ordering: each label sits above the image it describes. */
+.home-ba__label--before {
+  order: 1;
+}
+
+.home-ba__img--before {
+  order: 2;
+}
+
+.home-ba__label--after {
+  order: 3;
+}
+
+.home-ba__img--after {
+  order: 4;
+}
+
+.home-ba__range,
+.home-ba__handle {
+  display: none;
+}
+
+/* ── Enhanced: overlaid comparison slider ── */
+.home-ba--ready .home-ba__frame {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(16, 24, 40, 0.1);
+}
+
+.home-ba--ready .home-ba__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.home-ba--ready .home-ba__img--after {
+  clip-path: inset(0 0 0 var(--pos, 50%));
+  transition: clip-path 60ms linear;
+}
+
+.home-ba--ready .home-ba__label {
+  position: absolute;
+  top: 16px;
+  z-index: 3;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(13, 27, 42, 0.72);
+  color: #e8c77a;
+}
+
+.home-ba--ready .home-ba__label--before {
+  left: 16px;
+}
+
+.home-ba--ready .home-ba__label--after {
+  right: 16px;
+}
+
+.home-ba--ready .home-ba__range {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  opacity: 0;
+  cursor: ew-resize;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.home-ba--ready .home-ba__range::-webkit-slider-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: transparent;
+  cursor: ew-resize;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.home-ba--ready .home-ba__range::-moz-range-thumb {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+.home-ba--ready .home-ba__range::-moz-range-track {
+  border: 0;
+  background: transparent;
+}
+
+.home-ba--ready .home-ba__handle {
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--pos, 50%);
+  z-index: 4;
+  width: 2px;
+  margin-left: -1px;
+  background: #c9922a;
+  pointer-events: none;
+  transition: left 60ms linear;
+}
+
+.home-ba--ready .home-ba__handle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+  border: 2px solid #c9922a;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(16, 24, 40, 0.25);
+}
+
+/* The real control is transparent, so surface focus on the divider. */
+.home-ba--ready .home-ba__range:focus-visible ~ .home-ba__handle::after {
+  outline: 3px solid #0d1b2a;
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .home-ba {
+    padding: 48px 16px;
+  }
+
+  .home-ba__header {
+    margin-bottom: 24px;
+  }
+
+  .home-ba__lede {
+    font-size: 0.975rem;
+  }
+
+  .home-ba--ready .home-ba__label {
+    top: 10px;
+    padding: 4px 9px;
+    font-size: 0.6875rem;
+  }
+
+  .home-ba--ready .home-ba__label--before {
+    left: 10px;
+  }
+
+  .home-ba--ready .home-ba__label--after {
+    right: 10px;
+  }
+
+  .home-ba--ready .home-ba__handle::after {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-ba--ready .home-ba__img--after,
+  .home-ba--ready .home-ba__handle {
+    transition: none;
+  }
+}

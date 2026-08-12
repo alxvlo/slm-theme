@@ -134,16 +134,22 @@ $after  = $after_meta ? (is_numeric($after_meta) ? wp_get_attachment_url($after_
 // Only show the Before/After grid when BOTH real images are set.
 $has_before_after = ($before !== '' && $after !== '');
 ?>
-<section style="background:#EEF2F7; padding:80px 20px;">
+<section class="home-ba">
   <?php if ($has_before_after): ?>
-  <div style="max-width:900px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:24px;">
-    <div style="border:2px dashed #C9922A; border-radius:12px; overflow:hidden; background:#fff;">
-      <div style="padding:16px 20px 8px; font-family:'Plus Jakarta Sans',sans-serif; font-size:0.75rem; font-weight:700; color:#C9922A; text-transform:uppercase; letter-spacing:0.1em;">Before</div>
-      <img src="<?php echo esc_url($before); ?>" alt="Before" style="width:100%; aspect-ratio:4/3; object-fit:cover; display:block;">
+  <div class="container">
+    <div class="home-ba__header js-reveal">
+      <h2 class="home-ba__title">Virtual Staging</h2>
+      <p class="home-ba__lede">Empty rooms are hard to sell. We furnish them digitally, so buyers see the space as a home before they ever walk in.</p>
+      <!-- price anchor: pending Brittney -->
     </div>
-    <div style="border:2px dashed #C9922A; border-radius:12px; overflow:hidden; background:#fff;">
-      <div style="padding:16px 20px 8px; font-family:'Plus Jakarta Sans',sans-serif; font-size:0.75rem; font-weight:700; color:#C9922A; text-transform:uppercase; letter-spacing:0.1em;">After</div>
-      <img src="<?php echo esc_url($after); ?>" alt="After" style="width:100%; aspect-ratio:4/3; object-fit:cover; display:block;">
+
+    <div class="home-ba__frame">
+      <img class="home-ba__img home-ba__img--before" src="<?php echo esc_url($before); ?>" alt="Empty living room before virtual staging — Jacksonville, FL" loading="lazy" decoding="async">
+      <img class="home-ba__img home-ba__img--after" src="<?php echo esc_url($after); ?>" alt="Same living room after virtual staging, furnished — Jacksonville, FL" loading="lazy" decoding="async">
+      <span class="home-ba__label home-ba__label--before">Before</span>
+      <span class="home-ba__label home-ba__label--after">After</span>
+      <input type="range" class="home-ba__range" min="0" max="100" value="50" step="1" aria-label="Drag to compare before and after virtual staging">
+      <span class="home-ba__handle" aria-hidden="true"></span>
     </div>
   </div>
   <?php endif; ?>
