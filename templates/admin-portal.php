@@ -1914,11 +1914,9 @@ get_header();
               aria-label="Search portfolio items">
             <select class="pMgr-filter" id="pMgrFilter" aria-label="Filter by category">
               <option value="All">All Categories</option>
-              <option value="Real Estate Photography">Real Estate Photography</option>
-              <option value="Cinematic Video">Cinematic Video</option>
-              <option value="Drone">Drone</option>
-              <option value="Social Media / Reels">Social Media / Reels</option>
-              <option value="Business Branding">Business Branding</option>
+              <?php foreach (slm_portfolio_items_categories() as $slm_pmgr_category): ?>
+                <option value="<?php echo esc_attr($slm_pmgr_category); ?>"><?php echo esc_html($slm_pmgr_category); ?></option>
+              <?php endforeach; ?>
             </select>
           </div>
 
@@ -1960,11 +1958,9 @@ get_header();
               <div class="pMgr-field">
                 <label class="pMgr-label" for="pMgrModalCat">Category</label>
                 <select class="pMgr-input" id="pMgrModalCat">
-                  <option value="Real Estate Photography">Real Estate Photography</option>
-                  <option value="Cinematic Video">Cinematic Video</option>
-                  <option value="Drone">Drone</option>
-                  <option value="Social Media / Reels">Social Media / Reels</option>
-                  <option value="Business Branding">Business Branding</option>
+                  <?php foreach (slm_portfolio_items_categories() as $slm_pmgr_category): ?>
+                    <option value="<?php echo esc_attr($slm_pmgr_category); ?>"><?php echo esc_html($slm_pmgr_category); ?></option>
+                  <?php endforeach; ?>
                 </select>
               </div>
 
@@ -2009,6 +2005,13 @@ get_header();
             var SAVE_NONCE = '<?php echo esc_js(wp_create_nonce('slm_save_portfolio_items')); ?>';
             var RESET_NONCE = '<?php echo esc_js(wp_create_nonce('slm_reset_portfolio_items')); ?>';
             var AJAX_URL = '<?php echo esc_js(admin_url('admin-ajax.php')); ?>';
+
+            /* ── The one category list (inc/portfolio-items.php). Both dropdowns
+                  above render from it, and the default category below is its
+                  first entry — never a literal that can drift out of the set
+                  the sanitizer accepts. ── */
+            var CATEGORIES = <?php echo wp_json_encode(slm_portfolio_items_categories()); ?>;
+            var DEFAULT_CATEGORY = CATEGORIES[0];
 
             /* ── Defaults come from PHP (inc/portfolio-items.php), resolved from the
                   real media library — never from guessed upload paths. ── */
@@ -2122,7 +2125,7 @@ get_header();
             function populateModal(item) {
               if (mId) mId.value = item ? item.id : '';
               if (mTitle) mTitle.value = item ? (item.title || '') : '';
-              if (mCat) mCat.value = item ? (item.category || 'Real Estate Photography') : 'Real Estate Photography';
+              if (mCat) mCat.value = item ? (item.category || DEFAULT_CATEGORY) : DEFAULT_CATEGORY;
               if (mImg) mImg.value = item ? (item.image || '') : '';
               var m = item ? (item.metrics || []) : [];
               if (mM1) mM1.value = m[0] || '';
@@ -2167,10 +2170,14 @@ get_header();
               var data = {
                 id: id || nextId,
                 title: mTitle ? mTitle.value.trim() : '',
-                category: mCat ? mCat.value : 'Real Estate Photography',
+                category: mCat ? mCat.value : DEFAULT_CATEGORY,
                 type: type,
                 image: img,
                 thumb: type === 'video' ? ((existing && existing.type === 'video' && existing.thumb) || '') : img,
+                /* Carry the media-library ID through an edit. The modal only
+                   collects a URL, so dropping it here would strip the one link
+                   back to the attachment on the very first save. */
+                attachment_id: (existing && existing.attachment_id) || 0,
                 metrics: [mM1, mM2, mM3].map(function (el) { return el ? el.value.trim() : ''; }).filter(Boolean),
                 featured: mFeatured ? mFeatured.checked : false,
               };

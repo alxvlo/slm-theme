@@ -20,19 +20,68 @@ function slm_portfolio_items_categories(): array
     'Real Estate Photography',
     'Cinematic Video',
     'Drone',
+    'Twilight',
     'Social Media / Reels',
     'Business Branding',
   ];
 }
 
 /**
- * Resolve the Portfolio page gallery to a list of image records.
+ * Derive a portfolio category from what the asset actually is.
  *
- * Single source for attachment resolution — both the public grid's hero image and
- * slm_portfolio_default_items() call this, so there is one place to fix.
+ * Categories used to be assigned by position in the gallery, which meant a
+ * dining room photo was filed under Drone and four still photographs sat under
+ * Cinematic Video. Deriving from the caption and filename keeps the category
+ * honest no matter how the gallery is reordered.
  *
- * @return array<int, array{full:string, thumb:string, title:string}>
+ * First match wins, and the order is deliberate:
+ *   - Twilight beats Drone, so "Twilight Aerial Front Exterior" is twilight
+ *     work that happens to be aerial, not aerial work shot at dusk.
+ *   - Video intent beats Drone, so a drone *video* is still a video.
+ *
+ * Pure string function: no DB reads, no get_post(), no attachment lookups.
+ *
+ * @param string $type 'video' for moving media, anything else for stills.
  */
+function slm_portfolio_classify_media(string $title, string $filename, string $type): string
+{
+  $haystack = strtolower($title . ' ' . $filename);
+
+  // Filenames separate words with hyphens/underscores where captions use
+  // spaces. Search both forms so "Lot-Lines.webp" matches "lot line" while
+  // the raw form still matches filename-only markers like "vert_".
+  $haystack .= ' ' . str_replace(['-', '_'], ' ', $haystack);
+
+  if (preg_match('/twilight|dusk|sunset/', $haystack)) {
+    return 'Twilight';
+  }
+
+  if ($type === 'video') {
+    if (preg_match('/reel|shorts|vertical|vert_/', $haystack)) {
+      return 'Social Media / Reels';
+    }
+    if (preg_match('/brand|studio|promo|business/', $haystack)) {
+      return 'Business Branding';
+    }
+    return 'Cinematic Video';
+  }
+
+  if (preg_match('/aerial|drone|overview|lot line/', $haystack)) {
+    return 'Drone';
+  }
+
+  return 'Real Estate Photography';
+}
+
+/**
+ * The filename an attachment URL was uploaded under, for classification.
+ */
+function slm_portfolio_media_filename(string $url): string
+{
+  $path = (string) parse_url($url, PHP_URL_PATH);
+  return $path !== '' ? basename($path) : basename($url);
+}
+
 /**
  * True when an attachment title is really just the uploaded filename.
  *
@@ -76,6 +125,14 @@ function slm_portfolio_resolve_media_title(string $caption, string $title, strin
   return $fallback;
 }
 
+/**
+ * Resolve the Portfolio page gallery to a list of image records.
+ *
+ * Single source for attachment resolution — both the public grid's hero image and
+ * slm_portfolio_default_items() call this, so there is one place to fix.
+ *
+ * @return array<int, array{id:int, full:string, thumb:string, title:string}>
+ */
 function slm_portfolio_gallery_images(): array
 {
   $page_id = slm_portfolio_page_id();
@@ -99,6 +156,7 @@ function slm_portfolio_gallery_images(): array
     $large = wp_get_attachment_image_url($att_id, 'large');
     if ($full) {
       $images[] = [
+        'id' => (int) $att_id,
         'full' => $full,
         'thumb' => $large ?: $full,
         'title' => get_the_title($att_id),
@@ -114,6 +172,7 @@ function slm_portfolio_gallery_images(): array
     for ($i = 1; $i <= 20; $i++) {
       $url = $uploads_base . '/2026/02/' . $i . '.png';
       $images[] = [
+        'id' => 0,
         'full' => $url,
         'thumb' => $url,
         'title' => 'Portfolio Image ' . $i,
@@ -131,7 +190,7 @@ function slm_portfolio_gallery_images(): array
  * Reads the same slm_portfolio_video_ids meta the WP Admin "Video Portfolio"
  * picker saves. Poster comes from the attachment's featured image when set.
  *
- * @return array<int, array{url:string, poster:string, title:string}>
+ * @return array<int, array{id:int, url:string, poster:string, title:string}>
  */
 function slm_portfolio_gallery_videos(): array
 {
@@ -156,6 +215,7 @@ function slm_portfolio_gallery_videos(): array
     }
 
     $videos[] = [
+      'id' => (int) $att_id,
       'url' => $url,
       'poster' => $poster,
       'title' => (string) get_the_title($att_id),
@@ -172,37 +232,15 @@ function slm_portfolio_gallery_videos(): array
  * portfolio grid and the portal Portfolio Manager render from it, so the two can
  * never drift apart or ship guessed image paths.
  *
- * Images come first (positionally categorized until curated in the Portfolio
- * Manager), then videos from the Video Portfolio picker, defaulting to the
- * Cinematic Video category.
+ * Images come first, then videos from the Video Portfolio picker. Both are
+ * categorized by slm_portfolio_classify_media() from the asset's own caption
+ * and filename, so reordering the gallery can never re-file a dining room
+ * under Drone.
  *
  * @return array<int, array<string, mixed>>
  */
 function slm_portfolio_default_items(): array
 {
-  $default_categories = [
-    'Real Estate Photography', // 0
-    'Real Estate Photography', // 1
-    'Real Estate Photography', // 2
-    'Real Estate Photography', // 3
-    'Real Estate Photography', // 4
-    'Real Estate Photography', // 5
-    'Drone',                   // 6
-    'Drone',                   // 7
-    'Drone',                   // 8
-    'Drone',                   // 9
-    'Cinematic Video',         // 10
-    'Cinematic Video',         // 11
-    'Cinematic Video',         // 12
-    'Cinematic Video',         // 13
-    'Social Media / Reels',    // 14
-    'Social Media / Reels',    // 15
-    'Social Media / Reels',    // 16
-    'Business Branding',       // 17
-    'Business Branding',       // 18
-    'Business Branding',       // 19
-  ];
-
   // Metrics ship empty. The previous defaults asserted sale timelines, view
   // counts and engagement figures that were never sourced from a real
   // campaign, and they rendered live on every card. Only figures entered
@@ -210,19 +248,24 @@ function slm_portfolio_default_items(): array
 
   $items = [];
   foreach (slm_portfolio_gallery_images() as $idx => $img) {
-    $cat_idx = $idx < count($default_categories) ? $idx : ($idx % count($default_categories));
+    $title = slm_portfolio_resolve_media_title(
+      (string) ($img['caption'] ?? ''),
+      (string) ($img['title'] ?? ''),
+      'Portfolio Image ' . ($idx + 1)
+    );
 
     $items[] = [
       'id' => $idx + 1,
-      'title' => slm_portfolio_resolve_media_title(
-        (string) ($img['caption'] ?? ''),
-        (string) ($img['title'] ?? ''),
-        'Portfolio Image ' . ($idx + 1)
+      'title' => $title,
+      'category' => slm_portfolio_classify_media(
+        $title,
+        slm_portfolio_media_filename((string) ($img['full'] ?? '')),
+        'image'
       ),
-      'category' => $default_categories[$cat_idx],
       'type' => 'image',
       'image' => $img['full'],
       'thumb' => $img['thumb'],
+      'attachment_id' => (int) ($img['id'] ?? 0),
       'metrics' => [],
       // The featured item drives the Featured Project section on the portfolio
       // page (first item flagged wins; the page falls back to the first item).
@@ -232,17 +275,24 @@ function slm_portfolio_default_items(): array
 
   $next_id = count($items) + 1;
   foreach (slm_portfolio_gallery_videos() as $v_idx => $video) {
+    $title = slm_portfolio_resolve_media_title(
+      '',
+      (string) ($video['title'] ?? ''),
+      'Cinematic Tour ' . ($v_idx + 1)
+    );
+
     $items[] = [
       'id' => $next_id++,
-      'title' => slm_portfolio_resolve_media_title(
-        '',
-        (string) ($video['title'] ?? ''),
-        'Cinematic Tour ' . ($v_idx + 1)
+      'title' => $title,
+      'category' => slm_portfolio_classify_media(
+        $title,
+        slm_portfolio_media_filename((string) ($video['url'] ?? '')),
+        'video'
       ),
-      'category' => 'Cinematic Video',
       'type' => 'video',
       'image' => $video['url'],
       'thumb' => $video['poster'],
+      'attachment_id' => (int) ($video['id'] ?? 0),
       'metrics' => [],
       'featured' => false,
     ];
@@ -300,6 +350,10 @@ function slm_portfolio_items_sanitize(array $raw): array
       'type' => $type,
       'image' => $image,
       'thumb' => $thumb,
+      // Optional on purpose. Entries saved before attachment IDs were carried
+      // must survive untouched — requiring it would silently drop every one of
+      // them on the next save.
+      'attachment_id' => isset($entry['attachment_id']) ? (int) $entry['attachment_id'] : 0,
       'metrics' => $metrics,
       'featured' => (bool) filter_var($entry['featured'] ?? false, FILTER_VALIDATE_BOOLEAN),
     ];

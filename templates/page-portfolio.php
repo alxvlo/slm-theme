@@ -123,11 +123,9 @@ if ($featured_item === null && !empty($portfolio_items_json)) {
       <!-- Filter Bar -->
       <div class="port-filters js-reveal" role="group" aria-label="Filter portfolio by category" id="portFilters">
         <button class="port-filter port-filter--active" data-filter="All" type="button">All</button>
-        <button class="port-filter" data-filter="Real Estate Photography" type="button">Real Estate Photography</button>
-        <button class="port-filter" data-filter="Cinematic Video" type="button">Cinematic Video</button>
-        <button class="port-filter" data-filter="Drone" type="button">Drone</button>
-        <button class="port-filter" data-filter="Social Media / Reels" type="button">Social Media / Reels</button>
-        <button class="port-filter" data-filter="Business Branding" type="button">Business Branding</button>
+        <?php foreach (slm_portfolio_items_categories() as $port_category): ?>
+          <button class="port-filter" data-filter="<?php echo esc_attr($port_category); ?>" type="button"><?php echo esc_html($port_category); ?></button>
+        <?php endforeach; ?>
       </div>
 
       <!-- Masonry Grid -->
@@ -203,7 +201,11 @@ if ($featured_item === null && !empty($portfolio_items_json)) {
           return '<span class="port-card__metric">&#9733; ' + escHtml(m) + '</span>';
         }).join('');
 
-        var altText = item.category ? item.category + ' — ' + item.title : item.title;
+        /* Alt text names the work, the kind of work, and where it was shot.
+           There is no per-item location on a portfolio record, so the region
+           is the whole service area — never a guessed town. */
+        var altText = (item.category ? item.title + ' — ' + item.category : item.title) +
+          ' — Jacksonville & North Florida';
 
         var isVideo = item.type === 'video';
         var mediaHtml;
