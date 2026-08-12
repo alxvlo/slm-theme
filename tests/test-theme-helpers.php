@@ -11,17 +11,44 @@ require_once __DIR__ . '/../functions.php';
 
 /* ---------------------------------------------------------------- item 2 */
 
-function test_book_url_logged_out_goes_to_signup()
+/**
+ * Guests go straight to the public Aryeo order form — no account required.
+ *
+ * They must NOT be routed through slm_aryeo_start_order_url(); that handler
+ * bounces logged-out visitors back to /login/, so it cannot serve a guest.
+ */
+function test_book_url_logged_out_goes_to_the_public_order_form()
+{
+    WP_Mock::reset();
+    WP_Mock::$is_logged_in = false;
+    WP_Mock::$home_url_result = 'http://example.com';
+    WP_Mock::$options['slm_aryeo_order_form_url'] = 'https://showcase-listings-media-1.aryeo.com/order';
+
+    $url = slm_book_url();
+    assert(is_string($url) && $url !== '', 'slm_book_url() should return a non-empty string');
+    assert(
+        $url === 'https://showcase-listings-media-1.aryeo.com/order',
+        "Logged-out booking URL should be the public Aryeo order form, got: $url"
+    );
+    assert(strpos($url, 'mode=signup') === false, "Logged-out users should no longer be sent to signup, got: $url");
+    assert(strpos($url, '/login/') === false, "Logged-out booking URL should not hit the login page, got: $url");
+    echo "PASS: test_book_url_logged_out_goes_to_the_public_order_form\n";
+}
+
+/**
+ * With no public order form configured (as on local), the button must still go
+ * somewhere useful rather than dead-ending.
+ */
+function test_book_url_logged_out_falls_back_to_signup_when_unconfigured()
 {
     WP_Mock::reset();
     WP_Mock::$is_logged_in = false;
     WP_Mock::$home_url_result = 'http://example.com';
 
     $url = slm_book_url();
-    assert(is_string($url) && $url !== '', 'slm_book_url() should return a non-empty string');
-    assert(strpos($url, '/login/') !== false, "Logged-out booking URL should hit the login page, got: $url");
-    assert(strpos($url, 'mode=signup') !== false, "Logged-out booking URL should carry mode=signup, got: $url");
-    echo "PASS: test_book_url_logged_out_goes_to_signup\n";
+    assert(strpos($url, '/login/') !== false, "Unconfigured fallback should hit the login page, got: $url");
+    assert(strpos($url, 'mode=signup') !== false, "Unconfigured fallback should carry mode=signup, got: $url");
+    echo "PASS: test_book_url_logged_out_falls_back_to_signup_when_unconfigured\n";
 }
 
 function test_book_url_logged_in_starts_an_order()

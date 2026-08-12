@@ -4900,8 +4900,11 @@ body.page-template-admin-portal .site-footer {
 .svc-grid--5 .svc-card:nth-child(1) { grid-column: span 2; }
 .svc-grid--5 .svc-card:nth-child(2) { grid-column: span 2; }
 .svc-grid--5 .svc-card:nth-child(3) { grid-column: span 2; }
-.svc-grid--5 .svc-card:nth-child(4) { grid-column: 2 / span 2; }
-.svc-grid--5 .svc-card:nth-child(5) { grid-column: 4 / span 2; }
+/* Six counties fill two even rows of three, so the bottom row no longer needs
+   the centring offsets that balanced a 5-card layout. */
+.svc-grid--5 .svc-card:nth-child(4) { grid-column: span 2; }
+.svc-grid--5 .svc-card:nth-child(5) { grid-column: span 2; }
+.svc-grid--5 .svc-card:nth-child(6) { grid-column: span 2; }
 
 /* --- Cards --- */
 .svc-card {
@@ -5024,7 +5027,8 @@ body.page-template-admin-portal .site-footer {
   .svc-grid--5 .svc-card:nth-child(2),
   .svc-grid--5 .svc-card:nth-child(3),
   .svc-grid--5 .svc-card:nth-child(4),
-  .svc-grid--5 .svc-card:nth-child(5) {
+  .svc-grid--5 .svc-card:nth-child(5),
+  .svc-grid--5 .svc-card:nth-child(6) {
     grid-column: span 1;
   }
 

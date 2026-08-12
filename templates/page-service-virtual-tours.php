@@ -64,7 +64,7 @@ get_template_part('template-parts/blocks/service-detail', null, [
   'faqs' => [
     ['q' => 'What is a virtual tour?', 'a' => 'An interactive 3D walkthrough that lets buyers explore the property room by room from any device, any time.'],
     ['q' => 'Can I share or embed the tour?', 'a' => 'Yes — share the tour link directly or embed it in your MLS listing, website, and social posts.'],
-    ['q' => 'What areas do you cover?', 'a' => 'We serve five North Florida counties: Duval, St. Johns, Clay, Nassau, and Putnam.'],
+    ['q' => 'What areas do you cover?', 'a' => 'We serve six North Florida counties: Duval, St. Johns, Clay, Nassau, Putnam, and Baker.'],
   ],
   'book_label' => 'Create Account to Order',
   'cta_title' => 'Give Buyers a Better Way to Experience Your Listings',

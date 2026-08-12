@@ -33,6 +33,49 @@ function slm_portfolio_items_categories(): array
  *
  * @return array<int, array{full:string, thumb:string, title:string}>
  */
+/**
+ * True when an attachment title is really just the uploaded filename.
+ *
+ * Deliberately conservative: a false positive silently discards a real title
+ * that someone typed, which is worse than letting an odd filename through.
+ * Anything containing a space is treated as a human title.
+ */
+function slm_portfolio_title_looks_like_filename(string $title): bool
+{
+  $title = trim($title);
+  if ($title === '') {
+    return true;
+  }
+  if (preg_match('/\.(webp|jpe?g|png|mp4|mov)$/i', $title)) {
+    return true;
+  }
+  if (strpos($title, ' ') === false && preg_match_all('/[-_]/', $title) >= 2) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Resolve a portfolio card title: caption, then title, then a neutral label.
+ *
+ * The attachment title is only trusted when it does not look like a raw
+ * filename — otherwise cards render as "18-Primary-Bathroom-1-of-3.webp".
+ */
+function slm_portfolio_resolve_media_title(string $caption, string $title, string $fallback): string
+{
+  $caption = trim($caption);
+  if ($caption !== '') {
+    return $caption;
+  }
+
+  $title = trim($title);
+  if ($title !== '' && !slm_portfolio_title_looks_like_filename($title)) {
+    return $title;
+  }
+
+  return $fallback;
+}
+
 function slm_portfolio_gallery_images(): array
 {
   $page_id = slm_portfolio_page_id();
@@ -59,6 +102,7 @@ function slm_portfolio_gallery_images(): array
         'full' => $full,
         'thumb' => $large ?: $full,
         'title' => get_the_title($att_id),
+        'caption' => (string) wp_get_attachment_caption($att_id),
       ];
     }
   }
@@ -73,6 +117,7 @@ function slm_portfolio_gallery_images(): array
         'full' => $url,
         'thumb' => $url,
         'title' => 'Portfolio Image ' . $i,
+        'caption' => '',
       ];
     }
   }
@@ -158,93 +203,47 @@ function slm_portfolio_default_items(): array
     'Business Branding',       // 19
   ];
 
-  $default_metrics = [
-    ['Sold in 8 days', 'MLS Featured'],
-    ['Sold in 5 days', '38 Showings'],
-    ['Sold Over Asking', 'MLS Featured'],
-    ['Listed & Under Contract in 6 Days', '14,200 Video Views'],
-    ['Sold in 11 days', 'Featured on Zillow'],
-    ['Sold in 4 days', '60+ Inquiries'],
-    ['Listed & Under Contract in 6 Days', 'Aerial Coverage'],
-    ['Lot Sold in 14 days', 'Drone Survey'],
-    ['Sold in 9 days', 'Aerial Featured'],
-    ['Featured Listing', 'Aerial + Ground Coverage'],
-    ['14,200 Video Views', 'Listed & Under Contract in 6 Days'],
-    ['8,400 Video Views', 'Sold in 7 days'],
-    ['22,000 Video Views', 'Featured on Social'],
-    ['11,000 Video Views', 'Sold Over Asking'],
-    ['18,000 Reel Views', '320 Saves'],
-    ['24,000 Reel Views', '410 Saves'],
-    ['15,500 Reel Views', 'Featured by Client'],
-    ['Brand Refresh', '40% Engagement Increase'],
-    ['Brand Campaign', '500+ New Followers'],
-    ['Business Launch', 'Multi-Platform'],
-  ];
-
-  $sample_titles = [
-    '6000 on the River',
-    'Riverside Estates',
-    'Ponte Vedra Luxury Home',
-    'Fleming Island Pool Home',
-    'Mandarin Family Home',
-    'Nocatee New Build',
-    'St. Johns Aerial',
-    'Waterfront Lot Survey',
-    'Nassau County Aerial',
-    'Amelia Island Overview',
-    'River View Cinematic Tour',
-    'Luxury Walkthrough',
-    'New Construction Film',
-    'Sunset Home Tour',
-    'Agent Brand Reel',
-    'Market Update Reel',
-    'Behind the Scenes Reel',
-    'Corporate Brand Session',
-    'Business Launch Campaign',
-    'Team & Culture Shoot',
-  ];
+  // Metrics ship empty. The previous defaults asserted sale timelines, view
+  // counts and engagement figures that were never sourced from a real
+  // campaign, and they rendered live on every card. Only figures entered
+  // deliberately through the Portfolio Manager should ever appear.
 
   $items = [];
   foreach (slm_portfolio_gallery_images() as $idx => $img) {
     $cat_idx = $idx < count($default_categories) ? $idx : ($idx % count($default_categories));
-    $met_idx = $idx < count($default_metrics) ? $idx : ($idx % count($default_metrics));
-    $ttl_idx = $idx < count($sample_titles) ? $idx : ($idx % count($sample_titles));
-
-    $title = $img['title'] !== '' && $img['title'] !== 'Portfolio Image ' . ($idx + 1)
-      ? $img['title']
-      : $sample_titles[$ttl_idx];
 
     $items[] = [
       'id' => $idx + 1,
-      'title' => $title,
+      'title' => slm_portfolio_resolve_media_title(
+        (string) ($img['caption'] ?? ''),
+        (string) ($img['title'] ?? ''),
+        'Portfolio Image ' . ($idx + 1)
+      ),
       'category' => $default_categories[$cat_idx],
       'type' => 'image',
       'image' => $img['full'],
       'thumb' => $img['thumb'],
-      'metrics' => $default_metrics[$met_idx],
+      'metrics' => [],
       // The featured item drives the Featured Project section on the portfolio
       // page (first item flagged wins; the page falls back to the first item).
       'featured' => ($idx === 0),
     ];
   }
 
-  $video_metrics = [
-    ['14,200 Video Views', 'Listed & Under Contract in 6 Days'],
-    ['8,400 Video Views', 'Sold in 7 days'],
-    ['22,000 Video Views', 'Featured on Social'],
-    ['11,000 Video Views', 'Sold Over Asking'],
-  ];
-
   $next_id = count($items) + 1;
   foreach (slm_portfolio_gallery_videos() as $v_idx => $video) {
     $items[] = [
       'id' => $next_id++,
-      'title' => $video['title'] !== '' ? $video['title'] : 'Cinematic Tour ' . ($v_idx + 1),
+      'title' => slm_portfolio_resolve_media_title(
+        '',
+        (string) ($video['title'] ?? ''),
+        'Cinematic Tour ' . ($v_idx + 1)
+      ),
       'category' => 'Cinematic Video',
       'type' => 'video',
       'image' => $video['url'],
       'thumb' => $video['poster'],
-      'metrics' => $video_metrics[$v_idx % count($video_metrics)],
+      'metrics' => [],
       'featured' => false,
     ];
   }

@@ -25,7 +25,7 @@ if ($phone_href !== '') {
 $default_social = [
   'youtube' => 'https://www.youtube.com/@TheShowcaselistingsmedia',
   'facebook' => 'https://www.facebook.com/profile.php?id=61578356661096',
-  'instagram' => 'https://www.instagram.com/brittneyshowcaselistingsmedia/',
+  'instagram' => 'https://www.instagram.com/showcaselistingsmedia/',
   'linkedin' => '',
 ];
 

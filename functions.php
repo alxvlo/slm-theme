@@ -221,7 +221,8 @@ function slm_consult_cta_url(): string
 /**
  * Role-aware consult CTA: logged-in clients go straight to placing an order;
  * logged-out visitors are invited to a consult conversation instead.
- * Distinct from slm_book_url(), whose logged-out destination is signup.
+ * Distinct from slm_book_url(), whose logged-out destination is the Aryeo
+ * public order form.
  */
 function slm_consult_or_order_url(): string
 {
@@ -238,8 +239,16 @@ function slm_consult_or_order_url(): string
  * used to each define their own $cta_url / $order_url / $book_url and they
  * drifted apart, which split the booking funnel and the analytics.
  *
- * Logged-out visitors are sent to signup; signed-in clients go straight into
- * an order.
+ * Every visitor lands on the Aryeo order form. Signed-in clients get a
+ * prefilled session (slm_aryeo_start_order_url() builds one from their user
+ * record); guests get the public order form, which needs no account.
+ *
+ * Guests must NOT be sent to slm_aryeo_start_order_url(): that route is
+ * handled by slm_aryeo_handle_start_order_request(), which bounces anyone who
+ * is not logged in straight back to /login/. It cannot serve a guest.
+ *
+ * If the public order form URL option is unset (as on local), fall back to
+ * signup rather than dead-ending the button.
  */
 function slm_book_url(): string
 {
@@ -247,6 +256,13 @@ function slm_book_url(): string
     return function_exists('slm_aryeo_start_order_url')
       ? slm_aryeo_start_order_url()
       : add_query_arg('view', 'place-order', slm_portal_url());
+  }
+
+  if (function_exists('slm_aryeo_public_order_form_url')) {
+    $public_form = slm_aryeo_public_order_form_url();
+    if ($public_form !== '') {
+      return $public_form;
+    }
   }
 
   return add_query_arg('mode', 'signup', slm_login_url());
@@ -961,12 +977,12 @@ add_action('init', function () {
     if ($service_area_id && !is_wp_error($service_area_id)) {
       update_post_meta((int) $service_area_id, '_wp_page_template', 'templates/page-service-area.php');
       update_post_meta((int) $service_area_id, 'slm_meta_title', 'Service Area — Jacksonville & North Florida');
-      update_post_meta((int) $service_area_id, 'slm_meta_description', 'Showcase Listings Media serves agents and local businesses across five North Florida counties: Duval, St. Johns, Clay, Nassau, and Putnam.');
+      update_post_meta((int) $service_area_id, 'slm_meta_description', 'Showcase Listings Media serves agents and local businesses across six North Florida counties: Duval, St. Johns, Clay, Nassau, Putnam, and Baker.');
     }
   } else {
     update_post_meta((int) $service_area->ID, '_wp_page_template', 'templates/page-service-area.php');
     update_post_meta((int) $service_area->ID, 'slm_meta_title', 'Service Area — Jacksonville & North Florida');
-    update_post_meta((int) $service_area->ID, 'slm_meta_description', 'Showcase Listings Media serves agents and local businesses across five North Florida counties: Duval, St. Johns, Clay, Nassau, and Putnam.');
+    update_post_meta((int) $service_area->ID, 'slm_meta_description', 'Showcase Listings Media serves agents and local businesses across six North Florida counties: Duval, St. Johns, Clay, Nassau, Putnam, and Baker.');
   }
 
   set_transient('slm_service_area_page_exists', '1', DAY_IN_SECONDS);

@@ -18,15 +18,9 @@ $portal_membership_auth_url = add_query_arg([
   'redirect_to' => $portal_membership_url,
 ], slm_login_url());
 $admin_dashboard_url = slm_admin_portal_url();
-$services_url = home_url('/services/');
-$aryeo_public_order_form_url = function_exists('slm_aryeo_public_order_form_url')
-  ? slm_aryeo_public_order_form_url()
-  : '';
-$membership_order_cta_url = $aryeo_public_order_form_url !== ''
-  ? $aryeo_public_order_form_url
-  : (function_exists('slm_aryeo_start_order_url')
-    ? slm_aryeo_start_order_url()
-    : $services_url);
+// Booking CTA — must resolve through the canonical helper. The old local
+// fallback reached slm_aryeo_start_order_url(), which cannot serve a guest.
+$membership_order_cta_url = slm_book_url();
 
 $membership_catalog = function_exists('slm_subscriptions_membership_catalog') ? slm_subscriptions_membership_catalog() : ['social' => [], 'agent' => []];
 $monthly_memberships = (array) ($membership_catalog['social'] ?? []);

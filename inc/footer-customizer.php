@@ -47,7 +47,7 @@ add_action('customize_register', function (WP_Customize_Manager $wp_customize) {
     ],
     'slm_social_instagram' => [
       'label' => 'Instagram URL',
-      'default' => 'https://www.instagram.com/brittneyshowcaselistingsmedia/',
+      'default' => 'https://www.instagram.com/showcaselistingsmedia/',
     ],
     'slm_social_linkedin' => [
       'label' => 'LinkedIn URL',

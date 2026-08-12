@@ -10,7 +10,7 @@ $pid = get_option('page_on_front');
 <section id="home-who" class="home-who" aria-labelledby="home-who-title">
   <div class="container">
     <header class="home-who__header js-reveal">
-      <h2 id="home-who-title"><?php echo esc_html(get_post_meta($pid, 'hp_who_headline', true) ?: "Built for agents. Designed for brands."); ?></h2>
+      <h2 id="home-who-title"><?php echo esc_html(get_post_meta($pid, 'hp_who_headline', true) ?: "Built for marketing. Designed for brands."); ?></h2>
       <p><?php echo esc_html(get_post_meta($pid, 'hp_who_subheadline', true) ?: "We serve two audiences — and we speak directly to both."); ?></p>
     </header>
 

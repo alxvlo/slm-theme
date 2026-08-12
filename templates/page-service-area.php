@@ -36,17 +36,31 @@ $counties = [
     'name' => 'Putnam County',
     'desc' => 'Palatka and the southern river communities.',
   ],
+  [
+    'name' => 'Baker County',
+    'desc' => 'Macclenny, Glen St. Mary, and the western county line.',
+  ],
 ];
 
 $featured_cities = [
   'Jacksonville',
+  'Jacksonville Beach',
+  'Neptune Beach',
   'St. Augustine',
+  'St. Augustine Beach',
   'Ponte Vedra',
-  'Fleming Island',
+  'Ponte Vedra Beach',
   'Nocatee',
   'Mandarin',
-  'Amelia Island',
+  'Fleming Island',
   'Orange Park',
+  'Middleburg',
+  'Green Cove Springs',
+  'Amelia Island',
+  'Fernandina Beach',
+  'Yulee',
+  'Callahan',
+  'Baldwin',
 ];
 ?>
 
@@ -72,7 +86,7 @@ $featured_cities = [
     <div class="container">
       <header class="svc-section__header">
         <h2 id="svc-area-title">Counties We Serve</h2>
-        <p>Showcase Listings Media serves agents and local businesses across five North Florida counties. Wherever your listing or storefront is, we bring the same elevated media that helps it stand out and sell.</p>
+        <p>Showcase Listings Media serves agents and local businesses across six North Florida counties. Wherever your listing or storefront is, we bring the same elevated media that helps it stand out and sell.</p>
       </header>
 
       <div class="svc-grid svc-grid--5">

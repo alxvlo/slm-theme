@@ -281,7 +281,7 @@ $addons = [
         <p>Professional media services built for real estate agents and businesses across North Florida.</p>
       </header>
 
-      <p style="text-align:center; font-family:'Plus Jakarta Sans',sans-serif; font-size:0.9rem; font-weight:600; color:#C9922A; margin-top:-12px; margin-bottom:40px; letter-spacing:0.02em;"><?php echo esc_html(get_post_meta($pid, 'svc_core_pricing_line', true) ?: 'Pricing starting as low as $145 — no membership required to book'); ?></p>
+      <p style="text-align:center; font-family:'Plus Jakarta Sans',sans-serif; font-size:0.9rem; font-weight:600; color:#C9922A; margin-top:-12px; margin-bottom:40px; letter-spacing:0.02em;"><?php echo esc_html(get_post_meta($pid, 'svc_core_pricing_line', true) ?: 'Pricing starting as low as $145'); ?></p>
 
       <div class="svc-cards-grid">
 
@@ -333,6 +333,16 @@ $addons = [
           <h3 class="svc-card__title">Aerial Photography &amp; Video</h3>
           <p class="svc-card__body">Gain a unique perspective with high-quality drone imagery that showcases land, views, and property surroundings. Perfect for listings with acreage, waterfront features, or location advantages that ground-level photos simply can&rsquo;t capture.</p>
           <a class="svc-card__btn" href="<?php echo esc_url($drone_photography_page_url); ?>" aria-label="Learn more about Aerial Photography">Learn More</a>
+        </div>
+
+        <!-- Card 6: Social Media Management -->
+        <div class="svc-card">
+          <span class="svc-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>
+          </span>
+          <h3 class="svc-card__title">Social Media Management</h3>
+          <p class="svc-card__body">We create it, post it, and manage it. Content, captions, hashtags, scheduling, DM lead capture, and monthly reporting &mdash; you run your business, we run your presence.</p>
+          <a class="svc-card__btn" href="<?php echo esc_url(slm_social_media_management_url()); ?>" aria-label="Learn more about Social Media Management">Learn More</a>
         </div>
 
       </div>

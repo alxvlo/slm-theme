@@ -8,6 +8,8 @@ class WP_Mock {
     public static $home_url_result = '';
     public static $cache = [];
     public static $is_logged_in = false;
+    /** Option name => value, consulted by the get_option() stub. */
+    public static $options = [];
 
     /** Hook registrations recorded by the add_filter/add_action stubs. */
     public static $filters = [];
@@ -19,6 +21,7 @@ class WP_Mock {
         self::$home_url_result = '';
         self::$cache = [];
         self::$is_logged_in = false;
+        self::$options = [];
         self::$filters = [];
         self::$actions = [];
     }
@@ -78,7 +81,9 @@ if (!function_exists('apply_filters')) {
     function apply_filters($tag, $value, ...$args) { return $value; }
 }
 if (!function_exists('get_option')) {
-    function get_option($option, $default = false) { return $default; }
+    function get_option($option, $default = false) {
+        return array_key_exists($option, WP_Mock::$options) ? WP_Mock::$options[$option] : $default;
+    }
 }
 if (!function_exists('update_option')) {
     function update_option($option, $value, $autoload = null) { return true; }

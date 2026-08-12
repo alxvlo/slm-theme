@@ -100,7 +100,7 @@ $pid = get_option('page_on_front');?>
     </div>
 
     <div class="home-services__footer">
-      <p class="home-services__pricing"><?php echo esc_html(get_post_meta($pid, 'hp_services_pricing_line', true) ?: "Pricing starting as low as $145 — no membership required to book."); ?></p>
+      <p class="home-services__pricing"><?php echo esc_html(get_post_meta($pid, 'hp_services_pricing_line', true) ?: "Pricing starting as low as $145."); ?></p>
       <a class="btn btn--outline home-services__viewAll" href="<?php echo esc_url($services_url); ?>">View All Services</a>
     </div>
   </div>

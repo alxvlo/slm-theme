@@ -3,20 +3,29 @@ if (!defined('ABSPATH')) exit;
 
 $pid = get_option('page_on_front');
 
+// posts_per_page => -1 so a newly published review can never be silently
+// truncated; menu_order gives Brittney explicit control of the running order
+// (WP_Query falls back to date DESC when every menu_order is 0).
 $q = new WP_Query([
   'post_type' => 'testimonial',
   'post_status' => 'publish',
-  'posts_per_page' => 6,
+  'posts_per_page' => -1,
+  'orderby' => 'menu_order',
+  'order' => 'ASC',
   'no_found_rows' => true,
 ]);
 
-if (!$q->have_posts()) return;
+// NOTE: no early return here. This partial also renders the before/after grid
+// and the "Book Your Next Shoot" CTA below, and returning early above them
+// removed both from the homepage whenever no testimonials were published.
+$has_testimonials = $q->have_posts();
 
 $cta_url = slm_book_url();
 
 $star_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3 5.8 20.8l1.2-7.1L1.8 8.7l7.2-1L12 1.2l3 6.5 7.2 1-5.2 5 1.2 7.1L12 17.3Z" fill="currentColor"/></svg>';
 ?>
 
+<?php if ($has_testimonials): ?>
 <section class="home-testimonials" aria-labelledby="home-testimonials-title">
   <div class="container">
     <header class="home-testimonials__header">
@@ -40,8 +49,6 @@ $star_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3 5.8 2
           if ($role !== '') $meta_parts[] = $role;
           if ($location !== '') $meta_parts[] = $location;
           $meta_line = implode(' • ', $meta_parts);
-
-          $time_label = get_the_date();
         ?>
 
         <article class="tCard">
@@ -74,19 +81,32 @@ $star_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3 5.8 2
                 <?php if ($source !== ''): ?>
                   <span><?php echo esc_html($source); ?></span>
                 <?php endif; ?>
-                <?php if ($time_label): ?>
-                  <span><?php echo esc_html($time_label); ?></span>
-                <?php endif; ?>
+                <?php
+                  // The publish date is deliberately not rendered. These
+                  // reviews arrived by email and were entered in one sitting,
+                  // so every card would carry the same date and read as
+                  // bulk-created rather than as reviews received over time.
+                ?>
               </div>
             </div>
           </header>
 
           <div class="tCard__body">
             <?php
-              $content = get_the_content();
-              $content = wp_strip_all_tags($content);
-              $content = str_replace('Real Tours', 'Showcase Listings Media', $content);
-              echo '<p>' . esc_html(trim($content)) . '</p>';
+              // Never rewrite a customer's words. The old str_replace() here
+              // silently swapped "Real Tours" for the current brand name.
+              //
+              // Strip tags first so the field can never emit raw HTML, then
+              // escape, then rebuild paragraphs from the surviving blank
+              // lines — multi-paragraph reviews used to collapse into one
+              // run-on block.
+              $content = wp_strip_all_tags(get_the_content());
+              foreach (preg_split('/\R{2,}/', trim($content)) ?: [] as $para) {
+                $para = trim($para);
+                if ($para !== '') {
+                  echo '<p>' . nl2br(esc_html($para)) . '</p>';
+                }
+              }
             ?>
           </div>
         </article>
@@ -94,20 +114,14 @@ $star_svg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.3 5.8 2
     </div> <!-- end .home-testimonials__grid -->
   </div> <!-- end .container -->
 </section>
+<?php endif; ?>
 
-<section style="background:#0D1B2A; padding:80px 20px; text-align:center;">
-  <div style="display:flex; justify-content:center; align-items:center; gap:80px; flex-wrap:wrap; max-width:600px; margin:0 auto;">
-    <div style="text-align:center;">
-      <div style="font-family:'Outfit',sans-serif; font-size:clamp(3rem,6vw,5rem); font-weight:800; color:#C9922A; line-height:1;"><?php echo esc_html(get_post_meta($pid, 'hp_stat_1_number', true) ?: "8"); ?></div>
-      <div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:0.75rem; font-weight:600; color:#ffffff; text-transform:uppercase; letter-spacing:0.1em; margin-top:8px;"><?php echo esc_html(get_post_meta($pid, 'hp_stat_1_label', true) ?: "Avg. Days to Sell"); ?></div>
-    </div>
-    <div style="width:1px; height:60px; background:rgba(255,255,255,0.2);"></div>
-    <div style="text-align:center;">
-      <div style="font-family:'Outfit',sans-serif; font-size:clamp(3rem,6vw,5rem); font-weight:800; color:#C9922A; line-height:1;"><?php echo esc_html(get_post_meta($pid, 'hp_stat_2_number', true) ?: "14%"); ?></div>
-      <div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:0.75rem; font-weight:600; color:#ffffff; text-transform:uppercase; letter-spacing:0.1em; margin-top:8px;"><?php echo esc_html(get_post_meta($pid, 'hp_stat_2_label', true) ?: "Above Asking Price"); ?></div>
-    </div>
-  </div>
-</section>
+<?php
+// The two stat tiles that used to sit here ("8 — Avg. Days to Sell" and
+// "14% — Above Asking Price") were removed 2026-08-12. Both were unsourced
+// hardcoded fallbacks that would have rendered as soon as this section became
+// visible. They can return once real figures are supplied.
+?>
 
 <?php
 // Resolve image URLs accurately handling meta IDs

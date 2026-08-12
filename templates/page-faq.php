@@ -33,7 +33,7 @@ $faq_groups = [
       ],
       [
         'q' => 'What areas do you serve?',
-        'a' => 'We cover five North Florida counties: Duval, St. Johns, Clay, Nassau, and Putnam. From Ponte Vedra to Fleming Island, if your listing or storefront is in Northeast Florida, we have you covered.',
+        'a' => 'We cover six North Florida counties: Duval, St. Johns, Clay, Nassau, Putnam, and Baker. From Ponte Vedra to Fleming Island, if your listing or storefront is in Northeast Florida, we have you covered.',
       ],
       [
         'q' => 'What happens if it rains?',
