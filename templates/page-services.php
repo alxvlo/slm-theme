@@ -7,7 +7,7 @@ if (!defined('ABSPATH'))
 
 // SEO
 add_filter('pre_get_document_title', function () {
-  return 'Real Estate Photography North Florida | Showcase Listings Media';
+  return 'Real Estate Photography & Business Media | Jacksonville';
 }, 99);
 add_action('wp_head', function () {
   echo '<meta name="description" content="Professional real estate photography, videography, and branding content for agents and businesses in Jacksonville and North Florida.">' . "\n";
@@ -265,7 +265,7 @@ $addons = [
     <div class="container">
       <div class="svc-hero__content">
         <p class="svc-hero__eyebrow">Jacksonville &amp; North Florida</p>
-        <h1 class="svc-hero__title">Real Estate Photography &amp; Video Services in Jacksonville &amp; North Florida</h1>
+        <h1 class="svc-hero__title">Real Estate Photography &amp; Video Services for Agents and Businesses in Jacksonville &amp; North Florida</h1>
         <p class="svc-hero__sub">We offer professional real estate photography, videography, and branding content designed to help agents and businesses stand out in Jacksonville and throughout North Florida. Whether you&rsquo;re marketing a listing or building your brand, our services are built to deliver high-quality visuals that drive attention and results.</p>
       </div>
     </div>
