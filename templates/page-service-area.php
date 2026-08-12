@@ -9,10 +9,7 @@ get_header();
 
 $pid = get_the_ID();
 
-$order_form_url = function_exists('slm_aryeo_public_order_form_url')
-  ? slm_aryeo_public_order_form_url()
-  : '';
-$book_url    = $order_form_url !== '' ? $order_form_url : home_url('/contact/');
+$book_url    = function_exists('slm_book_url') ? slm_book_url() : home_url('/contact/');
 $contact_url = home_url('/contact/');
 
 $counties = [

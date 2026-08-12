@@ -4906,6 +4906,16 @@ body.page-template-admin-portal .site-footer {
 .svc-grid--5 .svc-card:nth-child(5) { grid-column: span 2; }
 .svc-grid--5 .svc-card:nth-child(6) { grid-column: span 2; }
 
+/* Grids that hold exactly FIVE cards centre their trailing row of two.
+   :nth-child(4):nth-last-child(2) matches only when card 4 is second-to-last,
+   i.e. a 5-card grid — so /service-area/'s 6-card counties grid is untouched.
+   Scoped to min-width 981px so it can never reach the responsive stacks below. */
+@media (min-width: 981px) {
+  .svc-grid--5 .svc-card:nth-child(4):nth-last-child(2) {
+    grid-column: 2 / span 2;
+  }
+}
+
 /* --- Cards --- */
 .svc-card {
   background: #fff;
