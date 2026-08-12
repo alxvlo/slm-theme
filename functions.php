@@ -418,6 +418,48 @@ function slm_primary_nav_fallback(): void
 }
 
 /**
+ * Render childless "#" items in the primary menu as non-interactive labels.
+ *
+ * The Services dropdown uses three Custom Link items — "Listing Media",
+ * "Social & Brand Content" and "Memberships" — purely as visual group dividers
+ * among a flat list of children. As `<a href="#">` they announce to a screen
+ * reader as links and sit in the tab order while going nowhere (review item 5).
+ * They have no children of their own, so main.js never bound them as submenu
+ * toggles — its `li.menu-item-has-children > a` selector cannot match them — and
+ * nav.css already kills their clicks with `pointer-events: none`. A `<span>` is
+ * simply the honest markup for what they already are.
+ *
+ * "More" is deliberately left alone. It is also `href="#"`, but it HAS children
+ * and main.js turns it into a working submenu toggle, so it must stay an anchor
+ * to remain keyboard-reachable. Converting it needs a real `<button>` plus JS
+ * changes — tracked separately.
+ */
+add_filter('walker_nav_menu_start_el', function ($item_output, $item, $depth, $args) {
+  // The footer location gets its own menu; only the primary nav has group labels.
+  if (!is_object($args) || ($args->theme_location ?? '') !== 'primary') {
+    return $item_output;
+  }
+
+  $url = isset($item->url) ? trim((string) $item->url) : '';
+  if ($url !== '' && $url !== '#') {
+    return $item_output;
+  }
+
+  // A "#" item WITH children is a submenu toggle, not a label. Leave it be.
+  $classes = isset($item->classes) ? (array) $item->classes : [];
+  if (in_array('menu-item-has-children', $classes, true)) {
+    return $item_output;
+  }
+
+  $title = isset($item->title) ? trim((string) $item->title) : '';
+  if ($title === '') {
+    return $item_output;
+  }
+
+  return '<span class="nav__groupLabel">' . esc_html($title) . '</span>';
+}, 10, 4);
+
+/**
  * 301 stray copies of the portfolio page to the canonical one (review item 6).
  * The legacy /portfolio/ page still carries the portfolio template in prod's
  * database; anything rendering that template other than the canonical page is

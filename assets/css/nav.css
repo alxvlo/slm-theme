@@ -161,16 +161,26 @@ body.has-mobile-menu {
    Services dropdown group headers
    Non-interactive divider labels ("Listing Media", "Social & Brand
    Content", "Memberships") added as Custom Link items carrying the
-   `nav-group-header` class. pointer-events:none keeps them from acting
-   as links (and stops main.js's generic anchor click handler firing).
+   `nav-group-header` class. A `walker_nav_menu_start_el` filter in
+   functions.php renders these childless "#" items as
+   `<span class="nav__groupLabel">` so they no longer announce as links
+   or take keyboard focus; pointer-events:none stays as belt-and-braces.
+   `> a` is kept in the selectors so the labels still render correctly if
+   the filter is ever removed or an environment renders them as anchors.
 ========================= */
 .nav__menu .sub-menu .nav-group-header {
   pointer-events: none;
 }
 
-.nav__menu .sub-menu .nav-group-header > a {
+.nav__menu .sub-menu .nav-group-header > a,
+.nav__menu .sub-menu .nav-group-header > span {
   pointer-events: none;
   cursor: default;
+  /* display and border-radius were inherited from `.nav__menu .sub-menu a`
+     above, which no longer matches a <span>. Without them the padding and
+     the divider border-top collapse to inline-box behaviour. */
+  display: block;
+  border-radius: 9px;
   padding: 11px 11px 5px;
   margin-top: 7px;
   border-top: 1px solid rgba(15, 39, 68, 0.09);
@@ -188,7 +198,8 @@ body.has-mobile-menu {
 }
 
 /* The first group header opens the dropdown — no divider line above it. */
-.nav__menu .sub-menu .nav-group-header:first-child > a {
+.nav__menu .sub-menu .nav-group-header:first-child > a,
+.nav__menu .sub-menu .nav-group-header:first-child > span {
   border-top: 0;
   margin-top: 0;
   padding-top: 4px;

@@ -5061,6 +5061,16 @@ body.page-template-admin-portal .site-footer {
     grid-column: span 1 !important;
   }
 
+  /* The <=980px two-column layout centres a lone 5th card at half width. In the
+     one-column stack that just makes the last card look broken, and the rule
+     above resets only grid-column, not max-width. Same selector as the 980px
+     rule so source order decides. */
+  .svc-grid--5 .svc-card:nth-child(5):last-child {
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
   .svc-hero {
     padding: 64px 0 56px;
   }
